@@ -12,11 +12,22 @@ Deno.serve(async (request) => {
     return jsonResponse(errorEnvelope('METHOD_NOT_ALLOWED', 'POST required'), 405);
   }
 
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader) {
+    return jsonResponse(errorEnvelope('AUTH_REQUIRED', 'Missing authorization'), 401);
+  }
   const supabase = createServiceClient();
+  const { data: authData, error: authError } = await supabase.auth.getUser(
+    authHeader.replace(/^Bearer\s+/i, ''),
+  );
+  if (authError || !authData.user) {
+    return jsonResponse(errorEnvelope('AUTH_REQUIRED', 'Invalid session'), 401);
+  }
   const { data, error } = await supabase
     .from('reports')
-    .select('id, report_type, title, as_of, period_start, period_end, summary')
+    .select('id, report_type, title, as_of, period_start, period_end, summary, user_id')
     .eq('status', 'published')
+    .or(`user_id.is.null,user_id.eq.${authData.user.id}`)
     .order('as_of', { ascending: false })
     .limit(20);
 
@@ -41,6 +52,7 @@ Deno.serve(async (request) => {
   return jsonResponse(
     envelope(
       [...latestByType.values()].map((report) => ({
+        id: report.id,
         type: labels[report.report_type] ?? report.report_type,
         title: report.title,
         date: report.period_end ?? report.as_of.slice(0, 10),

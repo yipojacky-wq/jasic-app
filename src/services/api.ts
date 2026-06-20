@@ -6,6 +6,7 @@ import type {
   AlertSummary,
   DashboardData,
   ReportSummary,
+  ReportDetail,
   StockWarRoomData,
   StockCandidate,
   WatchlistSummary,
@@ -80,6 +81,57 @@ export async function getReports(): Promise<ReportSummary[]> {
   }
   await delay();
   return reports;
+}
+
+export async function getReportDetail(reportId: string): Promise<ReportDetail> {
+  if (isLiveMode) {
+    return invoke<ReportDetail>('report-detail', { query: { reportId } });
+  }
+  await delay();
+  const report = reports.find((item) => item.id === reportId) ?? reports[0];
+  const reportType = {
+    Daily: 'daily_market',
+    Weekly: 'weekly_core_pool',
+    'War Room': 'stock_war_room',
+    Risk: 'risk_alert',
+  }[report.type] as ReportDetail['reportType'];
+  return {
+    ...report,
+    reportType,
+    asOf: '2026-06-20T16:30:00+08:00',
+    ruleVersion: 'demo-1.0.0',
+    stockSymbol: report.type === 'War Room' ? '2330' : undefined,
+    metrics:
+      report.type === 'Daily'
+        ? [
+            { label: 'Market Score', value: '76' },
+            { label: 'Risk Score', value: '42' },
+            { label: '市場狀態', value: 'Neutral / Rotation' },
+          ]
+        : [
+            { label: '追蹤標的', value: '20' },
+            { label: '綠燈', value: '8' },
+            { label: '高風險', value: '2' },
+          ],
+    sections: [
+      {
+        title: '核心結論',
+        tone: 'info',
+        items: [report.summary, '所有結論均需配合資料時間與個人風險承受度解讀。'],
+      },
+      {
+        title: '主要證據',
+        tone: 'positive',
+        items: ['市場廣度維持正向', '法人與技術訊號在核心候選股中較為一致'],
+      },
+      {
+        title: '風險提醒',
+        tone: 'warning',
+        items: ['利率與匯率變化可能提高波動', '暫定 Score 不包含完整個股 OI 與籌碼集中度'],
+      },
+    ],
+    disclaimer: '本報告僅供研究與風險檢核，不構成獲利保證或自動交易指令。',
+  };
 }
 
 export async function runAiCheck(input: AiCheckInput): Promise<AiCheckResult> {

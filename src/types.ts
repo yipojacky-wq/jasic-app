@@ -37,10 +37,33 @@ export interface DashboardData {
 }
 
 export interface ReportSummary {
+  id: string;
   type: string;
   title: string;
   date: string;
   summary: string;
+}
+
+export interface ReportSection {
+  title: string;
+  items: string[];
+  tone?: 'info' | 'positive' | 'warning' | 'danger';
+}
+
+export interface ReportMetric {
+  label: string;
+  value: string;
+  note?: string;
+}
+
+export interface ReportDetail extends ReportSummary {
+  reportType: 'daily_market' | 'weekly_core_pool' | 'stock_war_room' | 'risk_alert';
+  asOf: string;
+  ruleVersion: string;
+  stockSymbol?: string;
+  metrics: ReportMetric[];
+  sections: ReportSection[];
+  disclaimer: string;
 }
 
 export interface AiCheckInput {

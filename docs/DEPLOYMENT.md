@@ -17,6 +17,8 @@ supabase functions deploy score-calculate
 supabase functions deploy stock-war-room
 supabase functions deploy watchlist-summary
 supabase functions deploy alert-evaluate
+supabase functions deploy report-generate
+supabase functions deploy report-detail
 ```
 
 設定伺服器 secrets：

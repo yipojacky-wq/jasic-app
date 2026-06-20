@@ -18,8 +18,8 @@ export const candidates: StockCandidate[] = [
 ];
 
 export const reports = [
-  { type: 'Daily', title: '每日市場戰情', date: '2026.06.20', summary: '風險偏好中性偏多，留意美債殖利率回升。' },
-  { type: 'Weekly', title: '核心池週報', date: '2026 W25', summary: '半導體與 AI 伺服器維持相對強勢。' },
-  { type: 'War Room', title: '台積電個股戰情室', date: '2026.06.20', summary: '趨勢完整，籌碼偏多，追價風險中等。' },
-  { type: 'Risk', title: '風險警示報告', date: '2026.06.20', summary: 'VIX 轉折與匯率波動列為本週主要風險。' },
+  { id: 'demo-daily', type: 'Daily', title: '每日市場戰情', date: '2026.06.20', summary: '風險偏好中性偏多，留意美債殖利率回升。' },
+  { id: 'demo-weekly', type: 'Weekly', title: '核心池週報', date: '2026 W25', summary: '半導體與 AI 伺服器維持相對強勢。' },
+  { id: 'demo-stock', type: 'War Room', title: '台積電個股戰情室', date: '2026.06.20', summary: '趨勢完整，籌碼偏多，追價風險中等。' },
+  { id: 'demo-risk', type: 'Risk', title: '風險警示報告', date: '2026.06.20', summary: 'VIX 轉折與匯率波動列為本週主要風險。' },
 ];

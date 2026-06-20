@@ -31,7 +31,7 @@ export function StockWarRoomScreen({ symbol }: { symbol: string }) {
   const mobile = width < 640;
   const queryClient = useQueryClient();
   const closeStock = useAppStore((state) => state.closeStock);
-  const setActiveTab = useAppStore((state) => state.setActiveTab);
+  const startAiCheck = useAppStore((state) => state.startAiCheck);
   const demoWatchlist = useAppStore((state) => state.watchlist);
   const toggleDemoWatchlist = useAppStore((state) => state.toggleWatchlist);
 
@@ -159,7 +159,7 @@ export function StockWarRoomScreen({ symbol }: { symbol: string }) {
         />
         <PrimaryButton
           label="使用此股票執行 AI Check"
-          onPress={() => setActiveTab('ai-check')}
+          onPress={() => startAiCheck(stock.symbol)}
         />
       </View>
     </View>

@@ -63,6 +63,17 @@ Runs after score calculation and checks each tracked stock against the user's en
 
 Alerts use a deterministic deduplication key containing user, stock, rule type and score timestamp. Re-running the job therefore does not create duplicate notifications.
 
+### `report-generate`
+
+Runs after scores and alerts:
+
+- Daily Market Report from the latest market snapshot.
+- Weekly Core Pool Report from the latest Discovery Top 20.
+- Stock War Room Report for the current highest-ranked candidate.
+- Risk Alert Report from market risk and candidate risk flags.
+
+Every report has a stable `report_key`. Re-running the same data and rule version updates the existing report instead of creating duplicates. Report content stores metrics, sections, disclaimer, data timestamp and rule version.
+
 ## Security
 
 Both scheduled functions require:

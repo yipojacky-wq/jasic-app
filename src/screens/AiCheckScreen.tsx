@@ -12,6 +12,7 @@ import {
 
 import { Badge, Card, PrimaryButton, ProgressBar, SectionHeader } from '../components/ui';
 import { runAiCheck } from '../services/api';
+import { useAppStore } from '../store/useAppStore';
 import { colors } from '../theme';
 
 const horizons = ['短線', '波段', '中期', '長期'];
@@ -23,7 +24,8 @@ const profileLabels: Record<string, string> = {
 };
 
 export function AiCheckScreen() {
-  const [symbol, setSymbol] = useState('2330');
+  const aiCheckSymbol = useAppStore((state) => state.aiCheckSymbol);
+  const [symbol, setSymbol] = useState(aiCheckSymbol);
   const [cost, setCost] = useState('980');
   const [lots, setLots] = useState('1');
   const [horizon, setHorizon] = useState('中期');

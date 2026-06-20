@@ -50,3 +50,13 @@ jobs:
             --request POST \
             --header "x-cron-secret: $CRON_SECRET" \
             "$SUPABASE_URL/functions/v1/alert-evaluate"
+
+      - name: Generate trend reports
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --fail-with-body \
+            --request POST \
+            --header "x-cron-secret: $CRON_SECRET" \
+            "$SUPABASE_URL/functions/v1/report-generate"
