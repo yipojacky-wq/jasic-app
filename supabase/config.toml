@@ -69,3 +69,6 @@ verify_jwt = true
 
 [functions.portfolio-summary]
 verify_jwt = true
+
+[functions.ai-check-history]
+verify_jwt = true

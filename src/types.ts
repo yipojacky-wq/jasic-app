@@ -85,6 +85,22 @@ export interface AiCheckResult {
   confidence: number;
 }
 
+export interface AiCheckHistoryItem extends AiCheckResult {
+  id: string;
+  symbol: string;
+  name: string;
+  exchange: string;
+  cost: number;
+  quantityShares: number;
+  investmentHorizon: string;
+  riskProfile: string;
+  requestedAt: string;
+  modelIdentifier: string;
+  promptVersion: string;
+  ruleVersion: string;
+  createdAt: string;
+}
+
 export interface ScoreDimension {
   label: 'Market' | 'Institution' | 'Chip' | 'OI' | 'Technical';
   value: number;

@@ -167,8 +167,19 @@ Deno.serve(async (request) => {
     .select('id')
     .single();
 
-  if (!requestError && aiRequest) {
-    await supabase.from('ai_check_results').insert({
+  if (requestError || !aiRequest) {
+    return jsonResponse(
+      errorEnvelope(
+        'DATABASE_ERROR',
+        requestError?.message ?? 'AI request was not persisted',
+      ),
+      500,
+    );
+  }
+
+  const { error: resultError } = await supabase
+    .from('ai_check_results')
+    .insert({
       request_id: aiRequest.id,
       ...result,
       facts_snapshot: facts,
@@ -176,6 +187,12 @@ Deno.serve(async (request) => {
       prompt_version: 'ai-check-1.0.0',
       rule_version: score.rule_version,
     });
+  if (resultError) {
+    await supabase.from('ai_check_requests').delete().eq('id', aiRequest.id);
+    return jsonResponse(
+      errorEnvelope('DATABASE_ERROR', resultError.message),
+      500,
+    );
   }
 
   return jsonResponse(

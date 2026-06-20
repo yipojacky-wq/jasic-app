@@ -12,6 +12,7 @@ JASIC may store:
 - user-entered research positions, including average cost, quantity, horizon and note;
 - user-entered AI Check position inputs;
 - AI Check conclusions, reasons, risks and suggestions;
+- AI Check model, prompt and deterministic rule version identifiers;
 - read/unread alert state;
 - personal reports created for the user;
 - terms version and acceptance timestamp.

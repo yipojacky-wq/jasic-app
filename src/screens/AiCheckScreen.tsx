@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import {
@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { Badge, Card, PrimaryButton, ProgressBar, SectionHeader } from '../components/ui';
+import { AiCheckHistory } from '../components/AiCheckHistory';
 import { horizonLabel, sharesToLots } from '../lib/positions';
 import { getUserPositions, getUserProfile, runAiCheck } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
@@ -26,6 +27,7 @@ const profileLabels: Record<string, string> = {
 };
 
 export function AiCheckScreen() {
+  const queryClient = useQueryClient();
   const aiCheckSymbol = useAppStore((state) => state.aiCheckSymbol);
   const [symbol, setSymbol] = useState(aiCheckSymbol);
   const [cost, setCost] = useState('980');
@@ -40,7 +42,12 @@ export function AiCheckScreen() {
     queryKey: ['user-positions'],
     queryFn: getUserPositions,
   });
-  const mutation = useMutation({ mutationFn: runAiCheck });
+  const mutation = useMutation({
+    mutationFn: runAiCheck,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['ai-check-history'] });
+    },
+  });
 
   useEffect(() => {
     if (!profile.data) return;
@@ -184,7 +191,9 @@ export function AiCheckScreen() {
               <ResultList title="原因" items={mutation.data.reasons} tone="info" />
               <ResultList title="風險" items={mutation.data.risks} tone="danger" />
               <ResultList title="建議" items={mutation.data.suggestions} tone="positive" />
-              <Text style={styles.timestamp}>資料時間：2026-06-20 16:30 Asia/Taipei</Text>
+              <Text style={styles.timestamp}>
+                檢核完成；正式模式會保存資料時間、模型與規則版本。
+              </Text>
             </Card>
           ) : (
             <Card style={styles.emptyCard}>
@@ -197,6 +206,9 @@ export function AiCheckScreen() {
           )}
         </View>
       </View>
+
+      <SectionHeader eyebrow="Decision Journal" title="AI Check 歷史紀錄" />
+      <AiCheckHistory />
     </View>
   );
 }

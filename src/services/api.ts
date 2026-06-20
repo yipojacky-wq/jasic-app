@@ -22,6 +22,7 @@ import type {
   PortfolioSummary,
   AlertRule,
   AlertRuleUpdate,
+  AiCheckHistoryItem,
 } from '../types';
 
 const delay = (ms = 180) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -61,6 +62,30 @@ let demoAlertRules: AlertRule[] = [
     threshold: 70,
     isEnabled: true,
     updatedAt: '2026-06-20T16:30:00+08:00',
+  },
+];
+
+let demoAiCheckHistory: AiCheckHistoryItem[] = [
+  {
+    id: 'demo-ai-history-1',
+    symbol: '2330',
+    name: '台積電',
+    exchange: 'TWSE',
+    cost: 980,
+    quantityShares: 1000,
+    investmentHorizon: '中期',
+    riskProfile: 'balanced',
+    requestedAt: '2026-06-20T16:30:00+08:00',
+    action: 'HOLD',
+    conclusion: '趨勢與法人條件仍具支撐，續抱但不追價。',
+    reasons: ['JASIC Score 維持高檔', '市場環境中性偏多'],
+    risks: ['短線漲幅擴大', '美債殖利率可能影響評價'],
+    suggestions: ['依支撐管理風險', '訊號轉弱時重新檢核'],
+    confidence: 82,
+    modelIdentifier: 'demo-model',
+    promptVersion: 'ai-check-1.0.0',
+    ruleVersion: 'demo-1.0.0',
+    createdAt: '2026-06-20T16:30:01+08:00',
   },
 ];
 
@@ -188,7 +213,39 @@ export async function runAiCheck(input: AiCheckInput): Promise<AiCheckResult> {
   if (isLiveMode) {
     return invoke<AiCheckResult>('ai-check', { body: input });
   }
-  return runDemoAiCheck(input);
+  const result = await runDemoAiCheck(input);
+  const stock = candidates.find((item) => item.symbol === input.symbol);
+  const createdAt = new Date().toISOString();
+  demoAiCheckHistory = [
+    {
+      id: `demo-ai-history-${Date.now()}`,
+      symbol: input.symbol,
+      name: stock?.name ?? input.symbol,
+      exchange: 'TWSE',
+      cost: input.cost,
+      quantityShares: input.lots * 1000,
+      investmentHorizon: input.horizon,
+      riskProfile: input.riskProfile,
+      requestedAt: createdAt,
+      ...result,
+      modelIdentifier: 'demo-model',
+      promptVersion: 'ai-check-1.0.0',
+      ruleVersion: 'demo-1.0.0',
+      createdAt,
+    },
+    ...demoAiCheckHistory,
+  ].slice(0, 50);
+  return result;
+}
+
+export async function getAiCheckHistory(): Promise<AiCheckHistoryItem[]> {
+  if (isLiveMode) {
+    return invoke<AiCheckHistoryItem[]>('ai-check-history', {
+      query: { limit: '20' },
+    });
+  }
+  await delay();
+  return [...demoAiCheckHistory];
 }
 
 export async function getStockWarRoom(symbol: string): Promise<StockWarRoomData> {

@@ -24,6 +24,7 @@ supabase functions deploy data-health
 supabase functions deploy user-data-export
 supabase functions deploy account-delete
 supabase functions deploy portfolio-summary
+supabase functions deploy ai-check-history
 ```
 
 設定伺服器 secrets：
@@ -76,6 +77,7 @@ iOS App Store 發佈需要 Apple Developer 帳號。Android Play Store 發佈需
 - 五大總經與 JASIC Score 規則已有版本號。
 - Edge Functions 全部啟用 JWT 驗證與 rate limit。
 - AI Check 有 prompt injection、stale data、low confidence 測試。
+- AI Check 歷史 API 只回傳登入使用者紀錄，並保留模型、Prompt 與規則版本。
 - RLS 測試證明使用者無法讀取其他人的資料。
 - Auth redirect URLs 已加入正式 Web domain 與手機 deep link。
 - OpenAI 使用量、錯誤率與延遲已有監控。
