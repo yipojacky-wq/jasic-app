@@ -29,6 +29,7 @@ JASIC 是一套以 React Native + Expo 建立的股票研究工具，同一套 T
 - Privacy Center：個人資料 JSON 匯出、帳號永久刪除與保留說明
 - Alpha Onboarding Gate：正式帳號完成風險偏好、投資期間與當前條款同意後才能進入分析功能
 - Research Session：保留目前頁面、個股 War Room、AI Check 股票與 Demo Watchlist，支援 Web／手機深層連結
+- Research Sharing：War Room 與 AI Check 可分享含資料時間、規則版本、風險與免責聲明的研究摘要
 - EAS Build：Development、Preview、Production 建置 profiles
 - EOD Data Pipeline：TWSE／TPEx 日行情與三大法人
 - Provisional Score Pipeline：20 日特徵、Market Score、Stock Score、Top 20

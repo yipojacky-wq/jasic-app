@@ -131,6 +131,9 @@ export interface AiCheckResult {
   risks: string[];
   suggestions: string[];
   confidence: number;
+  dataAsOf?: string;
+  ruleVersion?: string;
+  modelIdentifier?: string;
 }
 
 export interface AiCheckHistoryItem extends AiCheckResult {

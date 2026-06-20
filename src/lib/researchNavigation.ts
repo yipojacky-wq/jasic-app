@@ -53,7 +53,11 @@ export function parseResearchLocation(
   if (!activeTab && !stock && !aiSymbol) return null;
   return {
     ...(activeTab ? { activeTab } : {}),
-    ...(stock ? { selectedSymbol: stock } : {}),
+    ...(stock
+      ? { selectedSymbol: stock }
+      : activeTab
+        ? { selectedSymbol: null }
+        : {}),
     ...(aiSymbol ? { activeTab: 'ai-check', aiCheckSymbol: aiSymbol } : {}),
   };
 }

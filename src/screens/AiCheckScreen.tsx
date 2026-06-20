@@ -13,6 +13,11 @@ import {
 import { Badge, Card, PrimaryButton, ProgressBar, SectionHeader } from '../components/ui';
 import { AiCheckHistory } from '../components/AiCheckHistory';
 import { horizonLabel, sharesToLots } from '../lib/positions';
+import {
+  aiCheckResearchUrl,
+  aiCheckShareText,
+} from '../lib/researchShare';
+import { currentWebOrigin, shareResearch } from '../lib/shareResearch';
 import { getUserPositions, getUserProfile, runAiCheck } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { colors } from '../theme';
@@ -34,6 +39,7 @@ export function AiCheckScreen() {
   const [lots, setLots] = useState('1');
   const [horizon, setHorizon] = useState('中期');
   const [riskProfile, setRiskProfile] = useState('balanced');
+  const [shareStatus, setShareStatus] = useState<string | null>(null);
   const profile = useQuery({
     queryKey: ['user-profile'],
     queryFn: getUserProfile,
@@ -73,6 +79,7 @@ export function AiCheckScreen() {
   }, [positions.data, symbol]);
 
   const submit = () => {
+    setShareStatus(null);
     mutation.mutate({
       symbol: symbol.trim(),
       cost: Number(cost),
@@ -80,6 +87,28 @@ export function AiCheckScreen() {
       horizon,
       riskProfile,
     });
+  };
+
+  const shareResult = async () => {
+    if (!mutation.data) return;
+    setShareStatus(null);
+    try {
+      const normalizedSymbol = symbol.trim();
+      const url = aiCheckResearchUrl(normalizedSymbol, currentWebOrigin());
+      const outcome = await shareResearch(
+        `JASIC AI Check｜${normalizedSymbol}`,
+        aiCheckShareText(normalizedSymbol, mutation.data, url),
+      );
+      setShareStatus(
+        outcome === 'copied'
+          ? 'AI Check 摘要與連結已複製。'
+          : 'AI Check 摘要已開啟分享。',
+      );
+    } catch (error) {
+      setShareStatus(
+        error instanceof Error ? error.message : 'AI Check 分享失敗，請稍後再試。',
+      );
+    }
   };
 
   return (
@@ -191,6 +220,16 @@ export function AiCheckScreen() {
               <ResultList title="原因" items={mutation.data.reasons} tone="info" />
               <ResultList title="風險" items={mutation.data.risks} tone="danger" />
               <ResultList title="建議" items={mutation.data.suggestions} tone="positive" />
+              <View style={styles.resultActions}>
+                <PrimaryButton
+                  label="分享 AI Check"
+                  onPress={() => void shareResult()}
+                  secondary
+                />
+              </View>
+              {shareStatus ? (
+                <Text style={styles.shareStatus}>{shareStatus}</Text>
+              ) : null}
               <Text style={styles.timestamp}>
                 檢核完成；正式模式會保存資料時間、模型與規則版本。
               </Text>
@@ -336,4 +375,6 @@ const styles = StyleSheet.create({
   bullet: { color: colors.primary, fontSize: 14 },
   bulletText: { color: colors.textSoft, flex: 1, fontSize: 12, lineHeight: 18 },
   timestamp: { color: '#96A1B1', fontSize: 10, marginTop: 4 },
+  resultActions: { alignItems: 'flex-start' },
+  shareStatus: { color: colors.textSoft, fontSize: 10 },
 });

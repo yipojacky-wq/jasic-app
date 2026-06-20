@@ -2,6 +2,17 @@
 
 This document is an engineering baseline for Alpha testing. It is not a substitute for legal review.
 
+## Research sharing
+
+War Room and AI Check sharing is initiated explicitly by the user. Shared
+summaries include the stock symbol, research conclusion, confidence, reasons,
+risks, data timestamp, rule version, research link and disclaimer.
+
+Position cost, quantity, account identity, authentication credentials and the
+full private decision journal are excluded from generated share text. On Web,
+the generated summary is copied to the clipboard. On mobile, it is passed to
+the operating system share sheet, where the user chooses the destination.
+
 ## Data collected
 
 JASIC may store:

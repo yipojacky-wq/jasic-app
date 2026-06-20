@@ -11,7 +11,7 @@ import {
 test('research navigation parses web tabs and stock deep links', () => {
   assert.deepEqual(
     parseResearchLocation('https://app.jasic.tw/?tab=settings'),
-    { activeTab: 'settings' },
+    { activeTab: 'settings', selectedSymbol: null },
   );
   assert.deepEqual(
     parseResearchLocation('https://app.jasic.tw/?stock=2330'),
@@ -26,6 +26,7 @@ test('research navigation parses native scheme routes', () => {
   });
   assert.deepEqual(parseResearchLocation('jasic://ai-check/2308'), {
     activeTab: 'ai-check',
+    selectedSymbol: null,
     aiCheckSymbol: '2308',
   });
 });

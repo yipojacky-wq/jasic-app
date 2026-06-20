@@ -97,6 +97,7 @@ type ApiEnvelope<T> = {
   data: T;
   meta?: {
     data_as_of?: string;
+    model_identifier?: string;
     request_id?: string;
     rule_version?: string;
   };
@@ -107,6 +108,14 @@ async function invoke<T>(
   functionName: string,
   options?: { body?: unknown; query?: Record<string, string> },
 ): Promise<T> {
+  const response = await invokeEnvelope<T>(functionName, options);
+  return response.data;
+}
+
+async function invokeEnvelope<T>(
+  functionName: string,
+  options?: { body?: unknown; query?: Record<string, string> },
+): Promise<ApiEnvelope<T>> {
   if (!supabase || !isLiveMode) {
     throw new Error('LIVE_API_NOT_CONFIGURED');
   }
@@ -124,7 +133,7 @@ async function invoke<T>(
   if (!data || data.error) {
     throw new Error(data?.error?.message ?? 'EMPTY_API_RESPONSE');
   }
-  return data.data;
+  return data;
 }
 
 export async function getDashboard(): Promise<DashboardData> {
@@ -280,7 +289,13 @@ export async function setReportBookmark(
 
 export async function runAiCheck(input: AiCheckInput): Promise<AiCheckResult> {
   if (isLiveMode) {
-    return invoke<AiCheckResult>('ai-check', { body: input });
+    const response = await invokeEnvelope<AiCheckResult>('ai-check', { body: input });
+    return {
+      ...response.data,
+      dataAsOf: response.meta?.data_as_of,
+      ruleVersion: response.meta?.rule_version,
+      modelIdentifier: response.meta?.model_identifier,
+    };
   }
   const result = await runDemoAiCheck(input);
   const stock = candidates.find((item) => item.symbol === input.symbol);
@@ -880,6 +895,9 @@ async function runDemoAiCheck(input: AiCheckInput): Promise<AiCheckResult> {
       risks: ['美債殖利率回升可能壓抑評價', '短線漲幅擴大，追價風險提高'],
       suggestions: ['以既定停損或風險預算管理部位', '若跌破主要支撐，重新執行 AI Check'],
       confidence: 82,
+      dataAsOf: '2026-06-20T16:30:00+08:00',
+      ruleVersion: 'demo-1.0.0',
+      modelIdentifier: 'demo-model',
     };
   }
 
@@ -890,5 +908,8 @@ async function runDemoAiCheck(input: AiCheckInput): Promise<AiCheckResult> {
     risks: ['資料完整度或 OI 覆蓋可能不足', '震盪環境容易出現假突破'],
     suggestions: ['等待法人與技術訊號同步', '先設定可承受損失，再決定是否建立部位'],
     confidence: 68,
+    dataAsOf: '2026-06-20T16:30:00+08:00',
+    ruleVersion: 'demo-1.0.0',
+    modelIdentifier: 'demo-model',
   };
 }

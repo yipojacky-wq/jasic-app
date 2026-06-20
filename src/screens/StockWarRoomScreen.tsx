@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -22,6 +23,11 @@ import {
   setWatchlistMembership,
 } from '../services/api';
 import { isLiveMode } from '../lib/supabase';
+import {
+  stockResearchUrl,
+  warRoomShareText,
+} from '../lib/researchShare';
+import { currentWebOrigin, shareResearch } from '../lib/shareResearch';
 import { useAppStore } from '../store/useAppStore';
 import { colors } from '../theme';
 import type { ScoreDimension } from '../types';
@@ -34,6 +40,7 @@ export function StockWarRoomScreen({ symbol }: { symbol: string }) {
   const startAiCheck = useAppStore((state) => state.startAiCheck);
   const demoWatchlist = useAppStore((state) => state.watchlist);
   const toggleDemoWatchlist = useAppStore((state) => state.toggleWatchlist);
+  const [shareStatus, setShareStatus] = useState<string | null>(null);
 
   const warRoom = useQuery({
     queryKey: ['stock-war-room', symbol],
@@ -78,6 +85,25 @@ export function StockWarRoomScreen({ symbol }: { symbol: string }) {
   }
 
   const stock = warRoom.data;
+  const shareStock = async () => {
+    setShareStatus(null);
+    try {
+      const url = stockResearchUrl(stock.symbol, currentWebOrigin());
+      const outcome = await shareResearch(
+        `JASIC 個股研究｜${stock.name} ${stock.symbol}`,
+        warRoomShareText(stock, url),
+      );
+      setShareStatus(
+        outcome === 'copied'
+          ? '研究摘要與連結已複製。'
+          : '研究摘要已開啟分享。',
+      );
+    } catch (error) {
+      setShareStatus(
+        error instanceof Error ? error.message : '研究分享失敗，請稍後再試。',
+      );
+    }
+  };
   return (
     <View style={styles.page}>
       <Pressable onPress={closeStock}>
@@ -146,6 +172,11 @@ export function StockWarRoomScreen({ symbol }: { symbol: string }) {
       ) : null}
       <View style={styles.actions}>
         <PrimaryButton
+          label="分享研究摘要"
+          onPress={() => void shareStock()}
+          secondary
+        />
+        <PrimaryButton
           disabled={membership.isPending}
           label={
             membership.isPending
@@ -162,6 +193,7 @@ export function StockWarRoomScreen({ symbol }: { symbol: string }) {
           onPress={() => startAiCheck(stock.symbol)}
         />
       </View>
+      {shareStatus ? <Text style={styles.shareStatus}>{shareStatus}</Text> : null}
     </View>
   );
 }
@@ -271,4 +303,5 @@ const styles = StyleSheet.create({
   detailText: { color: colors.textSoft, flex: 1, fontSize: 12, lineHeight: 18 },
   actionError: { color: colors.red, fontSize: 11, textAlign: 'right' },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'flex-end' },
+  shareStatus: { color: colors.textSoft, fontSize: 10, textAlign: 'right' },
 });

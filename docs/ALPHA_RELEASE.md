@@ -63,6 +63,8 @@ npx eas-cli build --profile production --platform all
 - Web tab, AI Check and stock War Room deep links survive a full reload.
 - Mobile `jasic://ai-check/{symbol}` and `jasic://stock/{symbol}` routes are tested in a preview build.
 - Research-session storage contains no position cost, quantity, AI response or authentication secret.
+- War Room and AI Check sharing includes data timestamp, rule version, confidence, risk and disclaimer.
+- Shared AI Check text excludes position cost and quantity.
 - New and terms-outdated accounts are blocked by onboarding until the current terms are explicitly accepted.
 - Privacy and disclaimer text reviewed by qualified counsel.
 - No automatic order placement or guaranteed-profit wording exists.
