@@ -53,6 +53,17 @@ Do not launch Top 20 as a production claim with fewer than 20 valid sessions. `s
 5. Creates versioned `stock_score_snapshots`.
 6. Creates a Discovery run and Top 20 candidates.
 
+Each candidate stores and exposes:
+
+- layer-by-layer pass, caution or reject status;
+- market, institution, technical and risk scores used by the funnel;
+- deterministic ranking reasons;
+- known risk flags;
+- confidence, data timestamp and rule version.
+
+The client may search, filter and reorder the returned candidate set. Client
+sorting does not change the original deterministic rank saved by the pipeline.
+
 ### `alert-evaluate`
 
 Runs after score calculation and checks each tracked stock against the user's enabled alert rules:

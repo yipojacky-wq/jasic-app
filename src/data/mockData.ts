@@ -9,13 +9,59 @@ export const marketIndicators: MarketIndicator[] = [
 ];
 
 export const candidates: StockCandidate[] = [
-  { symbol: '2330', name: '台積電', industry: '半導體', score: 88, change: 3.2, signal: 'green', category: '趨勢延續', risk: '中' },
-  { symbol: '2454', name: '聯發科', industry: 'IC 設計', score: 84, change: 1.8, signal: 'green', category: '法人累積', risk: '中' },
-  { symbol: '2382', name: '廣達', industry: 'AI 伺服器', score: 81, change: 4.1, signal: 'green', category: '突破', risk: '中' },
-  { symbol: '2308', name: '台達電', industry: '電源管理', score: 78, change: -0.6, signal: 'yellow', category: '趨勢整理', risk: '低' },
-  { symbol: '2881', name: '富邦金', industry: '金融', score: 75, change: 1.1, signal: 'yellow', category: '價值輪動', risk: '低' },
-  { symbol: '3017', name: '奇鋐', industry: '散熱', score: 73, change: 5.4, signal: 'yellow', category: '高動能', risk: '高' },
+  demoCandidate(1, '2330', '台積電', '半導體', 88, 3.2, 'green', 'trend', '中', 78),
+  demoCandidate(2, '2454', '聯發科', 'IC 設計', 84, 1.8, 'green', 'accumulation', '中', 74),
+  demoCandidate(3, '2382', '廣達', 'AI 伺服器', 81, 4.1, 'green', 'breakout', '中', 71),
+  demoCandidate(4, '2308', '台達電', '電源管理', 78, -0.6, 'yellow', 'reversal', '低', 76),
+  demoCandidate(5, '2881', '富邦金', '金融', 75, 1.1, 'yellow', 'accumulation', '低', 72),
+  demoCandidate(6, '3017', '奇鋐', '散熱', 73, 5.4, 'yellow', 'breakout', '高', 61),
 ];
+
+function demoCandidate(
+  rank: number,
+  symbol: string,
+  name: string,
+  industry: string,
+  score: number,
+  change: number,
+  signal: StockCandidate['signal'],
+  category: string,
+  risk: StockCandidate['risk'],
+  confidence: number,
+): StockCandidate {
+  return {
+    rank,
+    symbol,
+    name,
+    industry,
+    score,
+    change,
+    signal,
+    category,
+    risk,
+    confidence,
+    layerResults: {
+      market: { status: 'pass', score: 76 },
+      institution: {
+        status: category === 'reversal' ? 'caution' : 'pass',
+        score: category === 'accumulation' ? 82 : 64,
+      },
+      technicalRisk: {
+        status: risk === '高' ? 'caution' : 'pass',
+        technicalScore: category === 'breakout' ? 86 : 78,
+        riskScore: risk === '高' ? 74 : risk === '中' ? 52 : 28,
+      },
+    },
+    rankReasons: [
+      `綜合分數 ${score}`,
+      category === 'accumulation' ? '法人流向相對強' : '技術趨勢維持正向',
+      risk === '高' ? '波動偏高需控制部位' : '風險仍在可研究區間',
+    ],
+    riskFlags: risk === '高' ? ['high_volatility'] : [],
+    dataAsOf: '2026-06-20T16:30:00+08:00',
+    ruleVersion: 'demo-1.0.0',
+  };
+}
 
 export const reports = [
   { id: 'demo-daily', type: 'Daily', title: '每日市場戰情', date: '2026.06.20', summary: '風險偏好中性偏多，留意美債殖利率回升。' },

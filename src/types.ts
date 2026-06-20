@@ -11,6 +11,7 @@ export type AiAction = 'ADD' | 'HOLD' | 'WAIT' | 'REDUCE' | 'STOP_LOSS';
 export type InvestmentHorizon = 'short' | 'swing' | 'medium' | 'long';
 
 export interface StockCandidate {
+  rank?: number;
   symbol: string;
   name: string;
   industry: string;
@@ -19,6 +20,26 @@ export interface StockCandidate {
   signal: Signal;
   category: string;
   risk: '低' | '中' | '高';
+  confidence?: number;
+  layerResults?: {
+    market: {
+      status: 'pass' | 'caution' | 'reject';
+      score?: number;
+    };
+    institution: {
+      status: 'pass' | 'caution' | 'reject';
+      score?: number;
+    };
+    technicalRisk: {
+      status: 'pass' | 'caution' | 'reject';
+      technicalScore?: number;
+      riskScore?: number;
+    };
+  };
+  rankReasons?: string[];
+  riskFlags?: string[];
+  dataAsOf?: string;
+  ruleVersion?: string;
 }
 
 export interface MarketIndicator {

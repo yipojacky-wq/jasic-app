@@ -46,6 +46,8 @@ npx eas-cli build --profile production --platform all
 
 - Supabase migrations applied successfully to a clean project.
 - At least 20 valid trading sessions loaded.
+- Discovery candidates display three-layer evidence, confidence, data timestamp and rule version.
+- Discovery search, risk/signal/category filters and CSV export tested on Web and one mobile platform.
 - All Edge Functions deployed with required secrets.
 - GitHub scheduled pipeline completes successfully.
 - Data Health page shows no stale required source.

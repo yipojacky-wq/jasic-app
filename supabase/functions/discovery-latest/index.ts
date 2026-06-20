@@ -38,6 +38,8 @@ Deno.serve(async (request) => {
       rank,
       discovery_score,
       category,
+      layer_results,
+      rank_reasons,
       risk_flags,
       stock_id,
       stocks!inner(symbol, name_zh, industry_code)
@@ -53,13 +55,14 @@ Deno.serve(async (request) => {
   const candidates = await Promise.all((data ?? []).map(async (row: any) => {
     const { data: score } = await supabase
       .from('stock_score_snapshots')
-      .select('total_score, risk_score, signal')
+      .select('total_score, risk_score, signal, confidence_score')
       .eq('stock_id', row.stock_id)
       .lte('as_of', run.as_of)
       .order('as_of', { ascending: false })
       .limit(1)
       .maybeSingle();
     return {
+      rank: row.rank,
       symbol: row.stocks.symbol,
       name: row.stocks.name_zh,
       industry: row.stocks.industry_code ?? '未分類',
@@ -67,6 +70,30 @@ Deno.serve(async (request) => {
       change: 0,
       signal: score?.signal ?? 'yellow',
       category: row.category,
+      confidence: Number(score?.confidence_score ?? 0),
+      layerResults: {
+        market: {
+          status: row.layer_results?.market?.status ?? 'caution',
+          score: Number(row.layer_results?.market?.score ?? 0),
+        },
+        institution: {
+          status: row.layer_results?.institution?.status ?? 'caution',
+          score: Number(row.layer_results?.institution?.score ?? 0),
+        },
+        technicalRisk: {
+          status: row.layer_results?.technical_risk?.status ?? 'caution',
+          technicalScore: Number(
+            row.layer_results?.technical_risk?.technical_score ?? 0,
+          ),
+          riskScore: Number(
+            row.layer_results?.technical_risk?.risk_score ?? 0,
+          ),
+        },
+      },
+      rankReasons: Array.isArray(row.rank_reasons) ? row.rank_reasons : [],
+      riskFlags: Array.isArray(row.risk_flags) ? row.risk_flags : [],
+      dataAsOf: run.as_of,
+      ruleVersion: run.rule_version,
       risk:
         Number(score?.risk_score ?? 50) >= 70
           ? '高'
