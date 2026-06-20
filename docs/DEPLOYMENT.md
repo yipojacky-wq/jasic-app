@@ -73,6 +73,26 @@ iOS App Store 發佈需要 Apple Developer 帳號。Android Play Store 發佈需
 
 ## 5. Production checklist
 
+### Deep-link routing
+
+The client accepts research routes through Web query parameters and the
+registered `jasic` mobile scheme:
+
+- `/?tab=discovery`
+- `/?tab=ai-check&symbol=2330`
+- `/?stock=2454`
+- `jasic://ai-check/2330`
+- `jasic://stock/2454`
+
+Configure the production Web host to serve `index.html` for the app root while
+preserving query parameters. Add the final HTTPS domain to Supabase Auth
+redirect URLs. Mobile universal/app links may be added later, but the custom
+scheme must remain registered for preview builds.
+
+Navigation persistence contains only the active page, selected stock symbol,
+AI Check symbol and Demo Watchlist. It must not be expanded to store position
+cost, quantity, AI responses, access tokens or other sensitive data.
+
 - 正式資料授權與 attribution 已確認。
 - 五大總經與 JASIC Score 規則已有版本號。
 - Edge Functions 全部啟用 JWT 驗證與 rate limit。

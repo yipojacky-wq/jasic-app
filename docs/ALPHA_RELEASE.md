@@ -60,6 +60,9 @@ npx eas-cli build --profile production --platform all
 - Account export tested on Web and one mobile platform.
 - Account deletion tested with a disposable account.
 - Report search, bookmark persistence and Markdown export tested on Web and one mobile platform.
+- Web tab, AI Check and stock War Room deep links survive a full reload.
+- Mobile `jasic://ai-check/{symbol}` and `jasic://stock/{symbol}` routes are tested in a preview build.
+- Research-session storage contains no position cost, quantity, AI response or authentication secret.
 - New and terms-outdated accounts are blocked by onboarding until the current terms are explicitly accepted.
 - Privacy and disclaimer text reviewed by qualified counsel.
 - No automatic order placement or guaranteed-profit wording exists.

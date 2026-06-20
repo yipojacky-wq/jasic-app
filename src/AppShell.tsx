@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 
 import { isLiveMode } from './lib/supabase';
+import { useResearchNavigation } from './hooks/useResearchNavigation';
 import { AiCheckScreen } from './screens/AiCheckScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { DiscoveryScreen } from './screens/DiscoveryScreen';
@@ -30,6 +31,7 @@ const tabs: { key: TabKey; label: string; short: string }[] = [
 ];
 
 export function AppShell() {
+  useResearchNavigation();
   const { width } = useWindowDimensions();
   const mobile = width < 760;
   const activeTab = useAppStore((state) => state.activeTab);
