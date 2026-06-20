@@ -106,6 +106,22 @@ rewrite or delete alerts that were already generated.
 
 Alerts use a deterministic deduplication key containing user, stock, rule type and score timestamp. Re-running the job therefore does not create duplicate notifications.
 
+### AI Check input guardrails
+
+AI Check uses the same deterministic validator in the client and Edge
+Function. The database adds a final constraint layer. Accepted inputs are:
+
+- four-digit MVP common-stock symbols;
+- cost from 0.01 to 1,000,000 TWD;
+- quantity from 0.001 to 10,000 Taiwan lots;
+- `short`, `swing`, `medium` or `long` investment horizon;
+- `conservative`, `balanced`, `aggressive` or `growth` risk profile;
+- estimated cost basis no greater than 10 billion TWD.
+
+One Taiwan lot is converted to 1,000 shares. The cost-basis preview is
+user-entered cost multiplied by shares; it is not a quote, broker balance or
+market valuation. Invalid input is rejected before an OpenAI request is made.
+
 ### `report-generate`
 
 Runs after scores and alerts:

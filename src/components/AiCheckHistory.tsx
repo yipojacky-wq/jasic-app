@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 
-import { sharesToLots } from '../lib/positions';
+import { horizonLabel, sharesToLots } from '../lib/positions';
 import { getAiCheckHistory } from '../services/api';
 import { colors } from '../theme';
 import type { AiAction, AiCheckHistoryItem } from '../types';
@@ -104,7 +104,10 @@ export function AiCheckHistory() {
             label="當時張數"
             value={formatNumber(sharesToLots(selected.quantityShares))}
           />
-          <Metric label="投資期間" value={selected.investmentHorizon} />
+          <Metric
+            label="投資期間"
+            value={displayHorizon(selected.investmentHorizon)}
+          />
           <Metric label="風險偏好" value={riskProfileLabel(selected.riskProfile)} />
         </View>
 
@@ -127,6 +130,13 @@ export function AiCheckHistory() {
       </Card>
     </View>
   );
+}
+
+function displayHorizon(value: string) {
+  if (['short', 'swing', 'medium', 'long'].includes(value)) {
+    return horizonLabel(value as 'short' | 'swing' | 'medium' | 'long');
+  }
+  return value;
 }
 
 function HistoryList({

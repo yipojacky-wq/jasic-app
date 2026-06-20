@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { candidates, marketIndicators, reports } from '../data/mockData';
 import { lotsToShares } from '../lib/positions';
+import { validateAiCheckInput } from '../../supabase/functions/_shared/aiInput.ts';
 import { isLiveMode, supabase } from '../lib/supabase';
 import { calculatePortfolioSummary } from '../../supabase/functions/_shared/portfolio.ts';
 import { normalizeAlertThreshold } from '../../supabase/functions/_shared/alertRules.ts';
@@ -77,7 +78,7 @@ let demoAiCheckHistory: AiCheckHistoryItem[] = [
     exchange: 'TWSE',
     cost: 980,
     quantityShares: 1000,
-    investmentHorizon: '中期',
+    investmentHorizon: 'medium',
     riskProfile: 'balanced',
     requestedAt: '2026-06-20T16:30:00+08:00',
     action: 'HOLD',
@@ -288,8 +289,13 @@ export async function setReportBookmark(
 }
 
 export async function runAiCheck(input: AiCheckInput): Promise<AiCheckResult> {
+  const validation = validateAiCheckInput(input);
+  if (!validation.ok) {
+    throw new Error(Object.values(validation.errors).join(' '));
+  }
+  const safeInput = validation.value;
   if (isLiveMode) {
-    const response = await invokeEnvelope<AiCheckResult>('ai-check', { body: input });
+    const response = await invokeEnvelope<AiCheckResult>('ai-check', { body: safeInput });
     return {
       ...response.data,
       dataAsOf: response.meta?.data_as_of,
@@ -297,19 +303,19 @@ export async function runAiCheck(input: AiCheckInput): Promise<AiCheckResult> {
       modelIdentifier: response.meta?.model_identifier,
     };
   }
-  const result = await runDemoAiCheck(input);
-  const stock = candidates.find((item) => item.symbol === input.symbol);
+  const result = await runDemoAiCheck(safeInput);
+  const stock = candidates.find((item) => item.symbol === safeInput.symbol);
   const createdAt = new Date().toISOString();
   demoAiCheckHistory = [
     {
       id: `demo-ai-history-${Date.now()}`,
-      symbol: input.symbol,
-      name: stock?.name ?? input.symbol,
+      symbol: safeInput.symbol,
+      name: stock?.name ?? safeInput.symbol,
       exchange: 'TWSE',
-      cost: input.cost,
-      quantityShares: input.lots * 1000,
-      investmentHorizon: input.horizon,
-      riskProfile: input.riskProfile,
+      cost: safeInput.cost,
+      quantityShares: safeInput.quantityShares,
+      investmentHorizon: safeInput.horizon,
+      riskProfile: safeInput.riskProfile,
       requestedAt: createdAt,
       ...result,
       modelIdentifier: 'demo-model',

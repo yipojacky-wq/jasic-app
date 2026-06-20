@@ -14,6 +14,7 @@ JASIC 是一套以 React Native + Expo 建立的股票研究工具，同一套 T
 - Three-Layer Funnel：三層證據、可信度、搜尋篩選、排序與候選清單匯出
 - Stock War Room：五構面 Score、籌碼、OI、技術與風險
 - AI Check：持股輸入與結構化安全建議
+- AI Check Guardrails：四碼股票、成本、張數、期間、風險偏好與投入成本上限的前後端一致驗證
 - AI Check Journal：保存歷史結論、原因、風險、建議與模型／規則版本
 - Watchlist：Score Change、Risk Alert、個股摘要
 - Research Positions：保存平均成本、張數與投資期間，並自動帶入 AI Check

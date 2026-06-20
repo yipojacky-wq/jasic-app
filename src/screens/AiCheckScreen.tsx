@@ -12,7 +12,7 @@ import {
 
 import { Badge, Card, PrimaryButton, ProgressBar, SectionHeader } from '../components/ui';
 import { AiCheckHistory } from '../components/AiCheckHistory';
-import { horizonLabel, sharesToLots } from '../lib/positions';
+import { sharesToLots } from '../lib/positions';
 import {
   aiCheckResearchUrl,
   aiCheckShareText,
@@ -21,9 +21,21 @@ import { currentWebOrigin, shareResearch } from '../lib/shareResearch';
 import { getUserPositions, getUserProfile, runAiCheck } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { colors } from '../theme';
+import type { InvestmentHorizon, UserProfile } from '../types';
+import { validateAiCheckInput } from '../../supabase/functions/_shared/aiInput.ts';
 
-const horizons = ['短線', '波段', '中期', '長期'];
-const profiles = ['conservative', 'balanced', 'aggressive', 'growth'];
+const horizons: Array<{ key: InvestmentHorizon; label: string }> = [
+  { key: 'short', label: '短線' },
+  { key: 'swing', label: '波段' },
+  { key: 'medium', label: '中期' },
+  { key: 'long', label: '長期' },
+];
+const profiles: UserProfile['riskProfile'][] = [
+  'conservative',
+  'balanced',
+  'aggressive',
+  'growth',
+];
 const profileLabels: Record<string, string> = {
   conservative: '保守',
   balanced: '穩健',
@@ -37,8 +49,10 @@ export function AiCheckScreen() {
   const [symbol, setSymbol] = useState(aiCheckSymbol);
   const [cost, setCost] = useState('980');
   const [lots, setLots] = useState('1');
-  const [horizon, setHorizon] = useState('中期');
-  const [riskProfile, setRiskProfile] = useState('balanced');
+  const [horizon, setHorizon] = useState<InvestmentHorizon>('medium');
+  const [riskProfile, setRiskProfile] =
+    useState<UserProfile['riskProfile']>('balanced');
+  const [submitted, setSubmitted] = useState(false);
   const [shareStatus, setShareStatus] = useState<string | null>(null);
   const profile = useQuery({
     queryKey: ['user-profile'],
@@ -58,14 +72,7 @@ export function AiCheckScreen() {
   useEffect(() => {
     if (!profile.data) return;
     setRiskProfile(profile.data.riskProfile);
-    setHorizon(
-      {
-        short: '短線',
-        swing: '波段',
-        medium: '中期',
-        long: '長期',
-      }[profile.data.defaultHorizon],
-    );
+    setHorizon(profile.data.defaultHorizon);
   }, [profile.data]);
 
   useEffect(() => {
@@ -75,18 +82,22 @@ export function AiCheckScreen() {
     if (!position) return;
     setCost(String(position.averageCost));
     setLots(String(sharesToLots(position.quantityShares)));
-    setHorizon(horizonLabel(position.investmentHorizon));
+    setHorizon(position.investmentHorizon);
   }, [positions.data, symbol]);
 
+  const validation = validateAiCheckInput({
+    symbol,
+    cost,
+    lots,
+    horizon,
+    riskProfile,
+  });
+
   const submit = () => {
+    setSubmitted(true);
     setShareStatus(null);
-    mutation.mutate({
-      symbol: symbol.trim(),
-      cost: Number(cost),
-      lots: Number(lots),
-      horizon,
-      riskProfile,
-    });
+    if (!validation.ok) return;
+    mutation.mutate(validation.value);
   };
 
   const shareResult = async () => {
@@ -135,12 +146,17 @@ export function AiCheckScreen() {
           <Field label="股票代號">
             <TextInput
               accessibilityLabel="股票代號"
-              onChangeText={setSymbol}
+              autoCapitalize="characters"
+              maxLength={4}
+              onChangeText={(value) => setSymbol(value.replace(/\D/g, ''))}
               placeholder="例如 2330"
               placeholderTextColor="#9AA5B5"
               style={styles.input}
               value={symbol}
             />
+            {submitted && validation.errors.symbol ? (
+              <Text style={styles.fieldError}>{validation.errors.symbol}</Text>
+            ) : null}
           </Field>
           <View style={styles.formRow}>
             <Field label="平均成本" style={styles.flex}>
@@ -151,6 +167,9 @@ export function AiCheckScreen() {
                 style={styles.input}
                 value={cost}
               />
+              {submitted && validation.errors.cost ? (
+                <Text style={styles.fieldError}>{validation.errors.cost}</Text>
+              ) : null}
             </Field>
             <Field label="張數" style={styles.flex}>
               <TextInput
@@ -160,13 +179,21 @@ export function AiCheckScreen() {
                 style={styles.input}
                 value={lots}
               />
+              {submitted && validation.errors.lots ? (
+                <Text style={styles.fieldError}>{validation.errors.lots}</Text>
+              ) : null}
             </Field>
           </View>
 
           <Text style={styles.label}>投資期間</Text>
           <View style={styles.optionRow}>
             {horizons.map((item) => (
-              <Option key={item} active={horizon === item} label={item} onPress={() => setHorizon(item)} />
+              <Option
+                key={item.key}
+                active={horizon === item.key}
+                label={item.label}
+                onPress={() => setHorizon(item.key)}
+              />
             ))}
           </View>
 
@@ -182,8 +209,12 @@ export function AiCheckScreen() {
             ))}
           </View>
 
+          <PositionExposure validation={validation} />
+          {submitted && validation.errors.costBasis ? (
+            <Text style={styles.formError}>{validation.errors.costBasis}</Text>
+          ) : null}
           <PrimaryButton
-            disabled={!symbol || !Number(cost) || mutation.isPending}
+            disabled={mutation.isPending}
             label={mutation.isPending ? '正在檢核資料…' : '開始 AI Check'}
             onPress={submit}
           />
@@ -248,6 +279,40 @@ export function AiCheckScreen() {
 
       <SectionHeader eyebrow="Decision Journal" title="AI Check 歷史紀錄" />
       <AiCheckHistory />
+    </View>
+  );
+}
+
+function PositionExposure({
+  validation,
+}: {
+  validation: ReturnType<typeof validateAiCheckInput>;
+}) {
+  if (!validation.ok) {
+    return (
+      <View style={styles.exposureCard}>
+        <Text style={styles.exposureLabel}>部位曝險預覽</Text>
+        <Text style={styles.exposureMuted}>完成有效輸入後顯示股數與投入成本估算。</Text>
+      </View>
+    );
+  }
+  return (
+    <View style={styles.exposureCard}>
+      <View style={styles.exposureMetric}>
+        <Text style={styles.exposureLabel}>換算股數</Text>
+        <Text style={styles.exposureValue}>
+          {validation.value.quantityShares.toLocaleString()} 股
+        </Text>
+      </View>
+      <View style={styles.exposureMetric}>
+        <Text style={styles.exposureLabel}>投入成本估算</Text>
+        <Text style={styles.exposureValue}>
+          NT$ {validation.value.costBasis.toLocaleString()}
+        </Text>
+      </View>
+      <Text style={styles.exposureMuted}>
+        此為輸入成本 × 股數，不是即時市值或券商餘額。
+      </Text>
     </View>
   );
 }
@@ -359,6 +424,20 @@ const styles = StyleSheet.create({
   optionText: { color: colors.textSoft, fontSize: 12, fontWeight: '800' },
   optionTextActive: { color: '#FFFFFF' },
   helper: { color: colors.textSoft, fontSize: 11, lineHeight: 17, textAlign: 'center' },
+  fieldError: { color: colors.red, fontSize: 9 },
+  formError: { color: colors.red, fontSize: 10, fontWeight: '800' },
+  exposureCard: {
+    backgroundColor: colors.primarySoft,
+    borderRadius: 12,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    padding: 13,
+  },
+  exposureMetric: { flex: 1, minWidth: 120 },
+  exposureLabel: { color: colors.primary, fontSize: 9, fontWeight: '900' },
+  exposureValue: { color: colors.text, fontSize: 15, fontWeight: '900', marginTop: 4 },
+  exposureMuted: { color: colors.textSoft, fontSize: 9, lineHeight: 14, width: '100%' },
   loadingCard: { alignItems: 'center', gap: 12, justifyContent: 'center', minHeight: 390 },
   loadingTitle: { color: colors.text, fontSize: 17, fontWeight: '900' },
   emptyCard: { alignItems: 'center', justifyContent: 'center', minHeight: 390, padding: 34 },

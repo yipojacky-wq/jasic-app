@@ -57,6 +57,8 @@ npx eas-cli build --profile production --platform all
 - Market Score breakdown shows breadth, volatility, confidence, data timestamp and rule version.
 - Every production macro indicator is connected to an approved official or licensed source; no demo or seed value is presented as live data.
 - AI Check refuses aggressive conclusions on stale or low-confidence data.
+- AI Check rejects malformed symbols, invalid enums, sub-one-share quantities and extreme cost-basis inputs before calling OpenAI.
+- AI Check request constraints are enforced by client validation, Edge Function validation and database checks.
 - Account export tested on Web and one mobile platform.
 - Account deletion tested with a disposable account.
 - Report search, bookmark persistence and Markdown export tested on Web and one mobile platform.

@@ -5,6 +5,7 @@ import {
   jsonResponse,
   optionsResponse,
 } from '../_shared/http.ts';
+import { validateAiCheckInput } from '../_shared/aiInput.ts';
 
 const resultSchema = {
   type: 'object',
@@ -31,16 +32,23 @@ Deno.serve(async (request) => {
     return jsonResponse(errorEnvelope('AUTH_REQUIRED', 'Missing authorization'), 401);
   }
 
-  const input = await request.json();
-  if (
-    typeof input.symbol !== 'string' ||
-    !Number.isFinite(input.cost) ||
-    input.cost <= 0 ||
-    !Number.isFinite(input.lots) ||
-    input.lots <= 0
-  ) {
-    return jsonResponse(errorEnvelope('INVALID_INPUT', 'Invalid position input'), 400);
+  let rawInput: unknown;
+  try {
+    rawInput = await request.json();
+  } catch {
+    return jsonResponse(errorEnvelope('INVALID_INPUT', 'Invalid JSON body'), 400);
   }
+  const validation = validateAiCheckInput(rawInput);
+  if (!validation.ok) {
+    return jsonResponse(
+      errorEnvelope(
+        'INVALID_INPUT',
+        Object.values(validation.errors).join(' '),
+      ),
+      400,
+    );
+  }
+  const input = validation.value;
 
   const supabase = createServiceClient();
   const jwt = authHeader.replace(/^Bearer\s+/i, '');
@@ -93,7 +101,8 @@ Deno.serve(async (request) => {
     market,
     position: {
       cost: input.cost,
-      quantity_shares: Number(input.lots) * 1000,
+      quantity_shares: input.quantityShares,
+      cost_basis: input.costBasis,
       investment_horizon: input.horizon,
       risk_profile: input.riskProfile,
     },
@@ -159,7 +168,7 @@ Deno.serve(async (request) => {
       user_id: authData.user.id,
       stock_id: stock.id,
       cost: input.cost,
-      quantity_shares: Number(input.lots) * 1000,
+      quantity_shares: input.quantityShares,
       investment_horizon: input.horizon,
       risk_profile: input.riskProfile,
       status: 'completed',

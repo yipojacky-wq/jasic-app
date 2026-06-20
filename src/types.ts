@@ -120,8 +120,8 @@ export interface AiCheckInput {
   symbol: string;
   cost: number;
   lots: number;
-  horizon: string;
-  riskProfile: string;
+  horizon: InvestmentHorizon;
+  riskProfile: UserProfile['riskProfile'];
 }
 
 export interface AiCheckResult {
