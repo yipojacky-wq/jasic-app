@@ -1,5 +1,6 @@
 import { createServiceClient } from '../_shared/client.ts';
 import { requireCronSecret } from '../_shared/data.ts';
+import { normalizeAlertThreshold } from '../_shared/alertRules.ts';
 import {
   envelope,
   errorEnvelope,
@@ -50,7 +51,12 @@ Deno.serve(async (request) => {
 
       for (const rule of rules ?? []) {
         if (rule.rule_type === 'score_change') {
-          const threshold = Number((rule.config as any)?.threshold ?? 5);
+          const threshold = Number(
+            normalizeAlertThreshold(
+              'score_change',
+              (rule.config as any)?.threshold,
+            ),
+          );
           const change =
             Number(current.total_score) - Number(previous.total_score);
           if (Math.abs(change) >= threshold) {
@@ -86,7 +92,12 @@ Deno.serve(async (request) => {
         }
 
         if (rule.rule_type === 'risk_level') {
-          const threshold = Number((rule.config as any)?.threshold ?? 70);
+          const threshold = Number(
+            normalizeAlertThreshold(
+              'risk_level',
+              (rule.config as any)?.threshold,
+            ),
+          );
           if (
             Number(current.risk_score) >= threshold &&
             Number(previous.risk_score) < threshold

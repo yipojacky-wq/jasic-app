@@ -61,6 +61,15 @@ Runs after score calculation and checks each tracked stock against the user's en
 - signal transition;
 - risk score crossing its configured threshold.
 
+User-configurable global thresholds are normalized before evaluation:
+
+- Score Change: 1 to 25 points, default 5.
+- Risk Score: 40 to 95, default 70.
+- Signal Change: enabled or disabled; every signal transition is evaluated.
+
+Threshold configuration changes affect future evaluations only. They do not
+rewrite or delete alerts that were already generated.
+
 Alerts use a deterministic deduplication key containing user, stock, rule type and score timestamp. Re-running the job therefore does not create duplicate notifications.
 
 ### `report-generate`

@@ -8,7 +8,7 @@ JASIC may store:
 
 - authentication email and account identifier;
 - display name, risk preference and default investment horizon;
-- watchlists and alert preferences;
+- watchlists and alert preferences, including enabled status and thresholds;
 - user-entered research positions, including average cost, quantity, horizon and note;
 - user-entered AI Check position inputs;
 - AI Check conclusions, reasons, risks and suggestions;

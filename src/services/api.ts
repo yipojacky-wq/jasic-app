@@ -2,6 +2,7 @@ import { candidates, marketIndicators, reports } from '../data/mockData';
 import { lotsToShares } from '../lib/positions';
 import { isLiveMode, supabase } from '../lib/supabase';
 import { calculatePortfolioSummary } from '../../supabase/functions/_shared/portfolio.ts';
+import { normalizeAlertThreshold } from '../../supabase/functions/_shared/alertRules.ts';
 import type {
   AiCheckInput,
   AiCheckResult,
@@ -19,6 +20,8 @@ import type {
   UserPosition,
   UserPositionInput,
   PortfolioSummary,
+  AlertRule,
+  AlertRuleUpdate,
 } from '../types';
 
 const delay = (ms = 180) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -33,6 +36,30 @@ let demoPositions: UserPosition[] = [
     quantityShares: 1000,
     investmentHorizon: 'medium',
     note: '核心追蹤部位',
+    updatedAt: '2026-06-20T16:30:00+08:00',
+  },
+];
+
+let demoAlertRules: AlertRule[] = [
+  {
+    id: 'demo-rule-score',
+    ruleType: 'score_change',
+    threshold: 5,
+    isEnabled: true,
+    updatedAt: '2026-06-20T16:30:00+08:00',
+  },
+  {
+    id: 'demo-rule-signal',
+    ruleType: 'signal_change',
+    threshold: null,
+    isEnabled: true,
+    updatedAt: '2026-06-20T16:30:00+08:00',
+  },
+  {
+    id: 'demo-rule-risk',
+    ruleType: 'risk_level',
+    threshold: 70,
+    isEnabled: true,
     updatedAt: '2026-06-20T16:30:00+08:00',
   },
 ];
@@ -315,6 +342,74 @@ export async function markAlertRead(alertId: string): Promise<void> {
     .update({ read_at: new Date().toISOString() })
     .eq('id', alertId);
   if (error) throw error;
+}
+
+export async function getAlertRules(): Promise<AlertRule[]> {
+  if (!isLiveMode || !supabase) {
+    await delay();
+    return [...demoAlertRules];
+  }
+  const { data, error } = await supabase
+    .from('alert_rules')
+    .select('id, rule_type, config, is_enabled, updated_at')
+    .is('stock_id', null)
+    .order('rule_type');
+  if (error) throw error;
+  return (data ?? []).map((row: any) => ({
+    id: row.id,
+    ruleType: row.rule_type,
+    threshold:
+      row.rule_type === 'signal_change'
+        ? null
+        : Number(row.config?.threshold),
+    isEnabled: row.is_enabled,
+    updatedAt: row.updated_at,
+  }));
+}
+
+export async function updateAlertRule(
+  input: AlertRuleUpdate,
+): Promise<AlertRule> {
+  const threshold =
+    input.ruleType === 'signal_change'
+      ? null
+      : normalizeAlertThreshold(input.ruleType, input.threshold);
+  const updatedAt = new Date().toISOString();
+
+  if (!isLiveMode || !supabase) {
+    await delay(220);
+    const updated: AlertRule = {
+      ...input,
+      threshold,
+      updatedAt,
+    };
+    demoAlertRules = demoAlertRules.map((rule) =>
+      rule.id === input.id ? updated : rule,
+    );
+    return updated;
+  }
+
+  const { data, error } = await supabase
+    .from('alert_rules')
+    .update({
+      config: threshold === null ? {} : { threshold },
+      is_enabled: input.isEnabled,
+      updated_at: updatedAt,
+    })
+    .eq('id', input.id)
+    .select('id, rule_type, config, is_enabled, updated_at')
+    .single();
+  if (error) throw error;
+  return {
+    id: data.id,
+    ruleType: data.rule_type,
+    threshold:
+      data.rule_type === 'signal_change'
+        ? null
+        : Number(data.config?.threshold),
+    isEnabled: data.is_enabled,
+    updatedAt: data.updated_at,
+  };
 }
 
 export async function getUserPositions(): Promise<UserPosition[]> {

@@ -17,6 +17,7 @@ import {
 } from '../components/ui';
 import { PositionManager } from '../components/PositionManager';
 import { PortfolioRiskSummary } from '../components/PortfolioRiskSummary';
+import { AlertPreferences } from '../components/AlertPreferences';
 import { getAlerts, getWatchlistSummary, markAlertRead } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { colors } from '../theme';
@@ -132,6 +133,9 @@ export function WatchlistScreen() {
           </Text>
         </Card>
       )}
+
+      <SectionHeader eyebrow="Alert Preferences" title="個人化警示規則" />
+      <AlertPreferences />
 
       <SectionHeader eyebrow="Risk Center" title="最新警示" />
       {alerts.isLoading ? (

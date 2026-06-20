@@ -146,6 +146,23 @@ export interface AlertSummary {
   readAt?: string | null;
 }
 
+export type AlertRuleType = 'score_change' | 'signal_change' | 'risk_level';
+
+export interface AlertRule {
+  id: string;
+  ruleType: AlertRuleType;
+  threshold?: number | null;
+  isEnabled: boolean;
+  updatedAt: string;
+}
+
+export interface AlertRuleUpdate {
+  id: string;
+  ruleType: AlertRuleType;
+  threshold?: number | null;
+  isEnabled: boolean;
+}
+
 export interface UserProfile {
   id: string | null;
   email: string;
