@@ -38,7 +38,12 @@ Deno.serve(async (request) => {
   }
 
   const indicators = await Promise.all(
-    (definitions ?? []).map(async (definition) => {
+    ((definitions ?? []) as Array<{
+      id: string;
+      code: string;
+      name_zh: string;
+      display_order: number;
+    }>).map(async (definition) => {
       const { data: value } = await supabase
         .from('macro_indicator_values')
         .select('display_value, value, trend_note, state, released_at')

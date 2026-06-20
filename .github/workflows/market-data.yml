@@ -1,0 +1,42 @@
+name: JASIC Market Data Pipeline
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 17:30 Asia/Taipei, Monday-Friday. The function uses source dates,
+    # so holidays and delayed publication do not create false trading days.
+    - cron: "30 9 * * 1-5"
+
+jobs:
+  ingest-and-score:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate required secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          test -n "$SUPABASE_URL"
+          test -n "$CRON_SECRET"
+
+      - name: Ingest TWSE and TPEx market data
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --fail-with-body \
+            --request POST \
+            --header "x-cron-secret: $CRON_SECRET" \
+            "$SUPABASE_URL/functions/v1/market-data-ingest"
+
+      - name: Calculate provisional scores and Discovery Top 20
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --fail-with-body \
+            --request POST \
+            --header "Content-Type: application/json" \
+            --header "x-cron-secret: $CRON_SECRET" \
+            --data '{}' \
+            "$SUPABASE_URL/functions/v1/score-calculate"

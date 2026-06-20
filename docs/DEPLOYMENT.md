@@ -12,6 +12,8 @@ supabase functions deploy market-summary
 supabase functions deploy discovery-latest
 supabase functions deploy reports-latest
 supabase functions deploy ai-check
+supabase functions deploy market-data-ingest
+supabase functions deploy score-calculate
 ```
 
 設定伺服器 secrets：
@@ -19,6 +21,7 @@ supabase functions deploy ai-check
 ```bash
 supabase secrets set OPENAI_API_KEY=YOUR_KEY
 supabase secrets set OPENAI_MODEL=gpt-5.4-mini
+supabase secrets set CRON_SECRET=GENERATE_A_LONG_RANDOM_VALUE
 ```
 
 OpenAI key 和 Supabase service-role key 禁止放入 Expo 的 `EXPO_PUBLIC_*`。
@@ -65,3 +68,5 @@ iOS App Store 發佈需要 Apple Developer 帳號。Android Play Store 發佈需
 - Auth redirect URLs 已加入正式 Web domain 與手機 deep link。
 - OpenAI 使用量、錯誤率與延遲已有監控。
 - 法務已核准免責聲明、隱私政策及資料保留政策。
+- GitHub Actions 已設定 `SUPABASE_URL` 與 `CRON_SECRET` repository secrets。
+- 已閱讀 `docs/DATA_PIPELINE.md` 的暫定分數限制。

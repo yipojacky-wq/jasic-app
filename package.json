@@ -18,8 +18,10 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@types/node": "^26.0.0",
     "@types/react": "~19.2.2",
     "supabase": "^2.107.0",
+    "tsx": "^4.22.4",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -29,7 +31,9 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "build:web": "expo export --platform web",
-    "preview:web": "node scripts/serve-static.cjs"
+    "preview:web": "node scripts/serve-static.cjs",
+    "test": "tsx --test tests/**/*.test.ts",
+    "typecheck:edge": "tsc -p tsconfig.edge.json"
   },
   "private": true
 }

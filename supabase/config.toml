@@ -33,3 +33,9 @@ verify_jwt = true
 
 [functions.ai-check]
 verify_jwt = true
+
+[functions.market-data-ingest]
+verify_jwt = false
+
+[functions.score-calculate]
+verify_jwt = false

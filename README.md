@@ -16,6 +16,8 @@ JASIC 是一套以 React Native + Expo 建立的股票研究工具，同一套 T
 - AI Check：持股輸入與結構化安全建議
 - Watchlist：Score Change、Risk Alert、個股摘要
 - Trend Reports：四種報告入口
+- EOD Data Pipeline：TWSE／TPEx 日行情與三大法人
+- Provisional Score Pipeline：20 日特徵、Market Score、Stock Score、Top 20
 
 本產品不包含自動下單、獲利保證、課程、購物車或付款功能。
 
@@ -94,6 +96,7 @@ git push
 1. 依 `docs/DEPLOYMENT.md` 連結 Supabase 專案。
 2. 以 `supabase db push` 套用 `supabase/migrations/`，並視需要載入 `supabase/seed.sql`。
 3. 部署 `market-summary`、`discovery-latest`、`reports-latest`、`ai-check` Edge Functions。
+   另部署 `market-data-ingest` 與 `score-calculate` 以啟用盤後資料管線。
 4. 將 `.env.local` 的 `EXPO_PUBLIC_DEMO_MODE` 設為 `false`，前端 adapter 即切換正式 API。
 5. OpenAI 回應使用固定 JSON Schema，並保存資料時間、規則版本與 Prompt 版本。
 
@@ -105,3 +108,8 @@ supabase secrets set OPENAI_MODEL=gpt-5.4-mini
 ```
 
 OpenAI 整合採 Responses API Structured Outputs；模型名稱可透過 secret 調整，不寫死在客戶端。
+
+資料管線、官方來源、排程與暫定評分限制請見：
+
+- `docs/DATA_PIPELINE.md`
+- `docs/DEPLOYMENT.md`
