@@ -1,0 +1,35 @@
+project_id = "jasic-app"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:8081"
+additional_redirect_urls = ["exp://127.0.0.1:8081", "http://localhost:8081"]
+jwt_expiry = 3600
+enable_signup = true
+
+[functions.market-summary]
+verify_jwt = true
+
+[functions.discovery-latest]
+verify_jwt = true
+
+[functions.reports-latest]
+verify_jwt = true
+
+[functions.ai-check]
+verify_jwt = true

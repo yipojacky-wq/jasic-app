@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "JASIC Stock Intelligence",
+    "slug": "jasic-app",
+    "scheme": "jasic",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "description": "JASIC 股票研究、風險檢核與個人化決策輔助工具",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "name": "JASIC Stock Intelligence",
+      "shortName": "JASIC",
+      "themeColor": "#0B1220",
+      "backgroundColor": "#F3F6FA"
+    }
+  }
+}
