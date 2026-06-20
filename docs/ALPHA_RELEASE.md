@@ -52,5 +52,6 @@ npx eas-cli build --profile production --platform all
 - AI Check refuses aggressive conclusions on stale or low-confidence data.
 - Account export tested on Web and one mobile platform.
 - Account deletion tested with a disposable account.
+- New and terms-outdated accounts are blocked by onboarding until the current terms are explicitly accepted.
 - Privacy and disclaimer text reviewed by qualified counsel.
 - No automatic order placement or guaranteed-profit wording exists.

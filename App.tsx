@@ -1,13 +1,16 @@
 import 'react-native-url-polyfill/auto';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 import { AppShell } from './src/AppShell';
 import { useAuthSession } from './src/hooks/useAuthSession';
+import { hasAcceptedCurrentTerms } from './src/lib/governance';
 import { isLiveMode } from './src/lib/supabase';
 import { AuthScreen } from './src/screens/AuthScreen';
+import { OnboardingScreen } from './src/screens/OnboardingScreen';
+import { getUserProfile } from './src/services/api';
 import { colors } from './src/theme';
 
 const queryClient = new QueryClient({
@@ -29,13 +32,43 @@ export default function App() {
 
 function AppContent() {
   const { session, isLoading } = useAuthSession();
+  const profile = useQuery({
+    queryKey: ['user-profile', session?.user.id],
+    queryFn: getUserProfile,
+    enabled: isLiveMode && Boolean(session),
+    retry: 1,
+  });
 
-  if (isLiveMode && isLoading) {
-    return <View style={styles.loading} />;
+  if (isLiveMode && (isLoading || (session && profile.isLoading))) {
+    return (
+      <View style={styles.loading}>
+        <Text style={styles.loadingText}>正在載入 JASIC 安全設定…</Text>
+      </View>
+    );
   }
 
   if (isLiveMode && !session) {
     return <AuthScreen />;
+  }
+
+  if (isLiveMode && profile.error) {
+    return (
+      <View style={styles.loading}>
+        <Text style={styles.errorTitle}>無法讀取帳號設定</Text>
+        <Text style={styles.errorMessage}>{profile.error.message}</Text>
+        <Text style={styles.retry} onPress={() => void profile.refetch()}>
+          重新連線
+        </Text>
+      </View>
+    );
+  }
+
+  if (
+    isLiveMode &&
+    profile.data &&
+    !hasAcceptedCurrentTerms(profile.data)
+  ) {
+    return <OnboardingScreen profile={profile.data} />;
   }
 
   return (
@@ -53,9 +86,22 @@ function AppContent() {
 
 const styles = StyleSheet.create({
   loading: {
+    alignItems: 'center',
     flex: 1,
     backgroundColor: colors.ink,
+    gap: 10,
+    justifyContent: 'center',
+    padding: 24,
   },
+  loadingText: { color: colors.mutedOnDark, fontSize: 13 },
+  errorTitle: { color: '#FFFFFF', fontSize: 20, fontWeight: '900' },
+  errorMessage: {
+    color: colors.mutedOnDark,
+    fontSize: 12,
+    lineHeight: 19,
+    textAlign: 'center',
+  },
+  retry: { color: '#8DB7FF', fontSize: 13, fontWeight: '900', marginTop: 6 },
   safeArea: {
     flex: 1,
     backgroundColor: colors.ink,
