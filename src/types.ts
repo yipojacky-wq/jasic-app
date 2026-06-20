@@ -184,3 +184,21 @@ export interface SettingsOverview {
   dataHealth: DataHealthItem[];
   methodology: MethodologyInfo;
 }
+
+export interface UserDataExport {
+  schemaVersion: string;
+  exportedAt: string;
+  profile: UserProfile;
+  watchlists: unknown[];
+  positions: unknown[];
+  aiChecks: unknown[];
+  alerts: unknown[];
+  alertRules: unknown[];
+  personalReports: unknown[];
+}
+
+export interface AccountDeletionResult {
+  deleted: boolean;
+  requestId: string;
+  completedAt: string;
+}

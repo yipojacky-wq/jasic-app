@@ -3,6 +3,7 @@ import { isLiveMode, supabase } from '../lib/supabase';
 import type {
   AiCheckInput,
   AiCheckResult,
+  AccountDeletionResult,
   AlertSummary,
   DashboardData,
   ReportSummary,
@@ -12,6 +13,7 @@ import type {
   StockCandidate,
   WatchlistSummary,
   UserProfile,
+  UserDataExport,
 } from '../types';
 
 const delay = (ms = 180) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -395,6 +397,36 @@ export async function getSettingsOverview(): Promise<SettingsOverview> {
       ],
     },
   };
+}
+
+export async function exportUserData(): Promise<UserDataExport> {
+  if (isLiveMode) {
+    return invoke<UserDataExport>('user-data-export');
+  }
+  await delay(350);
+  const profile = await getUserProfile();
+  return {
+    schemaVersion: 'jasic-user-export-1.0',
+    exportedAt: new Date().toISOString(),
+    profile,
+    watchlists: [{ name: '我的觀察清單', symbols: ['2330', '2454', '2308'] }],
+    positions: [],
+    aiChecks: [],
+    alerts: [],
+    alertRules: [],
+    personalReports: [],
+  };
+}
+
+export async function deleteAccount(
+  confirmation: string,
+): Promise<AccountDeletionResult> {
+  if (!isLiveMode) {
+    throw new Error('展示模式不會刪除任何帳號。');
+  }
+  return invoke<AccountDeletionResult>('account-delete', {
+    body: { confirmation },
+  });
 }
 
 async function runDemoAiCheck(input: AiCheckInput): Promise<AiCheckResult> {

@@ -21,6 +21,8 @@ supabase functions deploy report-generate
 supabase functions deploy report-detail
 supabase functions deploy profile-settings
 supabase functions deploy data-health
+supabase functions deploy user-data-export
+supabase functions deploy account-delete
 ```
 
 設定伺服器 secrets：
@@ -63,6 +65,8 @@ npx eas-cli build --platform android
 npx eas-cli build --platform ios
 ```
 
+See `docs/ALPHA_RELEASE.md` before initializing the EAS project. Replace the placeholder EAS project ID and confirm the permanent iOS/Android application identifiers first.
+
 iOS App Store 發佈需要 Apple Developer 帳號。Android Play Store 發佈需要 Google Play Console 帳號。
 
 ## 5. Production checklist
@@ -78,3 +82,5 @@ iOS App Store 發佈需要 Apple Developer 帳號。Android Play Store 發佈需
 - GitHub Actions 已設定 `SUPABASE_URL` 與 `CRON_SECRET` repository secrets。
 - 已閱讀 `docs/DATA_PIPELINE.md` 的暫定分數限制。
 - 正式測試者已在設定頁接受 Alpha 免責與資料使用條款。
+- 使用 disposable 帳號測試資料匯出與永久刪除。
+- `docs/PRIVACY.md` 已由合格法務人員審閱。

@@ -60,3 +60,9 @@ verify_jwt = true
 
 [functions.data-health]
 verify_jwt = true
+
+[functions.user-data-export]
+verify_jwt = true
+
+[functions.account-delete]
+verify_jwt = true

@@ -2,7 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
+  Share,
   StyleSheet,
   Text,
   TextInput,
@@ -17,7 +19,12 @@ import {
   SectionHeader,
 } from '../components/ui';
 import { isLiveMode, supabase } from '../lib/supabase';
-import { getSettingsOverview, updateUserProfile } from '../services/api';
+import {
+  deleteAccount,
+  exportUserData,
+  getSettingsOverview,
+  updateUserProfile,
+} from '../services/api';
 import { colors } from '../theme';
 import type { DataHealthItem, UserProfile } from '../types';
 
@@ -54,6 +61,7 @@ export function SettingsScreen() {
   const [defaultHorizon, setDefaultHorizon] =
     useState<UserProfile['defaultHorizon']>('medium');
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
 
   useEffect(() => {
     if (!overview.data) return;
@@ -70,6 +78,33 @@ export function SettingsScreen() {
         queryClient.invalidateQueries({ queryKey: ['settings-overview'] }),
         queryClient.invalidateQueries({ queryKey: ['user-profile'] }),
       ]);
+    },
+  });
+  const exportData = useMutation({
+    mutationFn: exportUserData,
+    onSuccess: async (exported) => {
+      const json = JSON.stringify(exported, null, 2);
+      if (Platform.OS === 'web' && typeof document !== 'undefined') {
+        const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `jasic-user-data-${exported.exportedAt.slice(0, 10)}.json`;
+        anchor.click();
+        URL.revokeObjectURL(url);
+      } else {
+        await Share.share({
+          title: 'JASIC 使用者資料匯出',
+          message: json,
+        });
+      }
+    },
+  });
+  const accountDeletion = useMutation({
+    mutationFn: deleteAccount,
+    onSuccess: async () => {
+      queryClient.clear();
+      await supabase?.auth.signOut({ scope: 'local' });
     },
   });
 
@@ -261,6 +296,76 @@ export function SettingsScreen() {
           </Card>
         ))}
       </View>
+
+      <SectionHeader eyebrow="Privacy Center" title="資料與帳號管理" />
+      <Card style={styles.privacyCard}>
+        <View style={styles.privacyBlock}>
+          <Text style={styles.privacyTitle}>匯出我的資料</Text>
+          <Text style={styles.privacyText}>
+            匯出 Profile、Watchlist、AI Check、警示規則與個人化報告。市場公共資料不會重複包含。
+          </Text>
+          {exportData.isError ? (
+            <Text style={styles.error}>{exportData.error.message}</Text>
+          ) : null}
+          <View style={styles.privacyAction}>
+            <PrimaryButton
+              disabled={exportData.isPending}
+              label={exportData.isPending ? '正在準備資料…' : '匯出 JSON'}
+              onPress={() => exportData.mutate()}
+              secondary
+            />
+          </View>
+        </View>
+
+        <View style={styles.dangerBlock}>
+          <Text style={styles.dangerTitle}>永久刪除帳號</Text>
+          <Text style={styles.privacyText}>
+            正式模式會刪除登入帳號、Watchlist、AI Check、警示及所有個人化資料。此操作無法復原。
+          </Text>
+          <Text style={styles.confirmLabel}>
+            請輸入：DELETE JASIC ACCOUNT
+          </Text>
+          <TextInput
+            accessibilityLabel="刪除帳號確認文字"
+            autoCapitalize="characters"
+            onChangeText={setDeleteConfirmation}
+            placeholder="DELETE JASIC ACCOUNT"
+            placeholderTextColor="#A5ADB9"
+            style={[styles.input, styles.dangerInput]}
+            value={deleteConfirmation}
+          />
+          {accountDeletion.isError ? (
+            <Text style={styles.error}>{accountDeletion.error.message}</Text>
+          ) : null}
+          <Pressable
+            disabled={
+              !isLiveMode ||
+              deleteConfirmation !== 'DELETE JASIC ACCOUNT' ||
+              accountDeletion.isPending
+            }
+            onPress={() => accountDeletion.mutate(deleteConfirmation)}
+            style={({ pressed }) => [
+              styles.deleteButton,
+              (!isLiveMode ||
+                deleteConfirmation !== 'DELETE JASIC ACCOUNT' ||
+                accountDeletion.isPending) &&
+                styles.deleteButtonDisabled,
+              pressed && styles.deleteButtonPressed,
+            ]}
+          >
+            <Text style={styles.deleteButtonText}>
+              {accountDeletion.isPending ? '正在刪除…' : '永久刪除帳號'}
+            </Text>
+          </Pressable>
+          {!isLiveMode ? (
+            <Text style={styles.demoNote}>展示模式不會執行帳號刪除。</Text>
+          ) : null}
+        </View>
+
+        <Text style={styles.retentionNote}>
+          資料保留原則：個人化資料保留至帳號刪除；帳號刪除後僅保留不可識別的操作稽核紀錄。公共市場快照與匿名系統統計不屬於個人資料。
+        </Text>
+      </Card>
     </View>
   );
 }
@@ -396,4 +501,41 @@ const styles = StyleSheet.create({
   sourceProvider: { color: colors.primary, fontSize: 11, fontWeight: '800' },
   sourceMeta: { color: colors.textSoft, fontSize: 9 },
   attribution: { color: colors.textSoft, fontSize: 10, marginTop: 5 },
+  privacyCard: { gap: 18 },
+  privacyBlock: { gap: 9 },
+  privacyTitle: { color: colors.text, fontSize: 16, fontWeight: '900' },
+  privacyText: { color: colors.textSoft, fontSize: 11, lineHeight: 18 },
+  privacyAction: { alignItems: 'flex-start' },
+  dangerBlock: {
+    backgroundColor: colors.redSoft,
+    borderColor: '#FFC4CB',
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 9,
+    padding: 16,
+  },
+  dangerTitle: { color: colors.red, fontSize: 16, fontWeight: '900' },
+  confirmLabel: { color: colors.red, fontSize: 10, fontWeight: '900' },
+  dangerInput: { backgroundColor: '#FFFFFF', borderColor: '#FFB5BF' },
+  deleteButton: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: colors.red,
+    borderRadius: 11,
+    minHeight: 42,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  deleteButtonDisabled: { opacity: 0.35 },
+  deleteButtonPressed: { opacity: 0.75 },
+  deleteButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
+  demoNote: { color: colors.textSoft, fontSize: 10 },
+  retentionNote: {
+    borderTopColor: colors.border,
+    borderTopWidth: 1,
+    color: colors.textSoft,
+    fontSize: 10,
+    lineHeight: 16,
+    paddingTop: 14,
+  },
 });
