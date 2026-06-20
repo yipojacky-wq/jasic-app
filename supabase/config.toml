@@ -39,3 +39,12 @@ verify_jwt = false
 
 [functions.score-calculate]
 verify_jwt = false
+
+[functions.stock-war-room]
+verify_jwt = true
+
+[functions.watchlist-summary]
+verify_jwt = true
+
+[functions.alert-evaluate]
+verify_jwt = false

@@ -40,3 +40,13 @@ jobs:
             --header "x-cron-secret: $CRON_SECRET" \
             --data '{}' \
             "$SUPABASE_URL/functions/v1/score-calculate"
+
+      - name: Evaluate watchlist alerts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --fail-with-body \
+            --request POST \
+            --header "x-cron-secret: $CRON_SECRET" \
+            "$SUPABASE_URL/functions/v1/alert-evaluate"

@@ -14,6 +14,9 @@ supabase functions deploy reports-latest
 supabase functions deploy ai-check
 supabase functions deploy market-data-ingest
 supabase functions deploy score-calculate
+supabase functions deploy stock-war-room
+supabase functions deploy watchlist-summary
+supabase functions deploy alert-evaluate
 ```
 
 設定伺服器 secrets：

@@ -15,6 +15,8 @@ JASIC 是一套以 React Native + Expo 建立的股票研究工具，同一套 T
 - Stock War Room：五構面 Score、籌碼、OI、技術與風險
 - AI Check：持股輸入與結構化安全建議
 - Watchlist：Score Change、Risk Alert、個股摘要
+- Live Stock War Room：價格、法人、技術、支撐壓力與資料可信度
+- Alert Engine：Score Change、燈號改變、風險門檻
 - Trend Reports：四種報告入口
 - EOD Data Pipeline：TWSE／TPEx 日行情與三大法人
 - Provisional Score Pipeline：20 日特徵、Market Score、Stock Score、Top 20
@@ -95,8 +97,7 @@ git push
 
 1. 依 `docs/DEPLOYMENT.md` 連結 Supabase 專案。
 2. 以 `supabase db push` 套用 `supabase/migrations/`，並視需要載入 `supabase/seed.sql`。
-3. 部署 `market-summary`、`discovery-latest`、`reports-latest`、`ai-check` Edge Functions。
-   另部署 `market-data-ingest` 與 `score-calculate` 以啟用盤後資料管線。
+3. 依 `docs/DEPLOYMENT.md` 部署全部 Edge Functions，包括 Stock War Room、Watchlist 與 Alert Engine。
 4. 將 `.env.local` 的 `EXPO_PUBLIC_DEMO_MODE` 設為 `false`，前端 adapter 即切換正式 API。
 5. OpenAI 回應使用固定 JSON Schema，並保存資料時間、規則版本與 Prompt 版本。
 

@@ -53,6 +53,16 @@ Do not launch Top 20 as a production claim with fewer than 20 valid sessions. `s
 5. Creates versioned `stock_score_snapshots`.
 6. Creates a Discovery run and Top 20 candidates.
 
+### `alert-evaluate`
+
+Runs after score calculation and checks each tracked stock against the user's enabled alert rules:
+
+- absolute Score Change threshold;
+- signal transition;
+- risk score crossing its configured threshold.
+
+Alerts use a deterministic deduplication key containing user, stock, rule type and score timestamp. Re-running the job therefore does not create duplicate notifications.
+
 ## Security
 
 Both scheduled functions require:
