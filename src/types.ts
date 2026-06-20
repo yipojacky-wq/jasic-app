@@ -3,7 +3,8 @@ export type TabKey =
   | 'discovery'
   | 'watchlist'
   | 'reports'
-  | 'ai-check';
+  | 'ai-check'
+  | 'settings';
 
 export type Signal = 'green' | 'yellow' | 'red';
 export type AiAction = 'ADD' | 'HOLD' | 'WAIT' | 'REDUCE' | 'STOP_LOSS';
@@ -142,4 +143,44 @@ export interface AlertSummary {
   message: string;
   triggeredAt: string;
   readAt?: string | null;
+}
+
+export interface UserProfile {
+  id: string | null;
+  email: string;
+  displayName: string;
+  riskProfile: 'conservative' | 'balanced' | 'aggressive' | 'growth';
+  defaultHorizon: 'short' | 'swing' | 'medium' | 'long';
+  timezone: string;
+  termsVersion?: string | null;
+  termsAcceptedAt?: string | null;
+}
+
+export interface DataHealthItem {
+  code: string;
+  label: string;
+  status: 'healthy' | 'warning' | 'stale' | 'missing';
+  dataAsOf?: string | null;
+  lastRunAt?: string | null;
+  records?: number;
+  message: string;
+}
+
+export interface MethodologyInfo {
+  scoreRuleVersion: string;
+  scoreRuleStatus: string;
+  scoreRuleNote: string;
+  sources: Array<{
+    code: string;
+    provider: string;
+    datasetName: string;
+    frequency: string;
+    attribution?: string | null;
+  }>;
+}
+
+export interface SettingsOverview {
+  profile: UserProfile;
+  dataHealth: DataHealthItem[];
+  methodology: MethodologyInfo;
 }

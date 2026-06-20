@@ -1,6 +1,6 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -11,16 +11,17 @@ import {
 } from 'react-native';
 
 import { Badge, Card, PrimaryButton, ProgressBar, SectionHeader } from '../components/ui';
-import { runAiCheck } from '../services/api';
+import { getUserProfile, runAiCheck } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { colors } from '../theme';
 
 const horizons = ['短線', '波段', '中期', '長期'];
-const profiles = ['conservative', 'balanced', 'aggressive'];
+const profiles = ['conservative', 'balanced', 'aggressive', 'growth'];
 const profileLabels: Record<string, string> = {
   conservative: '保守',
   balanced: '穩健',
   aggressive: '積極',
+  growth: '成長',
 };
 
 export function AiCheckScreen() {
@@ -30,7 +31,24 @@ export function AiCheckScreen() {
   const [lots, setLots] = useState('1');
   const [horizon, setHorizon] = useState('中期');
   const [riskProfile, setRiskProfile] = useState('balanced');
+  const profile = useQuery({
+    queryKey: ['user-profile'],
+    queryFn: getUserProfile,
+  });
   const mutation = useMutation({ mutationFn: runAiCheck });
+
+  useEffect(() => {
+    if (!profile.data) return;
+    setRiskProfile(profile.data.riskProfile);
+    setHorizon(
+      {
+        short: '短線',
+        swing: '波段',
+        medium: '中期',
+        long: '長期',
+      }[profile.data.defaultHorizon],
+    );
+  }, [profile.data]);
 
   const submit = () => {
     mutation.mutate({

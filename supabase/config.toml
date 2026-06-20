@@ -54,3 +54,9 @@ verify_jwt = false
 
 [functions.report-detail]
 verify_jwt = true
+
+[functions.profile-settings]
+verify_jwt = true
+
+[functions.data-health]
+verify_jwt = true

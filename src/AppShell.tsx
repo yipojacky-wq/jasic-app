@@ -13,6 +13,7 @@ import { AiCheckScreen } from './screens/AiCheckScreen';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { DiscoveryScreen } from './screens/DiscoveryScreen';
 import { ReportsScreen } from './screens/ReportsScreen';
+import { SettingsScreen } from './screens/SettingsScreen';
 import { StockWarRoomScreen } from './screens/StockWarRoomScreen';
 import { WatchlistScreen } from './screens/WatchlistScreen';
 import { useAppStore } from './store/useAppStore';
@@ -25,6 +26,7 @@ const tabs: { key: TabKey; label: string; short: string }[] = [
   { key: 'ai-check', label: 'AI 檢核', short: 'AI' },
   { key: 'watchlist', label: '個人追蹤', short: '追蹤' },
   { key: 'reports', label: '趨勢報告', short: '報告' },
+  { key: 'settings', label: '設定與方法論', short: '設定' },
 ];
 
 export function AppShell() {
@@ -36,7 +38,7 @@ export function AppShell() {
 
   return (
     <View style={styles.shell}>
-      <Header mobile={mobile} />
+      <Header mobile={mobile} onSettings={() => setActiveTab('settings')} />
       <View style={styles.body}>
         {!mobile ? <Sidebar activeTab={activeTab} onChange={setActiveTab} /> : null}
         <ScrollView
@@ -57,7 +59,13 @@ export function AppShell() {
   );
 }
 
-function Header({ mobile }: { mobile: boolean }) {
+function Header({
+  mobile,
+  onSettings,
+}: {
+  mobile: boolean;
+  onSettings: () => void;
+}) {
   return (
     <View style={styles.header}>
       <View style={styles.brand}>
@@ -78,9 +86,13 @@ function Header({ mobile }: { mobile: boolean }) {
             </Text>
           </View>
         ) : null}
-        <View style={styles.avatar}>
+        <Pressable
+          accessibilityLabel="開啟設定"
+          onPress={onSettings}
+          style={styles.avatar}
+        >
           <Text style={styles.avatarText}>JA</Text>
-        </View>
+        </Pressable>
       </View>
     </View>
   );
@@ -112,7 +124,11 @@ function Sidebar({
       ))}
       <View style={styles.sidebarNote}>
         <Text style={styles.sidebarNoteTitle}>研究模式</Text>
-        <Text style={styles.sidebarNoteText}>目前使用展示資料。設定 Supabase 後即可切換正式資料層。</Text>
+        <Text style={styles.sidebarNoteText}>
+          {isLiveMode
+            ? '正式資料模式。請至設定頁確認每項資料的新鮮度。'
+            : '目前使用展示資料。設定 Supabase 後即可切換正式資料層。'}
+        </Text>
       </View>
     </View>
   );
@@ -127,7 +143,7 @@ function MobileNav({
 }) {
   return (
     <View style={styles.mobileNav}>
-      {tabs.map((tab, index) => (
+      {tabs.filter((tab) => tab.key !== 'settings').map((tab, index) => (
         <Pressable key={tab.key} onPress={() => onChange(tab.key)} style={styles.mobileNavItem}>
           <Text style={[styles.mobileIcon, activeTab === tab.key && styles.mobileActive]}>
             {index + 1}
@@ -151,6 +167,8 @@ function Screen({ activeTab }: { activeTab: TabKey }) {
       return <WatchlistScreen />;
     case 'reports':
       return <ReportsScreen />;
+    case 'settings':
+      return <SettingsScreen />;
     default:
       return <DashboardScreen />;
   }

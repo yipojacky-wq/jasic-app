@@ -7,9 +7,11 @@ import type {
   DashboardData,
   ReportSummary,
   ReportDetail,
+  SettingsOverview,
   StockWarRoomData,
   StockCandidate,
   WatchlistSummary,
+  UserProfile,
 } from '../types';
 
 const delay = (ms = 180) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -292,6 +294,107 @@ export async function markAlertRead(alertId: string): Promise<void> {
     .update({ read_at: new Date().toISOString() })
     .eq('id', alertId);
   if (error) throw error;
+}
+
+export async function getUserProfile(): Promise<UserProfile> {
+  if (isLiveMode) {
+    return invoke<UserProfile>('profile-settings', { body: { action: 'get' } });
+  }
+  await delay();
+  return {
+    id: null,
+    email: 'demo@jasic.app',
+    displayName: 'JASIC Alpha User',
+    riskProfile: 'balanced',
+    defaultHorizon: 'medium',
+    timezone: 'Asia/Taipei',
+    termsVersion: 'alpha-1.0',
+    termsAcceptedAt: '2026-06-20T00:00:00+08:00',
+  };
+}
+
+export async function updateUserProfile(input: {
+  displayName: string;
+  riskProfile: UserProfile['riskProfile'];
+  defaultHorizon: UserProfile['defaultHorizon'];
+  acceptTerms?: boolean;
+}): Promise<UserProfile> {
+  if (isLiveMode) {
+    return invoke<UserProfile>('profile-settings', {
+      body: { action: 'update', ...input },
+    });
+  }
+  await delay(300);
+  return {
+    id: null,
+    email: 'demo@jasic.app',
+    displayName: input.displayName,
+    riskProfile: input.riskProfile,
+    defaultHorizon: input.defaultHorizon,
+    timezone: 'Asia/Taipei',
+    termsVersion: input.acceptTerms ? 'alpha-1.0' : null,
+    termsAcceptedAt: input.acceptTerms
+      ? new Date().toISOString()
+      : null,
+  };
+}
+
+export async function getSettingsOverview(): Promise<SettingsOverview> {
+  const profile = await getUserProfile();
+  if (isLiveMode) {
+    const governance = await invoke<Omit<SettingsOverview, 'profile'>>('data-health');
+    return { profile, ...governance };
+  }
+  await delay();
+  return {
+    profile,
+    dataHealth: [
+      {
+        code: 'TWSE_STOCK_DAY_ALL',
+        label: '上市個股日成交資訊',
+        status: 'healthy',
+        dataAsOf: '2026-06-18',
+        records: 1050,
+        message: '展示資料模式',
+      },
+      {
+        code: 'TPEX_DAILY_QUOTES',
+        label: '上櫃股票每日收盤行情',
+        status: 'healthy',
+        dataAsOf: '2026-06-18',
+        records: 820,
+        message: '展示資料模式',
+      },
+      {
+        code: 'MARKET_SCORE',
+        label: 'Market / Stock Score',
+        status: 'warning',
+        dataAsOf: '2026-06-20T16:30:00+08:00',
+        message: '目前使用展示與暫定規則資料',
+      },
+    ],
+    methodology: {
+      scoreRuleVersion: 'stock-score-provisional-0.1.0',
+      scoreRuleStatus: 'provisional',
+      scoreRuleNote: '工程驗證規則，等待 JASIC 正式權重與校準案例簽核。',
+      sources: [
+        {
+          code: 'TWSE_STOCK_DAY_ALL',
+          provider: 'Taiwan Stock Exchange',
+          datasetName: '上市個股日成交資訊',
+          frequency: 'trading_day_eod',
+          attribution: '資料來源：臺灣證券交易所 OpenAPI',
+        },
+        {
+          code: 'TPEX_DAILY_QUOTES',
+          provider: 'Taipei Exchange',
+          datasetName: '上櫃股票每日收盤行情',
+          frequency: 'trading_day_eod',
+          attribution: '資料來源：證券櫃檯買賣中心 OpenAPI',
+        },
+      ],
+    },
+  };
 }
 
 async function runDemoAiCheck(input: AiCheckInput): Promise<AiCheckResult> {

@@ -19,6 +19,8 @@ supabase functions deploy watchlist-summary
 supabase functions deploy alert-evaluate
 supabase functions deploy report-generate
 supabase functions deploy report-detail
+supabase functions deploy profile-settings
+supabase functions deploy data-health
 ```
 
 設定伺服器 secrets：
@@ -75,3 +77,4 @@ iOS App Store 發佈需要 Apple Developer 帳號。Android Play Store 發佈需
 - 法務已核准免責聲明、隱私政策及資料保留政策。
 - GitHub Actions 已設定 `SUPABASE_URL` 與 `CRON_SECRET` repository secrets。
 - 已閱讀 `docs/DATA_PIPELINE.md` 的暫定分數限制。
+- 正式測試者已在設定頁接受 Alpha 免責與資料使用條款。
