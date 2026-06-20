@@ -9,6 +9,7 @@ JASIC may store:
 - authentication email and account identifier;
 - display name, risk preference and default investment horizon;
 - watchlists and alert preferences;
+- user-entered research positions, including average cost, quantity, horizon and note;
 - user-entered AI Check position inputs;
 - AI Check conclusions, reasons, risks and suggestions;
 - read/unread alert state;
@@ -34,7 +35,7 @@ The Settings → Privacy Center export includes:
 
 - profile and accepted terms;
 - watchlists;
-- positions when the Phase 1.1 portfolio table is enabled;
+- research positions;
 - AI Check history;
 - alerts and alert rules;
 - personal reports.
@@ -49,7 +50,7 @@ The user must be authenticated and type the exact phrase:
 DELETE JASIC ACCOUNT
 ```
 
-Deletion removes the Supabase Auth account. Foreign-key cascades remove profile, watchlists, AI Check history, alert rules, alerts and personal reports.
+Deletion removes the Supabase Auth account. Foreign-key cascades remove profile, watchlists, research positions, AI Check history, alert rules, alerts and personal reports.
 
 The system retains only a non-identifying deletion audit containing:
 

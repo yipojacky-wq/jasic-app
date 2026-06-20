@@ -1,4 +1,5 @@
 import { candidates, marketIndicators, reports } from '../data/mockData';
+import { lotsToShares } from '../lib/positions';
 import { isLiveMode, supabase } from '../lib/supabase';
 import type {
   AiCheckInput,
@@ -14,9 +15,25 @@ import type {
   WatchlistSummary,
   UserProfile,
   UserDataExport,
+  UserPosition,
+  UserPositionInput,
 } from '../types';
 
 const delay = (ms = 180) => new Promise((resolve) => setTimeout(resolve, ms));
+
+let demoPositions: UserPosition[] = [
+  {
+    id: 'demo-position-2330',
+    symbol: '2330',
+    name: '台積電',
+    exchange: 'TWSE',
+    averageCost: 980,
+    quantityShares: 1000,
+    investmentHorizon: 'medium',
+    note: '核心追蹤部位',
+    updatedAt: '2026-06-20T16:30:00+08:00',
+  },
+];
 
 type ApiEnvelope<T> = {
   data: T;
@@ -295,6 +312,127 @@ export async function markAlertRead(alertId: string): Promise<void> {
     .from('alerts')
     .update({ read_at: new Date().toISOString() })
     .eq('id', alertId);
+  if (error) throw error;
+}
+
+export async function getUserPositions(): Promise<UserPosition[]> {
+  if (!isLiveMode || !supabase) {
+    await delay();
+    return [...demoPositions];
+  }
+
+  const { data, error } = await supabase
+    .from('user_positions')
+    .select(
+      'id, average_cost, quantity_shares, investment_horizon, note, updated_at, stocks!inner(symbol, name_zh, exchange)',
+    )
+    .order('updated_at', { ascending: false });
+  if (error) throw error;
+
+  return (data ?? []).map((row: any) => ({
+    id: row.id,
+    symbol: row.stocks.symbol,
+    name: row.stocks.name_zh,
+    exchange: row.stocks.exchange,
+    averageCost: Number(row.average_cost),
+    quantityShares: Number(row.quantity_shares),
+    investmentHorizon: row.investment_horizon,
+    note: row.note,
+    updatedAt: row.updated_at,
+  }));
+}
+
+export async function saveUserPosition(
+  input: UserPositionInput,
+): Promise<UserPosition> {
+  const normalizedSymbol = input.symbol.trim();
+  if (
+    !/^\d{4}$/.test(normalizedSymbol) ||
+    !Number.isFinite(input.averageCost) ||
+    input.averageCost <= 0 ||
+    !Number.isFinite(input.lots) ||
+    input.lots <= 0
+  ) {
+    throw new Error('請輸入有效的四位股票代號、平均成本與張數。');
+  }
+
+  if (!isLiveMode || !supabase) {
+    await delay(250);
+    const stock = candidates.find((item) => item.symbol === normalizedSymbol);
+    const position: UserPosition = {
+      id: `demo-position-${normalizedSymbol}`,
+      symbol: normalizedSymbol,
+      name: stock?.name ?? normalizedSymbol,
+      exchange: 'TWSE',
+      averageCost: input.averageCost,
+      quantityShares: lotsToShares(input.lots),
+      investmentHorizon: input.investmentHorizon,
+      note: input.note?.trim() || null,
+      updatedAt: new Date().toISOString(),
+    };
+    demoPositions = [
+      position,
+      ...demoPositions.filter((item) => item.symbol !== normalizedSymbol),
+    ];
+    return position;
+  }
+
+  const [{ data: userData, error: userError }, { data: stock, error: stockError }] =
+    await Promise.all([
+      supabase.auth.getUser(),
+      supabase
+        .from('stocks')
+        .select('id, symbol, name_zh, exchange')
+        .eq('symbol', normalizedSymbol)
+        .eq('is_active', true)
+        .limit(1)
+        .single(),
+    ]);
+  if (userError || !userData.user) throw userError ?? new Error('AUTH_REQUIRED');
+  if (stockError) throw new Error('查無此股票代號，請先確認市場資料已匯入。');
+
+  const updatedAt = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('user_positions')
+    .upsert(
+      {
+        user_id: userData.user.id,
+        stock_id: stock.id,
+        average_cost: input.averageCost,
+        quantity_shares: lotsToShares(input.lots),
+        investment_horizon: input.investmentHorizon,
+        note: input.note?.trim() || null,
+        updated_at: updatedAt,
+      },
+      { onConflict: 'user_id,stock_id' },
+    )
+    .select('id')
+    .single();
+  if (error) throw error;
+
+  return {
+    id: data.id,
+    symbol: stock.symbol,
+    name: stock.name_zh,
+    exchange: stock.exchange,
+    averageCost: input.averageCost,
+    quantityShares: lotsToShares(input.lots),
+    investmentHorizon: input.investmentHorizon,
+    note: input.note?.trim() || null,
+    updatedAt,
+  };
+}
+
+export async function deleteUserPosition(positionId: string): Promise<void> {
+  if (!isLiveMode || !supabase) {
+    await delay(180);
+    demoPositions = demoPositions.filter((item) => item.id !== positionId);
+    return;
+  }
+  const { error } = await supabase
+    .from('user_positions')
+    .delete()
+    .eq('id', positionId);
   if (error) throw error;
 }
 

@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 
 import { Badge, Card, PrimaryButton, ProgressBar, SectionHeader } from '../components/ui';
-import { getUserProfile, runAiCheck } from '../services/api';
+import { horizonLabel, sharesToLots } from '../lib/positions';
+import { getUserPositions, getUserProfile, runAiCheck } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { colors } from '../theme';
 
@@ -35,6 +36,10 @@ export function AiCheckScreen() {
     queryKey: ['user-profile'],
     queryFn: getUserProfile,
   });
+  const positions = useQuery({
+    queryKey: ['user-positions'],
+    queryFn: getUserPositions,
+  });
   const mutation = useMutation({ mutationFn: runAiCheck });
 
   useEffect(() => {
@@ -49,6 +54,16 @@ export function AiCheckScreen() {
       }[profile.data.defaultHorizon],
     );
   }, [profile.data]);
+
+  useEffect(() => {
+    const position = positions.data?.find(
+      (item) => item.symbol === symbol.trim(),
+    );
+    if (!position) return;
+    setCost(String(position.averageCost));
+    setLots(String(sharesToLots(position.quantityShares)));
+    setHorizon(horizonLabel(position.investmentHorizon));
+  }, [positions.data, symbol]);
 
   const submit = () => {
     mutation.mutate({
@@ -73,6 +88,14 @@ export function AiCheckScreen() {
       <View style={styles.columns}>
         <Card style={styles.formCard}>
           <SectionHeader eyebrow="Position Input" title="持股資訊" />
+          {positions.data?.some((item) => item.symbol === symbol.trim()) ? (
+            <View style={styles.prefillNotice}>
+              <Badge tone="positive">已帶入研究持倉</Badge>
+              <Text style={styles.prefillText}>
+                成本、張數與投資期間來自「個人追蹤」，仍可在此調整後再檢核。
+              </Text>
+            </View>
+          ) : null}
           <Field label="股票代號">
             <TextInput
               accessibilityLabel="股票代號"
@@ -250,6 +273,13 @@ const styles = StyleSheet.create({
   subtitle: { color: colors.textSoft, fontSize: 14, lineHeight: 22, marginTop: 8 },
   columns: { flexDirection: 'row', flexWrap: 'wrap', gap: 18 },
   formCard: { flex: 1, gap: 16, minWidth: 300 },
+  prefillNotice: {
+    backgroundColor: colors.greenSoft,
+    borderRadius: 12,
+    gap: 7,
+    padding: 11,
+  },
+  prefillText: { color: colors.textSoft, fontSize: 10, lineHeight: 16 },
   resultColumn: { flex: 1.25, minWidth: 300 },
   field: { gap: 7 },
   flex: { flex: 1 },

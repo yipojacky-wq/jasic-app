@@ -156,7 +156,7 @@ export function OnboardingScreen({ profile }: { profile: UserProfile }) {
           />
           <ConsentRow
             checked={acceptDataTerms}
-            label="我同意系統保存個人設定、Watchlist 與 AI Check 紀錄；我可在 Privacy Center 匯出資料或永久刪除帳號。"
+            label="我同意系統保存個人設定、Watchlist、研究持倉與 AI Check 紀錄；我可在 Privacy Center 匯出資料或永久刪除帳號。"
             onPress={() => setAcceptDataTerms((value) => !value)}
           />
 

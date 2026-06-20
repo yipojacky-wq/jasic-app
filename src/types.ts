@@ -8,6 +8,7 @@ export type TabKey =
 
 export type Signal = 'green' | 'yellow' | 'red';
 export type AiAction = 'ADD' | 'HOLD' | 'WAIT' | 'REDUCE' | 'STOP_LOSS';
+export type InvestmentHorizon = 'short' | 'swing' | 'medium' | 'long';
 
 export interface StockCandidate {
   symbol: string;
@@ -150,10 +151,30 @@ export interface UserProfile {
   email: string;
   displayName: string;
   riskProfile: 'conservative' | 'balanced' | 'aggressive' | 'growth';
-  defaultHorizon: 'short' | 'swing' | 'medium' | 'long';
+  defaultHorizon: InvestmentHorizon;
   timezone: string;
   termsVersion?: string | null;
   termsAcceptedAt?: string | null;
+}
+
+export interface UserPosition {
+  id: string;
+  symbol: string;
+  name: string;
+  exchange: string;
+  averageCost: number;
+  quantityShares: number;
+  investmentHorizon: InvestmentHorizon;
+  note?: string | null;
+  updatedAt: string;
+}
+
+export interface UserPositionInput {
+  symbol: string;
+  averageCost: number;
+  lots: number;
+  investmentHorizon: InvestmentHorizon;
+  note?: string;
 }
 
 export interface DataHealthItem {

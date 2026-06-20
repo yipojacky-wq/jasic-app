@@ -302,7 +302,7 @@ export function SettingsScreen() {
         <View style={styles.privacyBlock}>
           <Text style={styles.privacyTitle}>匯出我的資料</Text>
           <Text style={styles.privacyText}>
-            匯出 Profile、Watchlist、AI Check、警示規則與個人化報告。市場公共資料不會重複包含。
+            匯出 Profile、Watchlist、研究持倉、AI Check、警示規則與個人化報告。市場公共資料不會重複包含。
           </Text>
           {exportData.isError ? (
             <Text style={styles.error}>{exportData.error.message}</Text>
@@ -320,7 +320,7 @@ export function SettingsScreen() {
         <View style={styles.dangerBlock}>
           <Text style={styles.dangerTitle}>永久刪除帳號</Text>
           <Text style={styles.privacyText}>
-            正式模式會刪除登入帳號、Watchlist、AI Check、警示及所有個人化資料。此操作無法復原。
+            正式模式會刪除登入帳號、Watchlist、研究持倉、AI Check、警示及所有個人化資料。此操作無法復原。
           </Text>
           <Text style={styles.confirmLabel}>
             請輸入：DELETE JASIC ACCOUNT

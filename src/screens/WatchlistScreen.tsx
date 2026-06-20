@@ -15,6 +15,7 @@ import {
   SectionHeader,
   SignalDot,
 } from '../components/ui';
+import { PositionManager } from '../components/PositionManager';
 import { getAlerts, getWatchlistSummary, markAlertRead } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { colors } from '../theme';
@@ -68,6 +69,9 @@ export function WatchlistScreen() {
           <Text style={[styles.statValue, styles.amber]}>{summary.alertCount}</Text>
         </Card>
       </View>
+
+      <SectionHeader eyebrow="Portfolio Context" title="我的研究持倉" />
+      <PositionManager />
 
       <SectionHeader eyebrow="Score Change" title="追蹤標的" />
       {summary.items.length ? (

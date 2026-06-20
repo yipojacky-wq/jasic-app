@@ -43,7 +43,10 @@ Deno.serve(async (request) => {
       .from('watchlists')
       .select('id, name, is_default, created_at, watchlist_items(created_at, note, stocks(symbol, exchange, name_zh, industry_code))')
       .eq('user_id', userId),
-    tableExistsQuery(supabase, 'user_positions', userId),
+    supabase
+      .from('user_positions')
+      .select('id, average_cost, quantity_shares, investment_horizon, note, created_at, updated_at, stocks(symbol, exchange, name_zh)')
+      .eq('user_id', userId),
     supabase
       .from('ai_check_requests')
       .select('id, cost, quantity_shares, investment_horizon, risk_profile, status, created_at, stocks(symbol, exchange, name_zh), ai_check_results(action, conclusion, reasons, risks, suggestions, confidence, model_identifier, prompt_version, rule_version, created_at)')
@@ -100,15 +103,3 @@ Deno.serve(async (request) => {
     personalReports: personalReports ?? [],
   }));
 });
-
-async function tableExistsQuery(supabase: any, table: string, userId: string) {
-  const { data, error } = await supabase
-    .from(table)
-    .select('*')
-    .eq('user_id', userId);
-  // user_positions is a Phase 1.1 table and may not exist yet.
-  if (error?.code === '42P01' || error?.code === 'PGRST205') {
-    return { data: [], error: null };
-  }
-  return { data, error };
-}
