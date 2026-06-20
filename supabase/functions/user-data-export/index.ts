@@ -33,6 +33,7 @@ Deno.serve(async (request) => {
     { data: alerts, error: alertsError },
     { data: alertRules, error: rulesError },
     { data: personalReports, error: reportsError },
+    { data: reportBookmarks, error: bookmarksError },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -66,6 +67,11 @@ Deno.serve(async (request) => {
       .select('report_type, title, period_start, period_end, as_of, summary, content, rule_version, published_at, stocks(symbol, name_zh)')
       .eq('user_id', userId)
       .order('as_of', { ascending: false }),
+    supabase
+      .from('report_bookmarks')
+      .select('created_at, reports(id, report_type, title, as_of, summary)')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false }),
   ]);
 
   const queryError =
@@ -75,7 +81,8 @@ Deno.serve(async (request) => {
     aiRequestError ??
     alertsError ??
     rulesError ??
-    reportsError;
+    reportsError ??
+    bookmarksError;
   if (queryError) {
     return jsonResponse(errorEnvelope('DATABASE_ERROR', queryError.message), 500);
   }
@@ -101,5 +108,6 @@ Deno.serve(async (request) => {
     alerts: alerts ?? [],
     alertRules: alertRules ?? [],
     personalReports: personalReports ?? [],
+    reportBookmarks: reportBookmarks ?? [],
   }));
 });

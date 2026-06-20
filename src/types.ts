@@ -68,6 +68,11 @@ export interface ReportDetail extends ReportSummary {
   disclaimer: string;
 }
 
+export interface ReportBookmark {
+  reportId: string;
+  createdAt: string;
+}
+
 export interface AiCheckInput {
   symbol: string;
   cost: number;
@@ -279,6 +284,7 @@ export interface UserDataExport {
   alerts: unknown[];
   alertRules: unknown[];
   personalReports: unknown[];
+  reportBookmarks: unknown[];
 }
 
 export interface AccountDeletionResult {

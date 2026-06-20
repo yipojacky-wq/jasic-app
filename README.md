@@ -23,6 +23,7 @@ JASIC 是一套以 React Native + Expo 建立的股票研究工具，同一套 T
 - Alert Engine：Score Change、燈號改變、風險門檻
 - Trend Reports：四種報告入口
 - Report Detail：指標、證據、風險、資料時間與規則版本
+- Report Library：搜尋、分類、收藏、Markdown 下載與手機分享
 - Report Generator：每日市場、核心池週報、個股戰情、風險警示
 - Settings & Governance：風險偏好、投資期間、資料健康、方法論與來源揭露
 - Privacy Center：個人資料 JSON 匯出、帳號永久刪除與保留說明

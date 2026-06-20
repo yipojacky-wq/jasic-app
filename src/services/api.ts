@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { candidates, marketIndicators, reports } from '../data/mockData';
 import { lotsToShares } from '../lib/positions';
 import { isLiveMode, supabase } from '../lib/supabase';
@@ -23,9 +25,11 @@ import type {
   AlertRule,
   AlertRuleUpdate,
   AiCheckHistoryItem,
+  ReportBookmark,
 } from '../types';
 
 const delay = (ms = 180) => new Promise((resolve) => setTimeout(resolve, ms));
+const demoReportBookmarksKey = 'jasic.demo.report-bookmarks';
 
 let demoPositions: UserPosition[] = [
   {
@@ -207,6 +211,64 @@ export async function getReportDetail(reportId: string): Promise<ReportDetail> {
     ],
     disclaimer: '本報告僅供研究與風險檢核，不構成獲利保證或自動交易指令。',
   };
+}
+
+export async function getReportBookmarks(): Promise<ReportBookmark[]> {
+  if (!isLiveMode || !supabase) {
+    const stored = await AsyncStorage.getItem(demoReportBookmarksKey);
+    const ids = stored ? (JSON.parse(stored) as string[]) : [];
+    return ids.map((reportId) => ({
+      reportId,
+      createdAt: new Date().toISOString(),
+    }));
+  }
+  const { data, error } = await supabase
+    .from('report_bookmarks')
+    .select('report_id, created_at')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    reportId: row.report_id,
+    createdAt: row.created_at,
+  }));
+}
+
+export async function setReportBookmark(
+  reportId: string,
+  shouldBookmark: boolean,
+): Promise<void> {
+  if (!isLiveMode || !supabase) {
+    const stored = await AsyncStorage.getItem(demoReportBookmarksKey);
+    const ids = new Set<string>(stored ? JSON.parse(stored) : []);
+    if (shouldBookmark) ids.add(reportId);
+    else ids.delete(reportId);
+    await AsyncStorage.setItem(
+      demoReportBookmarksKey,
+      JSON.stringify([...ids]),
+    );
+    return;
+  }
+
+  if (shouldBookmark) {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      throw userError ?? new Error('AUTH_REQUIRED');
+    }
+    const { error } = await supabase.from('report_bookmarks').upsert(
+      {
+        user_id: userData.user.id,
+        report_id: reportId,
+      },
+      { onConflict: 'user_id,report_id' },
+    );
+    if (error) throw error;
+  } else {
+    const { error } = await supabase
+      .from('report_bookmarks')
+      .delete()
+      .eq('report_id', reportId);
+    if (error) throw error;
+  }
 }
 
 export async function runAiCheck(input: AiCheckInput): Promise<AiCheckResult> {
@@ -738,6 +800,7 @@ export async function exportUserData(): Promise<UserDataExport> {
     alerts: [],
     alertRules: [],
     personalReports: [],
+    reportBookmarks: [],
   };
 }
 

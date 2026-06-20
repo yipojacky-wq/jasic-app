@@ -15,6 +15,7 @@ JASIC may store:
 - AI Check model, prompt and deterministic rule version identifiers;
 - read/unread alert state;
 - personal reports created for the user;
+- saved report bookmarks;
 - terms version and acceptance timestamp.
 
 JASIC does not store brokerage passwords and does not submit trades.
@@ -44,6 +45,7 @@ The Settings → Privacy Center export includes:
 - AI Check history;
 - alerts and alert rules;
 - personal reports.
+- saved report bookmarks.
 
 The export is JSON and includes a schema version and export timestamp.
 
@@ -55,7 +57,7 @@ The user must be authenticated and type the exact phrase:
 DELETE JASIC ACCOUNT
 ```
 
-Deletion removes the Supabase Auth account. Foreign-key cascades remove profile, watchlists, research positions, AI Check history, alert rules, alerts and personal reports.
+Deletion removes the Supabase Auth account. Foreign-key cascades remove profile, watchlists, research positions, AI Check history, alert rules, alerts, personal reports and report bookmarks.
 
 The system retains only a non-identifying deletion audit containing:
 
