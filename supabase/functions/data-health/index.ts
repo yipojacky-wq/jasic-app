@@ -6,8 +6,10 @@ import {
   optionsResponse,
 } from '../_shared/http.ts';
 import {
+  dataHealthAction,
   dataHealthMessage,
   dataHealthStatus,
+  ingestionQualityRate,
 } from '../_shared/governance.ts';
 
 type DataSourceRow = {
@@ -50,7 +52,7 @@ Deno.serve(async (request) => {
       .order('code'),
     supabase
       .from('ingestion_runs')
-      .select('source_code, dataset_date, status, records_valid, completed_at')
+      .select('source_code, dataset_date, status, records_received, records_valid, records_rejected, error_summary, started_at, completed_at')
       .order('completed_at', { ascending: false })
       .limit(30),
     supabase
@@ -95,17 +97,23 @@ Deno.serve(async (request) => {
     return {
       code: source.code,
       label: source.dataset_name,
+      provider: source.provider,
+      frequency: source.update_frequency,
       ...healthForRun(run),
     };
   });
   dataHealth.push({
     code: 'MARKET_SCORE',
     label: 'Market / Stock Score',
+    provider: 'JASIC Score Engine',
+    frequency: 'derived',
     ...healthForTimestamp(market?.as_of, '尚未產生 Score 快照'),
   });
   dataHealth.push({
     code: 'TREND_REPORTS',
     label: '四種趨勢報告',
+    provider: 'JASIC Report Engine',
+    frequency: 'derived',
     ...healthForTimestamp(report?.as_of, '尚未產生趨勢報告'),
   });
 
@@ -134,18 +142,31 @@ function healthForRun(run: any) {
   if (!run) {
     return {
       status: 'missing',
+      runStatus: null,
       dataAsOf: null,
       lastRunAt: null,
       records: 0,
+      recordsReceived: 0,
+      recordsRejected: 0,
+      qualityRate: null,
+      errorSummary: null,
+      action: dataHealthAction('missing'),
       message: '尚未執行資料匯入',
     };
   }
   if (!run.dataset_date) {
+    const status = run.status === 'failed' ? 'stale' : 'missing';
     return {
-      status: run.status === 'failed' ? 'stale' : 'missing',
+      status,
+      runStatus: run.status,
       dataAsOf: null,
       lastRunAt: run.completed_at,
       records: run.records_valid,
+      recordsReceived: run.records_received,
+      recordsRejected: run.records_rejected,
+      qualityRate: ingestionQualityRate(run.records_received, run.records_valid),
+      errorSummary: run.error_summary,
+      action: dataHealthAction(status, run.status),
       message:
         run.status === 'failed'
           ? '最近一次匯入失敗，資料不可用'
@@ -157,9 +178,15 @@ function healthForRun(run: any) {
   const status = dataHealthStatus(ageHours, run.status);
   return {
     status,
+    runStatus: run.status,
     dataAsOf: run.dataset_date,
     lastRunAt: run.completed_at,
     records: run.records_valid,
+    recordsReceived: run.records_received,
+    recordsRejected: run.records_rejected,
+    qualityRate: ingestionQualityRate(run.records_received, run.records_valid),
+    errorSummary: run.error_summary,
+    action: dataHealthAction(status, run.status),
     message:
       run.status === 'failed'
         ? '最近一次匯入失敗，請勿使用此資料產生結論'
@@ -173,9 +200,15 @@ function healthForTimestamp(value: string | null | undefined, missingMessage: st
   if (!value) {
     return {
       status: 'missing' as const,
+      runStatus: null,
       dataAsOf: null,
       lastRunAt: null,
       records: 0,
+      recordsReceived: 0,
+      recordsRejected: 0,
+      qualityRate: null,
+      errorSummary: null,
+      action: dataHealthAction('missing'),
       message: missingMessage,
     };
   }
@@ -183,9 +216,15 @@ function healthForTimestamp(value: string | null | undefined, missingMessage: st
   const status = dataHealthStatus(ageHours);
   return {
     status,
+    runStatus: 'completed' as const,
     dataAsOf: value,
     lastRunAt: value,
     records: 0,
+    recordsReceived: 0,
+    recordsRejected: 0,
+    qualityRate: null,
+    errorSummary: null,
+    action: dataHealthAction(status, 'completed'),
     message: dataHealthMessage(status),
   };
 }

@@ -6,8 +6,10 @@ import {
   hasAcceptedCurrentTerms,
 } from '../src/lib/governance';
 import {
+  dataHealthAction,
   dataHealthMessage,
   dataHealthStatus,
+  ingestionQualityRate,
 } from '../supabase/functions/_shared/governance.ts';
 
 test('data freshness thresholds protect stale research data', () => {
@@ -23,6 +25,18 @@ test('failed and partial runs override timestamp freshness', () => {
 
 test('stale status message forbids aggressive conclusions', () => {
   assert.match(dataHealthMessage('stale'), /請勿產生積極結論/);
+});
+
+test('ingestion quality exposes rejected or malformed records', () => {
+  assert.equal(ingestionQualityRate(1000, 995), 99.5);
+  assert.equal(ingestionQualityRate(0, 0), null);
+  assert.equal(ingestionQualityRate(10, 12), 100);
+});
+
+test('operational action prioritizes failed and partial runs', () => {
+  assert.match(dataHealthAction('stale', 'failed'), /來源端點/);
+  assert.match(dataHealthAction('warning', 'partial'), /拒絕資料/);
+  assert.match(dataHealthAction('healthy', 'completed'), /持續監測/);
 });
 
 test('current terms require matching version and acceptance timestamp', () => {

@@ -117,6 +117,27 @@ Runs after scores and alerts:
 
 Every report has a stable `report_key`. Re-running the same data and rule version updates the existing report instead of creating duplicates. Report content stores metrics, sections, disclaimer, data timestamp and rule version.
 
+### `data-health`
+
+The authenticated operations view combines the latest ingestion run for every
+active source with the latest Score and report timestamps. Each source exposes:
+
+- latest dataset and execution timestamps;
+- completed, partial, failed or running state;
+- received, valid and rejected record counts;
+- valid-record quality rate;
+- upstream error summary when available;
+- a deterministic operational next action.
+
+Stale and missing items are treated as research blockers. Warning items remain
+visible as attention items but do not automatically block all research. AI and
+human interpretation must still respect the timestamp and confidence attached
+to each output.
+
+The quality rate is an ingestion-validity measure, not a claim that the source
+data is economically correct. Source reconciliation and anomaly monitoring are
+separate production controls.
+
 ## Security
 
 Both scheduled functions require:

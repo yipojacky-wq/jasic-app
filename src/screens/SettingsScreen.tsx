@@ -18,6 +18,7 @@ import {
   PrimaryButton,
   SectionHeader,
 } from '../components/ui';
+import { DataHealthOperations } from '../components/DataHealthOperations';
 import { isLiveMode, supabase } from '../lib/supabase';
 import {
   deleteAccount,
@@ -26,7 +27,7 @@ import {
   updateUserProfile,
 } from '../services/api';
 import { colors } from '../theme';
-import type { DataHealthItem, UserProfile } from '../types';
+import type { UserProfile } from '../types';
 
 const riskProfiles: Array<{
   key: UserProfile['riskProfile'];
@@ -239,11 +240,7 @@ export function SettingsScreen() {
       </Card>
 
       <SectionHeader eyebrow="Data Freshness" title="資料健康狀態" />
-      <View style={styles.healthGrid}>
-        {data.dataHealth.map((item) => (
-          <DataHealthCard key={item.code} item={item} />
-        ))}
-      </View>
+      <DataHealthOperations items={data.dataHealth} />
 
       <SectionHeader eyebrow="Methodology" title="JASIC 方法論揭露" />
       <Card style={styles.methodCard}>
@@ -368,47 +365,6 @@ export function SettingsScreen() {
       </Card>
     </View>
   );
-}
-
-function DataHealthCard({ item }: { item: DataHealthItem }) {
-  const tone =
-    item.status === 'healthy'
-      ? 'positive'
-      : item.status === 'warning'
-        ? 'warning'
-        : item.status === 'missing'
-          ? 'neutral'
-          : 'danger';
-  return (
-    <Card style={styles.healthCard}>
-      <View style={styles.healthTop}>
-        <Text style={styles.healthLabel}>{item.label}</Text>
-        <Badge tone={tone}>{statusLabel(item.status)}</Badge>
-      </View>
-      <Text style={styles.healthMessage}>{item.message}</Text>
-      <Text style={styles.healthMeta}>
-        資料日期：{formatDate(item.dataAsOf)}
-        {item.records ? ` · ${item.records.toLocaleString()} 筆` : ''}
-      </Text>
-    </Card>
-  );
-}
-
-function statusLabel(status: DataHealthItem['status']) {
-  return {
-    healthy: '正常',
-    warning: '注意',
-    stale: '過期',
-    missing: '缺資料',
-  }[status];
-}
-
-function formatDate(value?: string | null) {
-  if (!value) return '尚無資料';
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime())
-    ? value
-    : parsed.toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
 }
 
 const styles = StyleSheet.create({

@@ -292,9 +292,17 @@ export interface DataHealthItem {
   code: string;
   label: string;
   status: 'healthy' | 'warning' | 'stale' | 'missing';
+  provider?: string;
+  frequency?: string;
+  runStatus?: 'running' | 'completed' | 'failed' | 'partial' | null;
   dataAsOf?: string | null;
   lastRunAt?: string | null;
   records?: number;
+  recordsReceived?: number;
+  recordsRejected?: number;
+  qualityRate?: number | null;
+  errorSummary?: string | null;
+  action?: string;
   message: string;
 }
 
