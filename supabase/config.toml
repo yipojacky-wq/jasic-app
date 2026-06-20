@@ -66,3 +66,6 @@ verify_jwt = true
 
 [functions.account-delete]
 verify_jwt = true
+
+[functions.portfolio-summary]
+verify_jwt = true

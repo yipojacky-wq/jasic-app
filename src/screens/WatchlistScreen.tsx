@@ -16,6 +16,7 @@ import {
   SignalDot,
 } from '../components/ui';
 import { PositionManager } from '../components/PositionManager';
+import { PortfolioRiskSummary } from '../components/PortfolioRiskSummary';
 import { getAlerts, getWatchlistSummary, markAlertRead } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { colors } from '../theme';
@@ -71,6 +72,7 @@ export function WatchlistScreen() {
       </View>
 
       <SectionHeader eyebrow="Portfolio Context" title="我的研究持倉" />
+      <PortfolioRiskSummary />
       <PositionManager />
 
       <SectionHeader eyebrow="Score Change" title="追蹤標的" />

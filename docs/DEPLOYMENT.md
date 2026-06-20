@@ -23,6 +23,7 @@ supabase functions deploy profile-settings
 supabase functions deploy data-health
 supabase functions deploy user-data-export
 supabase functions deploy account-delete
+supabase functions deploy portfolio-summary
 ```
 
 設定伺服器 secrets：
@@ -83,4 +84,5 @@ iOS App Store 發佈需要 Apple Developer 帳號。Android Play Store 發佈需
 - 已閱讀 `docs/DATA_PIPELINE.md` 的暫定分數限制。
 - 正式測試者已在設定頁接受 Alpha 免責與資料使用條款。
 - 使用 disposable 帳號測試資料匯出與永久刪除。
+- 組合估值已確認採最新可用日收盤價，且前端明確揭露非即時報價與未含交易成本。
 - `docs/PRIVACY.md` 已由合格法務人員審閱。

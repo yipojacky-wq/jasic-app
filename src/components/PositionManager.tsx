@@ -45,14 +45,20 @@ export function PositionManager() {
     mutationFn: saveUserPosition,
     onSuccess: async () => {
       resetForm();
-      await queryClient.invalidateQueries({ queryKey: ['user-positions'] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['user-positions'] }),
+        queryClient.invalidateQueries({ queryKey: ['portfolio-summary'] }),
+      ]);
     },
   });
   const remove = useMutation({
     mutationFn: deleteUserPosition,
     onSuccess: async () => {
       resetForm();
-      await queryClient.invalidateQueries({ queryKey: ['user-positions'] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['user-positions'] }),
+        queryClient.invalidateQueries({ queryKey: ['portfolio-summary'] }),
+      ]);
     },
   });
 

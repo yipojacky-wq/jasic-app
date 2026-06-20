@@ -1,6 +1,7 @@
 import { candidates, marketIndicators, reports } from '../data/mockData';
 import { lotsToShares } from '../lib/positions';
 import { isLiveMode, supabase } from '../lib/supabase';
+import { calculatePortfolioSummary } from '../../supabase/functions/_shared/portfolio.ts';
 import type {
   AiCheckInput,
   AiCheckResult,
@@ -17,6 +18,7 @@ import type {
   UserDataExport,
   UserPosition,
   UserPositionInput,
+  PortfolioSummary,
 } from '../types';
 
 const delay = (ms = 180) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -340,6 +342,37 @@ export async function getUserPositions(): Promise<UserPosition[]> {
     note: row.note,
     updatedAt: row.updated_at,
   }));
+}
+
+export async function getPortfolioSummary(): Promise<PortfolioSummary> {
+  if (isLiveMode) {
+    return invoke<PortfolioSummary>('portfolio-summary');
+  }
+  await delay();
+  const demoPrices: Record<
+    string,
+    { currentPrice: number; riskScore: number; score: number; signal: 'green' | 'yellow' | 'red' }
+  > = {
+    '2330': { currentPrice: 1040, riskScore: 38, score: 88, signal: 'green' },
+    '2454': { currentPrice: 1285, riskScore: 48, score: 84, signal: 'green' },
+    '2308': { currentPrice: 389, riskScore: 72, score: 78, signal: 'yellow' },
+  };
+  const calculated = calculatePortfolioSummary(
+    demoPositions.map((position) => ({
+      ...position,
+      currentPrice: demoPrices[position.symbol]?.currentPrice ?? null,
+      priceAsOf: '2026-06-20',
+      score: demoPrices[position.symbol]?.score ?? null,
+      riskScore: demoPrices[position.symbol]?.riskScore ?? null,
+      signal: demoPrices[position.symbol]?.signal ?? null,
+    })),
+  );
+  return {
+    ...calculated,
+    positions: calculated.positions as PortfolioSummary['positions'],
+    valuationBasis: 'latest_available_eod_close',
+    dataAsOf: '2026-06-20',
+  };
 }
 
 export async function saveUserPosition(

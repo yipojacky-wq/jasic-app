@@ -18,6 +18,10 @@ JASIC may store:
 
 JASIC does not store brokerage passwords and does not submit trades.
 
+Portfolio market value and unrealized profit/loss are derived from user-entered
+research positions and the latest available end-of-day close. They are not
+broker statements, real-time quotes or executable balances.
+
 ## Market and system data
 
 Public market prices, institutional flows, score snapshots, Discovery rankings and public reports are system datasets rather than user-owned personal data.

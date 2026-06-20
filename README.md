@@ -16,6 +16,7 @@ JASIC 是一套以 React Native + Expo 建立的股票研究工具，同一套 T
 - AI Check：持股輸入與結構化安全建議
 - Watchlist：Score Change、Risk Alert、個股摘要
 - Research Positions：保存平均成本、張數與投資期間，並自動帶入 AI Check
+- Portfolio Risk：以最新可用日收盤價計算損益、集中度、加權風險與資料缺口
 - Live Stock War Room：價格、法人、技術、支撐壓力與資料可信度
 - Alert Engine：Score Change、燈號改變、風險門檻
 - Trend Reports：四種報告入口

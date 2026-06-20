@@ -177,6 +177,36 @@ export interface UserPositionInput {
   note?: string;
 }
 
+export interface PortfolioPosition extends UserPosition {
+  currentPrice?: number | null;
+  priceAsOf?: string | null;
+  score?: number | null;
+  riskScore?: number | null;
+  signal?: Signal | null;
+  costBasis: number;
+  marketValue?: number | null;
+  unrealizedPnl?: number | null;
+  returnPct?: number | null;
+  concentrationPct: number;
+  riskLabel: '低' | '中' | '高';
+}
+
+export interface PortfolioSummary {
+  totalCostBasis: number;
+  totalMarketValue: number;
+  totalUnrealizedPnl: number;
+  totalReturnPct: number;
+  weightedRiskScore: number;
+  highRiskCount: number;
+  missingPriceCount: number;
+  largestPositionSymbol?: string | null;
+  largestConcentrationPct: number;
+  alerts: string[];
+  positions: PortfolioPosition[];
+  valuationBasis: 'latest_available_eod_close';
+  dataAsOf?: string | null;
+}
+
 export interface DataHealthItem {
   code: string;
   label: string;
