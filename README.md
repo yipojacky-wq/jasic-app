@@ -10,7 +10,7 @@ JASIC 是一套以 React Native + Expo 建立的股票研究工具，同一套 T
 
 ## 已完成模組
 
-- Macro Dashboard：五大總經、Market Score、市場燈號、AI 摘要
+- Macro Dashboard：五大總經、Market Score 拆解、市場燈號、資料新鮮度、歷史趨勢、AI 摘要
 - Three-Layer Funnel：三層證據、可信度、搜尋篩選、排序與候選清單匯出
 - Stock War Room：五構面 Score、籌碼、OI、技術與風險
 - AI Check：持股輸入與結構化安全建議

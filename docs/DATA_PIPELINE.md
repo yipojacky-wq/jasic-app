@@ -4,6 +4,29 @@
 
 The current pipeline is end-of-day research infrastructure, not real-time quote distribution.
 
+## Macro Dashboard contract
+
+The Macro Dashboard exposes more than a headline score. Every indicator response includes:
+
+- provider and source label;
+- observation date and release timestamp;
+- expected update cadence;
+- freshness status and age in days;
+- plain-language market impact;
+- six normalized historical observations for directional context.
+
+Market Score responses also expose breadth, volatility, confidence, data
+timestamp and rule version. This makes the displayed signal auditable and
+prevents a stale value from appearing equivalent to a current observation.
+
+The repository currently contains the data definitions, demo seed values,
+freshness rules and response contract for the five macro indicators. It does
+not yet contain production ingestion adapters for every macro provider.
+Before production use, connect each definition to an official or licensed
+source whose commercial-use, caching and redistribution terms have been
+reviewed. Demo and seed values must never be presented as live investment
+data.
+
 Official source adapters:
 
 | Dataset | Provider | Endpoint |

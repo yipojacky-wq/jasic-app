@@ -141,6 +141,13 @@ export async function getDashboard(): Promise<DashboardData> {
     summary:
       '市場維持中性偏多，但資金成本與波動指標出現分歧。策略宜聚焦強勢產業、避免追高，保留部分現金等待確認。',
     dataAsOf: '2026-06-20T16:30:00+08:00',
+    confidence: 70,
+    ruleVersion: 'stock-score-provisional-0.1.0',
+    components: [
+      { code: 'breadth', label: '市場廣度', value: 68, note: '站上 MA20 的股票占比' },
+      { code: 'volatility', label: '平均波動', value: 18.6, note: '20 日平均波動率' },
+      { code: 'confidence', label: '資料信心', value: 70, note: '資料完整度與驗證程度' },
+    ],
   };
 }
 

@@ -43,10 +43,24 @@ export interface StockCandidate {
 }
 
 export interface MarketIndicator {
+  code: string;
   label: string;
   value: string;
   trend: string;
   state: 'positive' | 'neutral' | 'negative';
+  unit: string;
+  frequency: string;
+  sourceName: string;
+  observationDate?: string | null;
+  releasedAt?: string | null;
+  freshness: 'fresh' | 'warning' | 'stale' | 'missing';
+  ageDays?: number | null;
+  impact: string;
+  history: Array<{
+    date: string;
+    value: number;
+    displayValue: string;
+  }>;
 }
 
 export interface DashboardData {
@@ -57,6 +71,14 @@ export interface DashboardData {
   indicators: MarketIndicator[];
   summary: string;
   dataAsOf?: string;
+  confidence: number;
+  ruleVersion: string;
+  components: Array<{
+    code: string;
+    label: string;
+    value: number;
+    note: string;
+  }>;
 }
 
 export interface ReportSummary {

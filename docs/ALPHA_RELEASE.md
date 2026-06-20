@@ -51,6 +51,9 @@ npx eas-cli build --profile production --platform all
 - All Edge Functions deployed with required secrets.
 - GitHub scheduled pipeline completes successfully.
 - Data Health page shows no stale required source.
+- Macro Dashboard shows source, cadence, observation date, release time, freshness and history for every indicator.
+- Market Score breakdown shows breadth, volatility, confidence, data timestamp and rule version.
+- Every production macro indicator is connected to an approved official or licensed source; no demo or seed value is presented as live data.
 - AI Check refuses aggressive conclusions on stale or low-confidence data.
 - Account export tested on Web and one mobile platform.
 - Account deletion tested with a disposable account.

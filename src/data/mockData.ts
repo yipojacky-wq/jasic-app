@@ -1,12 +1,54 @@
 import type { MarketIndicator, StockCandidate } from '../types';
 
 export const marketIndicators: MarketIndicator[] = [
-  { label: '全球趨勢', value: '偏多', trend: 'Nasdaq 站上季線', state: 'positive' },
-  { label: '市場波動', value: '18.6', trend: 'VIX 低檔回升', state: 'neutral' },
-  { label: '美元資金', value: '中性', trend: 'USD/TWD 32.41', state: 'neutral' },
-  { label: '資金成本', value: '4.31%', trend: '美債 10Y +4bp', state: 'negative' },
-  { label: '台灣景氣', value: '綠燈', trend: '出口年增 +8.2%', state: 'positive' },
+  mockIndicator('GLOBAL_TREND', '全球趨勢', '偏多', 'Nasdaq 站上季線', 'positive', 'signal', 'Licensed market provider', [62, 64, 67, 70, 72, 74]),
+  mockIndicator('VIX', '市場波動', '18.6', 'VIX 低檔回升', 'neutral', 'index', 'Licensed market provider', [16.8, 17.2, 17.6, 18.1, 17.9, 18.6]),
+  mockIndicator('USD_TWD', '美元資金', '中性', 'USD/TWD 32.41', 'neutral', 'TWD', 'Central Bank / provider', [32.18, 32.22, 32.28, 32.31, 32.36, 32.41]),
+  mockIndicator('US10Y', '資金成本', '4.31%', '美債 10Y +4bp', 'negative', 'percent', 'Official / provider', [4.18, 4.2, 4.23, 4.26, 4.27, 4.31]),
+  {
+    ...mockIndicator('TW_CYCLE', '台灣景氣', '綠燈', '出口年增 +8.2%', 'positive', 'signal', 'NDC / MOF', [28, 29, 30, 31, 32, 33]),
+    frequency: 'monthly',
+    observationDate: '2026-05-31',
+    releasedAt: '2026-06-15T10:00:00+08:00',
+  },
 ];
+
+function mockIndicator(
+  code: string,
+  label: string,
+  value: string,
+  trend: string,
+  state: MarketIndicator['state'],
+  unit: string,
+  sourceName: string,
+  values: number[],
+): MarketIndicator {
+  return {
+    code,
+    label,
+    value,
+    trend,
+    state,
+    unit,
+    frequency: 'daily',
+    sourceName,
+    observationDate: '2026-06-20',
+    releasedAt: '2026-06-20T16:00:00+08:00',
+    freshness: 'fresh',
+    ageDays: 0,
+    impact:
+      state === 'positive'
+        ? '支撐市場風險承擔'
+        : state === 'negative'
+          ? '壓抑市場風險承擔'
+          : '對市場影響中性',
+    history: values.map((historyValue, index) => ({
+      date: `2026-06-${String(15 + index).padStart(2, '0')}`,
+      value: historyValue,
+      displayValue: String(historyValue),
+    })),
+  };
+}
 
 export const candidates: StockCandidate[] = [
   demoCandidate(1, '2330', '台積電', '半導體', 88, 3.2, 'green', 'trend', '中', 78),

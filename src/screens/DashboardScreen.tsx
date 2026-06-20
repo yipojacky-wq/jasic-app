@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -12,11 +13,13 @@ import { candidates } from '../data/mockData';
 import { getDashboard } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { colors } from '../theme';
+import type { MarketIndicator } from '../types';
 import { Badge, Card, ErrorState, ProgressBar, SectionHeader, SignalDot } from '../components/ui';
 
 export function DashboardScreen() {
   const { width } = useWindowDimensions();
   const compact = width < 720;
+  const [expandedIndicator, setExpandedIndicator] = useState<string | null>(null);
   const openStock = useAppStore((state) => state.openStock);
   const setActiveTab = useAppStore((state) => state.setActiveTab);
   const { data, error, isLoading, refetch } = useQuery({
@@ -35,7 +38,9 @@ export function DashboardScreen() {
     <View style={styles.page}>
       <View style={[styles.hero, compact && styles.heroCompact]}>
         <View style={styles.heroCopy}>
-          <Badge tone="positive">市場綠燈 · 資料截至 06/20 16:30</Badge>
+          <Badge tone={data.signal === 'green' ? 'positive' : data.signal === 'yellow' ? 'warning' : 'danger'}>
+            市場{signalLabel(data.signal)} · 資料截至 {formatDateTime(data.dataAsOf)}
+          </Badge>
           <Text style={styles.heroTitle}>今天先看風險，再找機會。</Text>
           <Text style={styles.heroBody}>{data.summary}</Text>
         </View>
@@ -48,32 +53,81 @@ export function DashboardScreen() {
             <SignalDot signal={data.signal} />
             <Text style={styles.regimeText}>{data.regime}</Text>
           </View>
+          <Text style={styles.ruleMeta}>
+            信心 {data.confidence.toFixed(0)}% · {data.ruleVersion}
+          </Text>
         </View>
+      </View>
+
+      <SectionHeader eyebrow="Score Decomposition" title="Market Score 拆解" />
+      <View style={styles.componentGrid}>
+        {data.components.map((component) => (
+          <Card key={component.code} style={styles.componentCard}>
+            <View style={styles.componentTop}>
+              <Text style={styles.componentLabel}>{component.label}</Text>
+              <Text style={styles.componentValue}>{component.value.toFixed(1)}</Text>
+            </View>
+            <ProgressBar
+              value={Math.min(100, Math.max(0, component.value))}
+              color={component.code === 'volatility' ? colors.amber : colors.primary}
+            />
+            <Text style={styles.componentNote}>{component.note}</Text>
+          </Card>
+        ))}
       </View>
 
       <SectionHeader eyebrow="Macro Lens" title="五大總經指標" />
       <View style={styles.indicatorGrid}>
-        {data.indicators.map((indicator) => (
-          <Card
+        {data.indicators.map((indicator) => {
+          const expanded = expandedIndicator === indicator.code;
+          return (
+          <Pressable
             key={indicator.label}
-            style={[styles.indicatorCard, compact && styles.indicatorCardCompact]}
+            accessibilityLabel={`${expanded ? '收合' : '展開'} ${indicator.label} 詳情`}
+            onPress={() => setExpandedIndicator(expanded ? null : indicator.code)}
+            style={[styles.indicatorPressable, compact && styles.indicatorCardCompact]}
           >
-            <Text style={styles.indicatorLabel}>{indicator.label}</Text>
-            <Text style={styles.indicatorValue}>{indicator.value}</Text>
-            <Text
-              style={[
-                styles.indicatorTrend,
-                indicator.state === 'positive'
-                  ? styles.positive
-                  : indicator.state === 'negative'
-                    ? styles.negative
-                    : undefined,
-              ]}
-            >
-              {indicator.trend}
-            </Text>
-          </Card>
-        ))}
+            <Card style={[styles.indicatorCard, expanded && styles.indicatorCardExpanded]}>
+              <View style={styles.indicatorTop}>
+                <Text style={styles.indicatorLabel}>{indicator.label}</Text>
+                <Badge tone={freshnessTone(indicator.freshness)}>
+                  {freshnessLabel(indicator.freshness)}
+                </Badge>
+              </View>
+              <Text style={styles.indicatorValue}>{indicator.value}</Text>
+              <Text
+                style={[
+                  styles.indicatorTrend,
+                  indicator.state === 'positive'
+                    ? styles.positive
+                    : indicator.state === 'negative'
+                      ? styles.negative
+                      : undefined,
+                ]}
+              >
+                {indicator.trend}
+              </Text>
+              <Text style={styles.impact}>{indicator.impact}</Text>
+              <MiniHistory indicator={indicator} />
+              {expanded ? (
+                <View style={styles.indicatorDetail}>
+                  <DetailRow label="資料來源" value={indicator.sourceName} />
+                  <DetailRow label="更新頻率" value={frequencyLabel(indicator.frequency)} />
+                  <DetailRow label="觀察日期" value={formatDate(indicator.observationDate)} />
+                  <DetailRow
+                    label="發布時間"
+                    value={formatDateTime(indicator.releasedAt)}
+                  />
+                  <DetailRow
+                    label="資料年齡"
+                    value={indicator.ageDays === null || indicator.ageDays === undefined ? '未知' : `${indicator.ageDays} 天`}
+                  />
+                </View>
+              ) : null}
+            </Card>
+          </Pressable>
+          );
+        })}
       </View>
 
       <View style={[styles.twoColumn, compact && styles.oneColumn]}>
@@ -131,6 +185,96 @@ export function DashboardScreen() {
   );
 }
 
+function MiniHistory({ indicator }: { indicator: MarketIndicator }) {
+  if (!indicator.history.length) {
+    return <Text style={styles.noHistory}>尚無歷史序列</Text>;
+  }
+  const values = indicator.history.map((item) => item.value);
+  const minimum = Math.min(...values);
+  const maximum = Math.max(...values);
+  const range = maximum - minimum || 1;
+  return (
+    <View style={styles.history}>
+      {indicator.history.map((item) => (
+        <View key={item.date} style={styles.historyColumn}>
+          <View
+            style={[
+              styles.historyBar,
+              {
+                height: 8 + ((item.value - minimum) / range) * 28,
+                backgroundColor:
+                  indicator.state === 'positive'
+                    ? colors.green
+                    : indicator.state === 'negative'
+                      ? colors.red
+                      : colors.primary,
+              },
+            ]}
+          />
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel}>{label}</Text>
+      <Text style={styles.detailValue}>{value}</Text>
+    </View>
+  );
+}
+
+function signalLabel(signal: 'green' | 'yellow' | 'red') {
+  return { green: '綠燈', yellow: '黃燈', red: '紅燈' }[signal];
+}
+
+function freshnessTone(status: MarketIndicator['freshness']) {
+  return status === 'fresh'
+    ? 'positive'
+    : status === 'warning'
+      ? 'warning'
+      : status === 'stale'
+        ? 'danger'
+        : 'neutral';
+}
+
+function freshnessLabel(status: MarketIndicator['freshness']) {
+  return {
+    fresh: '資料正常',
+    warning: '稍有延遲',
+    stale: '資料過期',
+    missing: '缺資料',
+  }[status];
+}
+
+function frequencyLabel(value: string) {
+  return { daily: '每日', weekly: '每週', monthly: '每月' }[value] ?? value;
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return '未提供';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return '未提供';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleString('zh-TW', {
+        timeZone: 'Asia/Taipei',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+}
+
 const styles = StyleSheet.create({
   page: { gap: 22 },
   loader: { marginTop: 120 },
@@ -174,12 +318,58 @@ const styles = StyleSheet.create({
   scoreUnit: { color: colors.mutedOnDark, fontSize: 12, marginBottom: 14 },
   regimeRow: { alignItems: 'center', flexDirection: 'row', gap: 8, marginTop: 13 },
   regimeText: { color: '#D9E3F0', fontSize: 12, fontWeight: '700' },
+  ruleMeta: { color: colors.mutedOnDark, fontSize: 9, marginTop: 9 },
+  componentGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  componentCard: { flexBasis: 220, flexGrow: 1, gap: 10 },
+  componentTop: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  componentLabel: { color: colors.textSoft, fontSize: 11, fontWeight: '800' },
+  componentValue: { color: colors.text, fontSize: 22, fontWeight: '900' },
+  componentNote: { color: colors.textSoft, fontSize: 9 },
   indicatorGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  indicatorCard: { flexBasis: 160, flexGrow: 1, minWidth: 150 },
-  indicatorCardCompact: { flexBasis: '45%' },
+  indicatorPressable: { flexBasis: 205, flexGrow: 1, minWidth: 180 },
+  indicatorCard: { gap: 6, minHeight: 180 },
+  indicatorCardExpanded: { borderColor: colors.primary, borderWidth: 2 },
+  indicatorCardCompact: { flexBasis: '100%' },
+  indicatorTop: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'space-between',
+  },
   indicatorLabel: { color: colors.textSoft, fontSize: 12, fontWeight: '700' },
   indicatorValue: { color: colors.text, fontSize: 24, fontWeight: '900', marginVertical: 6 },
   indicatorTrend: { color: colors.textSoft, fontSize: 11 },
+  impact: { color: colors.text, fontSize: 10, fontWeight: '800' },
+  history: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    gap: 4,
+    height: 40,
+    marginTop: 4,
+  },
+  historyColumn: { flex: 1, justifyContent: 'flex-end' },
+  historyBar: { borderRadius: 3, minHeight: 8, width: '100%' },
+  noHistory: { color: colors.textSoft, fontSize: 9 },
+  indicatorDetail: {
+    borderTopColor: colors.border,
+    borderTopWidth: 1,
+    gap: 6,
+    marginTop: 5,
+    paddingTop: 10,
+  },
+  detailRow: { flexDirection: 'row', gap: 8, justifyContent: 'space-between' },
+  detailLabel: { color: colors.textSoft, fontSize: 9 },
+  detailValue: {
+    color: colors.text,
+    flex: 1,
+    fontSize: 9,
+    fontWeight: '700',
+    textAlign: 'right',
+  },
   positive: { color: colors.green },
   negative: { color: colors.red },
   twoColumn: { flexDirection: 'row', gap: 18 },
