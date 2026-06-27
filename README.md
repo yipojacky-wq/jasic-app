@@ -121,6 +121,7 @@ netlify.toml
 
 ```text
 docs/PUBLIC_PREVIEW_DEPLOYMENT.md
+docs/GITHUB_LONG_TERM_DEPLOYMENT.md
 ```
 
 ---
