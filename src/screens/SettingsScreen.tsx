@@ -19,6 +19,7 @@ import {
   SectionHeader,
 } from '../components/ui';
 import { DataHealthOperations } from '../components/DataHealthOperations';
+import { SourceRegistryPanel } from '../components/SourceRegistryPanel';
 import { isLiveMode, supabase } from '../lib/supabase';
 import {
   deleteAccount,
@@ -241,6 +242,9 @@ export function SettingsScreen() {
 
       <SectionHeader eyebrow="Data Freshness" title="資料健康狀態" />
       <DataHealthOperations items={data.dataHealth} />
+
+      <SectionHeader eyebrow="Source Registry" title="Data source readiness" />
+      <SourceRegistryPanel />
 
       <SectionHeader eyebrow="Methodology" title="JASIC 方法論揭露" />
       <Card style={styles.methodCard}>
