@@ -104,6 +104,23 @@ supabase/seed.sql
 
 ## 7. 設定 Edge Function Secrets
 
+推薦使用 helper script，避免把 secrets 寫進 shell history 以外的檔案：
+
+```powershell
+$env:OPENAI_API_KEY="YOUR_OPENAI_KEY"
+$env:OPENAI_MODEL="gpt-5.4-mini"
+$env:CRON_SECRET="GENERATE_A_LONG_RANDOM_VALUE"
+npm run supabase:set:secrets
+```
+
+Dry run：
+
+```powershell
+npm run supabase:set:secrets -- -DryRun
+```
+
+等效手動指令：
+
 ```bash
 npx supabase secrets set OPENAI_API_KEY=YOUR_OPENAI_KEY
 npx supabase secrets set OPENAI_MODEL=gpt-5.4-mini
@@ -119,6 +136,20 @@ npx supabase secrets set CRON_SECRET=GENERATE_A_LONG_RANDOM_VALUE
 ---
 
 ## 8. 部署 Edge Functions
+
+推薦使用批次部署腳本：
+
+```powershell
+npm run supabase:deploy:functions
+```
+
+Dry run：
+
+```powershell
+npm run supabase:deploy:functions -- -DryRun
+```
+
+等效手動指令：
 
 ```bash
 npx supabase functions deploy market-summary
@@ -220,4 +251,3 @@ Phase 2 完成標準：
 - AI Check 可呼叫 OpenAI 並寫入 `ai_check_requests` / `ai_check_results`。
 - Data Health 可顯示 ingestion/source 狀態。
 - GitHub Actions market-data workflow 可手動執行。
-

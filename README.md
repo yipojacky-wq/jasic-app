@@ -104,6 +104,8 @@ npm run build:web:github-pages
 npm run package:web-preview
 npm run doctor:deploy
 npm run doctor:supabase
+npm run supabase:set:secrets
+npm run supabase:deploy:functions
 npm run preview:web
 ```
 

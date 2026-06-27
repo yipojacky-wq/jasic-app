@@ -134,6 +134,20 @@ addCheck(
   'Create the Supabase staging runbook.',
 );
 
+addCheck(
+  'Supabase function deploy script exists',
+  exists('scripts/deploy-supabase-functions.ps1'),
+  'scripts/deploy-supabase-functions.ps1',
+  'Create the batch function deployment script.',
+);
+
+addCheck(
+  'Supabase secret helper script exists',
+  exists('scripts/set-supabase-secrets.ps1'),
+  'scripts/set-supabase-secrets.ps1',
+  'Create a helper script that sets secrets without committing secret values.',
+);
+
 const envExample = exists('.env.example') ? read('.env.example') : '';
 addCheck(
   'Client Supabase env documented',
