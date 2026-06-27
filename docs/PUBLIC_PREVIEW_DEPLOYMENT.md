@@ -12,6 +12,38 @@
 
 ---
 
+## 0. 不等 GitHub 的最快方法：上傳 dist ZIP
+
+如果只是要「馬上給別人一個網址看雛形」，不一定要先 push GitHub。
+
+最快方式：
+
+1. 先產生 Web build：
+
+```bash
+npm run build:web
+```
+
+2. 將 `dist/` 壓縮成 ZIP。
+
+3. 使用以下任一服務上傳：
+
+```text
+https://app.netlify.com/drop
+```
+
+或 Cloudflare Pages Direct Upload。
+
+4. 上傳完成後，服務會直接產生公開網址，例如：
+
+```text
+https://jasic-preview.netlify.app
+```
+
+注意：這種方式適合 demo / prototype 快速分享；正式長期維護仍建議走 GitHub repo + 自動部署。
+
+---
+
 ## 1. 目前已完成的部署準備
 
 Repo 已包含：
@@ -207,4 +239,3 @@ EXPO_PUBLIC_DEMO_MODE=false
 - Supabase Edge Functions
 - OpenAI API key
 - market data seed / production data source
-
