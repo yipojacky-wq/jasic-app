@@ -72,6 +72,14 @@
 
 目標：讓 JASIC 的市場分析輸出不再依賴 demo/provisional data。
 
+目前已完成：
+
+- 資料源 adapter contract：`supabase/functions/_shared/marketDataContracts.ts`
+- Adapter contract 測試：`tests/market-data-contracts.test.ts`
+- 資料源接入規格：`docs/DATA_SOURCE_ADAPTER_CONTRACT.md`
+- 已列入官方來源：TWSE daily quotes、TWSE T86、TPEx daily quotes、TPEx 3 institutional flow。
+- 已封鎖待審來源：融資券、OI、五大總經指標正式來源。
+
 待完成：
 
 1. 台股日行情資料源。
