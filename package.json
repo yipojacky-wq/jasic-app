@@ -36,6 +36,7 @@
     "package:web-preview": "npm run build:web && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-web-preview.ps1",
     "doctor:deploy": "node scripts/doctor-deploy.cjs",
     "doctor:supabase": "node scripts/doctor-supabase.cjs",
+    "doctor:data-sources": "tsx scripts/doctor-data-sources.ts",
     "smoke:supabase": "node scripts/smoke-supabase-staging.cjs",
     "supabase:deploy:functions": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy-supabase-functions.ps1",
     "supabase:set:secrets": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/set-supabase-secrets.ps1",
