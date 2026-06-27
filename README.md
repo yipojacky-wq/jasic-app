@@ -105,6 +105,25 @@ npm run preview:web
 
 ---
 
+## 公開預覽網址
+
+最短公開預覽路徑建議使用 Vercel、Netlify 或 Cloudflare Pages。
+
+本 repo 已包含：
+
+```text
+vercel.json
+netlify.toml
+```
+
+部署說明：
+
+```text
+docs/PUBLIC_PREVIEW_DEPLOYMENT.md
+```
+
+---
+
 ## Demo Mode
 
 不設定 `.env.local` 時，App 會自動 fallback 到 demo mode。
