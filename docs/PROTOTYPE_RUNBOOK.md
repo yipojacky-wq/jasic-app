@@ -166,6 +166,18 @@ dist/
 
 此步驟用於確認雛形可被部署到靜態網站服務，例如 Vercel、Netlify、Cloudflare Pages。
 
+如果要產生可直接上傳的公開預覽 ZIP：
+
+```bash
+npm run package:web-preview
+```
+
+預設輸出：
+
+```text
+../jasic-web-preview-dist.zip
+```
+
 ---
 
 ## 7. Mobile 雛形驗證
@@ -227,4 +239,3 @@ Prototype 可交付的最低標準：
 1. Push 到 GitHub。
 2. 部署 Web preview。
 3. 建立 Supabase staging 並切 live mode。
-

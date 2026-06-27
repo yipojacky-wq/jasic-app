@@ -100,6 +100,7 @@ npm run typecheck
 npm run typecheck:edge
 npm test
 npm run build:web
+npm run package:web-preview
 npm run preview:web
 ```
 

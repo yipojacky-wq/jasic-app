@@ -18,13 +18,17 @@
 
 最快方式：
 
-1. 先產生 Web build：
+1. 先產生 Web build 與 ZIP：
 
 ```bash
-npm run build:web
+npm run package:web-preview
 ```
 
-2. 將 `dist/` 壓縮成 ZIP。
+2. 指令會產生：
+
+```text
+../jasic-web-preview-dist.zip
+```
 
 3. 使用以下任一服務上傳：
 

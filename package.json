@@ -32,6 +32,7 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "build:web": "expo export --platform web",
+    "package:web-preview": "npm run build:web && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-web-preview.ps1",
     "preview:web": "node scripts/serve-static.cjs",
     "test": "tsx --test tests/**/*.test.ts",
     "typecheck:edge": "tsc -p tsconfig.edge.json"
