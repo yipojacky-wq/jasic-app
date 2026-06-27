@@ -32,6 +32,7 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "build:web": "expo export --platform web",
+    "build:web:github-pages": "npm run build:web && node scripts/prepare-github-pages.cjs",
     "package:web-preview": "npm run build:web && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-web-preview.ps1",
     "github:connect": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/connect-github-remote.ps1",
     "preview:web": "node scripts/serve-static.cjs",
