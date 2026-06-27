@@ -3,7 +3,7 @@
 日期：2026-06-27  
 階段：Phase 2 — Supabase Staging 後端
 
-本文件目標是把 JASIC 從 demo mode 推進到 staging live mode。此階段仍不是正式商用資料版，但會讓 App 真的呼叫 Supabase Edge Functions、資料表、RLS 與 OpenAI。
+本文件目標是把 JASIC 從 demo mode 推進到 staging live mode。此階段仍不是正式商用資料版，但會讓 App 真正呼叫 Supabase Edge Functions、資料表、RLS 與 OpenAI。
 
 ---
 
@@ -20,7 +20,7 @@
 
 ---
 
-## 2. 先跑本機自檢
+## 2. 本機自檢
 
 ```bash
 npm run doctor:supabase
@@ -69,33 +69,22 @@ npx supabase link --project-ref YOUR_PROJECT_REF
 npx supabase db push
 ```
 
-目前 migrations 包含：
-
-- profiles / stocks / watchlists / AI Check
-- market score / macro / discovery / reports
-- market ingestion
-- alerts
-- report generation
-- profile governance
-- privacy lifecycle
-- user positions
-- report bookmarks
-- AI Check DB guardrails
+目前 migrations 包含 profiles、stocks、watchlists、AI Check、market score、macro、discovery、reports、market ingestion、alerts、privacy lifecycle、user positions、report bookmarks 與 AI Check DB guardrails。
 
 ---
 
 ## 6. 匯入 seed data
 
-如果 staging 要先有 demo market data：
-
-```bash
-npx supabase db reset --linked
-```
-
-或在 Supabase SQL editor 執行：
+如果 staging 要先有 demo market data，可在 Supabase SQL editor 執行：
 
 ```text
 supabase/seed.sql
+```
+
+或使用：
+
+```bash
+npx supabase db reset --linked
 ```
 
 注意：`db reset --linked` 會重設遠端資料庫，只適合 staging，不可對 production 任意使用。
@@ -104,7 +93,7 @@ supabase/seed.sql
 
 ## 7. 設定 Edge Function Secrets
 
-推薦使用 helper script，避免把 secrets 寫進 shell history 以外的檔案：
+建議使用 helper script，避免 secrets 出現在 shell history：
 
 ```powershell
 $env:OPENAI_API_KEY="YOUR_OPENAI_KEY"
@@ -119,7 +108,7 @@ Dry run：
 npm run supabase:set:secrets -- -DryRun
 ```
 
-等效手動指令：
+手動等價指令：
 
 ```bash
 npx supabase secrets set OPENAI_API_KEY=YOUR_OPENAI_KEY
@@ -137,7 +126,7 @@ npx supabase secrets set CRON_SECRET=GENERATE_A_LONG_RANDOM_VALUE
 
 ## 8. 部署 Edge Functions
 
-推薦使用批次部署腳本：
+建議使用批次部署腳本：
 
 ```powershell
 npm run supabase:deploy:functions
@@ -149,27 +138,25 @@ Dry run：
 npm run supabase:deploy:functions -- -DryRun
 ```
 
-等效手動指令：
+腳本會部署 17 個 Edge Functions：
 
-```bash
-npx supabase functions deploy market-summary
-npx supabase functions deploy discovery-latest
-npx supabase functions deploy reports-latest
-npx supabase functions deploy ai-check
-npx supabase functions deploy market-data-ingest
-npx supabase functions deploy score-calculate
-npx supabase functions deploy stock-war-room
-npx supabase functions deploy watchlist-summary
-npx supabase functions deploy alert-evaluate
-npx supabase functions deploy report-generate
-npx supabase functions deploy report-detail
-npx supabase functions deploy profile-settings
-npx supabase functions deploy data-health
-npx supabase functions deploy user-data-export
-npx supabase functions deploy account-delete
-npx supabase functions deploy portfolio-summary
-npx supabase functions deploy ai-check-history
-```
+- `market-summary`
+- `discovery-latest`
+- `reports-latest`
+- `ai-check`
+- `market-data-ingest`
+- `score-calculate`
+- `stock-war-room`
+- `watchlist-summary`
+- `alert-evaluate`
+- `report-generate`
+- `report-detail`
+- `profile-settings`
+- `data-health`
+- `user-data-export`
+- `account-delete`
+- `portfolio-summary`
+- `ai-check-history`
 
 ---
 
@@ -191,7 +178,33 @@ npm run web
 
 ---
 
-## 10. 驗證 API
+## 10. Endpoint smoke test
+
+部署完成後先跑 endpoint smoke test：
+
+```bash
+npm run smoke:supabase
+```
+
+這個測試會讀取 `.env.local` 或 shell environment：
+
+```text
+EXPO_PUBLIC_SUPABASE_URL
+EXPO_PUBLIC_SUPABASE_ANON_KEY
+```
+
+它會逐一檢查所有 Edge Function endpoint 是否存在並可回應 CORS `OPTIONS` request。
+
+限制：
+
+- 不使用 service-role key。
+- 不寫資料。
+- 不測試登入後的 authenticated POST response。
+- 若 function 未部署或 URL 錯誤，會快速失敗。
+
+---
+
+## 11. API 驗證
 
 登入後測：
 
@@ -213,7 +226,7 @@ npm run web
 - `alert-evaluate`
 - `report-generate`
 
-這些管理 API 需要：
+管理 API 需要：
 
 ```http
 x-cron-secret: <CRON_SECRET>
@@ -221,7 +234,7 @@ x-cron-secret: <CRON_SECRET>
 
 ---
 
-## 11. GitHub Actions Secrets
+## 12. GitHub Actions Secrets
 
 到 GitHub repo：
 
@@ -240,13 +253,14 @@ CRON_SECRET=YOUR_CRON_SECRET
 
 ---
 
-## 12. 完成標準
+## 13. 完成標準
 
 Phase 2 完成標準：
 
 - `npm run doctor:supabase` 通過。
 - Supabase migrations 已套用。
 - Edge Functions 已部署。
+- `npm run smoke:supabase` 通過。
 - App 可用 live mode 開啟。
 - AI Check 可呼叫 OpenAI 並寫入 `ai_check_requests` / `ai_check_results`。
 - Data Health 可顯示 ingestion/source 狀態。

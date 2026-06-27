@@ -46,6 +46,7 @@
 - `supabase/config.toml` 已定義 JWT 行為。
 - Supabase staging runbook：`docs/SUPABASE_STAGING_RUNBOOK.md`
 - Supabase staging doctor：`npm run doctor:supabase`
+- Supabase staging endpoint smoke test：`npm run smoke:supabase`
 
 待完成：
 

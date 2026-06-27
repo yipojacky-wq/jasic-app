@@ -128,6 +128,13 @@ addCheck(
 );
 
 addCheck(
+  'Supabase smoke test script configured',
+  Boolean(packageJson.scripts?.['smoke:supabase']),
+  'npm run smoke:supabase',
+  'Add smoke:supabase to package.json scripts.',
+);
+
+addCheck(
   'Supabase deployment guide exists',
   exists('docs/SUPABASE_STAGING_RUNBOOK.md'),
   'docs/SUPABASE_STAGING_RUNBOOK.md',
@@ -146,6 +153,13 @@ addCheck(
   exists('scripts/set-supabase-secrets.ps1'),
   'scripts/set-supabase-secrets.ps1',
   'Create a helper script that sets secrets without committing secret values.',
+);
+
+addCheck(
+  'Supabase smoke test script exists',
+  exists('scripts/smoke-supabase-staging.cjs'),
+  'scripts/smoke-supabase-staging.cjs',
+  'Create a staging smoke test for deployed Edge Function endpoints.',
 );
 
 const envExample = exists('.env.example') ? read('.env.example') : '';
