@@ -29,7 +29,7 @@ scripts/prepare-github-pages.cjs
 5. build Expo Web demo。
 6. 將 Expo root asset path 改為相對路徑。
 7. 加入 `.nojekyll`，確保 GitHub Pages 會服務 `_expo` 目錄。
-8. deploy 到 GitHub Pages。
+8. 將 `dist/` 發布到 `gh-pages` branch。
 
 預期公開網址：
 
@@ -43,13 +43,19 @@ https://yipojacky-wq.github.io/jasic-app/
 Settings → Pages → Build and deployment → Source
 ```
 
-Source 應選：
+Source 建議選：
 
 ```text
-GitHub Actions
+Deploy from a branch
 ```
 
-如果 workflow 沒有自動部署，可到：
+Branch 選：
+
+```text
+gh-pages / root
+```
+
+如果 workflow 沒有自動建立 `gh-pages` branch，可到：
 
 ```text
 Actions → Deploy Web Preview to GitHub Pages → Run workflow
