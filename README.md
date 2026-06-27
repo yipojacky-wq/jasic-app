@@ -103,6 +103,7 @@ npm run build:web
 npm run build:web:github-pages
 npm run package:web-preview
 npm run doctor:deploy
+npm run doctor:supabase
 npm run preview:web
 ```
 
@@ -126,6 +127,7 @@ netlify.toml
 docs/PUBLIC_PREVIEW_DEPLOYMENT.md
 docs/GITHUB_LONG_TERM_DEPLOYMENT.md
 docs/NEXT_5_PHASES_PLAN.md
+docs/SUPABASE_STAGING_RUNBOOK.md
 ```
 
 ---

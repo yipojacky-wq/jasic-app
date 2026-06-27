@@ -39,6 +39,14 @@
 
 目標：讓 prototype 從純 demo mode 逐步切到 staging live mode。
 
+目前已完成：
+
+- Supabase migrations 已存在。
+- 17 個 Edge Functions 已存在。
+- `supabase/config.toml` 已定義 JWT 行為。
+- Supabase staging runbook：`docs/SUPABASE_STAGING_RUNBOOK.md`
+- Supabase staging doctor：`npm run doctor:supabase`
+
 待完成：
 
 1. 建立 Supabase staging project。
@@ -153,4 +161,3 @@ npm run typecheck:edge
 npm test
 npm run build:web:github-pages
 ```
-
