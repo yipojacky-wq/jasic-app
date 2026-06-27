@@ -1,142 +1,216 @@
 # JASIC Stock Intelligence
 
-JASIC 是一套以 React Native + Expo 建立的股票研究工具，同一套 TypeScript 程式碼可執行於：
+JASIC 是一套股票分析工具型 App，不是課程銷售網站，也不包含購物車、付款、募資或自動下單功能。
 
-- Web 瀏覽器
-- Android（Expo Go / EAS Build）
-- iOS（Expo Go / EAS Build）
+本專案使用 React Native + Expo + TypeScript 建立，可同時支援：
 
-目前版本完成可操作的前端 MVP，內建展示資料；設定 Supabase 環境變數後可切換正式資料層。
+- Web
+- iOS / Android mobile app
+- Supabase backend
+- OpenAI API assisted analysis
 
-## 已完成模組
+目前版本定位為 Alpha MVP / Prototype，可先用 demo mode 操作完整雛形。
 
-- Macro Dashboard：五大總經、Market Score 拆解、市場燈號、資料新鮮度、歷史趨勢、AI 摘要
-- Three-Layer Funnel：三層證據、可信度、搜尋篩選、排序與候選清單匯出
-- Stock War Room：五構面 Score、籌碼、OI、技術與風險
-- AI Check：持股輸入與結構化安全建議
-- AI Check Guardrails：四碼股票、成本、張數、期間、風險偏好與投入成本上限的前後端一致驗證
-- AI Check Journal：保存歷史結論、原因、風險、建議與模型／規則版本
-- Watchlist：Score Change、Risk Alert、個股摘要
-- Research Positions：保存平均成本、張數與投資期間，並自動帶入 AI Check
-- Portfolio Risk：以最新可用日收盤價計算損益、集中度、加權風險與資料缺口
-- Alert Preferences：自訂 Score 變化、燈號切換與風險分數門檻
-- Live Stock War Room：價格、法人、技術、支撐壓力與資料可信度
-- Alert Engine：Score Change、燈號改變、風險門檻
-- Trend Reports：四種報告入口
-- Report Detail：指標、證據、風險、資料時間與規則版本
-- Report Library：搜尋、分類、收藏、Markdown 下載與手機分享
-- Report Generator：每日市場、核心池週報、個股戰情、風險警示
-- Settings & Governance：風險偏好、投資期間、資料健康營運中心、匯入品質、方法論與來源揭露
-- Privacy Center：個人資料 JSON 匯出、帳號永久刪除與保留說明
-- Alpha Onboarding Gate：正式帳號完成風險偏好、投資期間與當前條款同意後才能進入分析功能
-- Research Session：保留目前頁面、個股 War Room、AI Check 股票與 Demo Watchlist，支援 Web／手機深層連結
-- Research Sharing：War Room 與 AI Check 可分享含資料時間、規則版本、風險與免責聲明的研究摘要
-- EAS Build：Development、Preview、Production 建置 profiles
-- EOD Data Pipeline：TWSE／TPEx 日行情與三大法人
-- Provisional Score Pipeline：20 日特徵、Market Score、Stock Score、Top 20
+---
 
-本產品不包含自動下單、獲利保證、課程、購物車或付款功能。
+## 快速啟動 Prototype
 
-## 本機啟動
-
-需求：Node.js 22.13 以上。
+此模式不需要 Supabase、不需要 OpenAI API key、不需要正式市場資料源。
 
 ```bash
 npm install
-npm run web
+npm run prototype:web
 ```
 
-手機測試：
+Expo 通常會開在：
+
+```text
+http://localhost:8081
+```
+
+更多操作說明請看：
+
+```text
+docs/PROTOTYPE_RUNBOOK.md
+```
+
+---
+
+## 主要功能
+
+- Macro Dashboard
+  - 五大總經指標
+  - Market Score
+  - 市場燈號
+  - AI 市場摘要
+  - 資料新鮮度與分數拆解
+
+- Three-Layer Stock Funnel
+  - 市場環境篩選
+  - 法人 / 主力 / OI 篩選
+  - 技術面 / 風險篩選
+  - Top 20 候選股
+
+- Stock War Room
+  - 個股分數
+  - 分項 evidence
+  - 風險與支撐壓力
+  - Watchlist
+  - Research sharing
+
+- AI Check
+  - 股票代號、成本、張數、投資期間、風險偏好
+  - 輸出結論、原因、風險、建議
+  - 不保證獲利
+  - 不自動交易
+  - 前端、Edge Function、資料庫三層 guardrails
+
+- Personalized Analysis
+  - Watchlist
+  - Score Change
+  - Risk Alert
+  - AI 個股摘要
+  - Position Manager
+  - Portfolio Risk Summary
+
+- Trend Reports
+  - Daily Market Report
+  - Weekly Core Pool Report
+  - Stock War Room Report
+  - Risk Alert Report
+  - Report Library
+  - Markdown export
+
+- Settings / Governance
+  - Terms gate
+  - Data Health Operations
+  - Methodology / source disclosure
+  - User data export
+  - Account deletion flow
+
+---
+
+## 常用指令
 
 ```bash
+npm run prototype:web
+npm run web
 npm start
+npm run typecheck
+npm run typecheck:edge
+npm test
+npm run build:web
+npm run preview:web
 ```
 
-安裝 Expo Go 後掃描終端機 QR Code。iOS 正式打包需要 macOS 或 Expo EAS Build。
+---
 
-## 環境變數
+## Demo Mode
 
-複製 `.env.example` 為 `.env.local`：
+不設定 `.env.local` 時，App 會自動 fallback 到 demo mode。
+
+如需明確指定：
+
+```env
+EXPO_PUBLIC_DEMO_MODE=true
+```
+
+Live mode 範例：
 
 ```env
 EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-public-anon-key
-EXPO_PUBLIC_API_BASE_URL=https://your-api.example.com/v1
-EXPO_PUBLIC_DEMO_MODE=true
-```
-
-`EXPO_PUBLIC_*` 會被打包進客戶端，禁止放入 OpenAI API key 或 Supabase service-role key。OpenAI 必須由 Supabase Edge Function 呼叫。
-
-切換正式模式：
-
-```env
 EXPO_PUBLIC_DEMO_MODE=false
 ```
 
-正式模式會啟用 Email OTP 登入並呼叫 Supabase Edge Functions；正式 API 發生錯誤時不會回退成展示建議。
+請勿將 OpenAI API key 或 Supabase service-role key 放入 `EXPO_PUBLIC_*`。
 
-## 驗證與建置
+---
+
+## Supabase
+
+Supabase 相關檔案：
+
+```text
+supabase/migrations/
+supabase/functions/
+supabase/seed.sql
+```
+
+部署 live mode 前需要：
+
+1. 建立 Supabase project。
+2. 執行 migrations。
+3. 部署 Edge Functions。
+4. 設定 secrets：
+   - `OPENAI_API_KEY`
+   - `OPENAI_MODEL`
+   - `CRON_SECRET`
+5. 匯入 seed 或正式市場資料。
+
+詳細部署說明：
+
+```text
+docs/DEPLOYMENT.md
+docs/DATA_PIPELINE.md
+```
+
+---
+
+## GitHub Actions
+
+已建立：
+
+```text
+.github/workflows/ci.yml
+.github/workflows/market-data.yml
+```
+
+CI 會執行：
 
 ```bash
+npm ci
 npm run typecheck
+npm run typecheck:edge
+npm test
 npm run build:web
 ```
 
-Web 靜態輸出位於 `dist/`。
+Market data workflow 會依序呼叫：
 
-研究工作階段連結：
+- `market-data-ingest`
+- `score-calculate`
+- `alert-evaluate`
+- `report-generate`
+
+---
+
+## 專案交接文件
+
+完整交接文件：
 
 ```text
-/?tab=settings
-/?tab=ai-check&symbol=2330
-/?stock=2454
-jasic://ai-check/2330
-jasic://stock/2454
+MASTER_HANDOVER.md
 ```
 
-深層連結只保存頁面與股票代號。成本、張數、AI 回答及登入憑證不會寫入網址。
+Prototype 操作文件：
 
-## GitHub 同步
-
-安裝 Git 後：
-
-```bash
-git init
-git add .
-git commit -m "feat: initialize JASIC universal MVP"
-git branch -M main
-git remote add origin https://github.com/YOUR_ACCOUNT/jasic-app.git
-git push -u origin main
+```text
+docs/PROTOTYPE_RUNBOOK.md
 ```
 
-後續更新：
+---
 
-```bash
-git add .
-git commit -m "描述本次更新"
-git push
-```
+## 產品限制
 
-專案包含 GitHub Actions，推送或建立 Pull Request 時會自動執行 TypeScript 檢查與 Web 匯出。
+本專案不提供：
 
-## 正式後端下一步
+- 自動下單
+- 保證獲利
+- 券商交易串接
+- 購物車
+- 課程頁
+- 募資頁
+- 付款功能
 
-1. 依 `docs/DEPLOYMENT.md` 連結 Supabase 專案。
-2. 以 `supabase db push` 套用 `supabase/migrations/`，並視需要載入 `supabase/seed.sql`。
-3. 依 `docs/DEPLOYMENT.md` 部署全部 Edge Functions，包括 Stock War Room、Watchlist 與 Alert Engine。
-4. 將 `.env.local` 的 `EXPO_PUBLIC_DEMO_MODE` 設為 `false`，前端 adapter 即切換正式 API。
-5. OpenAI 回應使用固定 JSON Schema，並保存資料時間、規則版本與 Prompt 版本。
-
-Edge Function secrets：
-
-```bash
-supabase secrets set OPENAI_API_KEY=...
-supabase secrets set OPENAI_MODEL=gpt-5.4-mini
-```
-
-OpenAI 整合採 Responses API Structured Outputs；模型名稱可透過 secret 調整，不寫死在客戶端。
-
-資料管線、官方來源、排程與暫定評分限制請見：
-
-- `docs/DATA_PIPELINE.md`
-- `docs/DEPLOYMENT.md`
+所有 AI 與分數輸出皆應視為研究輔助，不是投資保證或交易指令。
