@@ -1,11 +1,7 @@
 import { createServiceClient } from '../_shared/client.ts';
 import {
   chunks,
-  integerValue,
-  isCommonStockSymbol,
-  numberValue,
   requireCronSecret,
-  rocDateToIso,
   upsertChunks,
 } from '../_shared/data.ts';
 import {
@@ -14,6 +10,15 @@ import {
   jsonResponse,
   optionsResponse,
 } from '../_shared/http.ts';
+import { ingestionRunFromBatch } from '../_shared/marketDataContracts.ts';
+import {
+  tpexDailyPriceBatch,
+  tpexInstitutionalFlowBatch,
+  tpexStockRows,
+  twseDailyPriceBatch,
+  twseInstitutionalFlowBatch,
+  twseStockRows,
+} from '../_shared/taiwanMarketAdapters.ts';
 
 const TWSE_QUOTES =
   'https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL';
@@ -40,106 +45,28 @@ Deno.serve(async (request) => {
       fetchJson(TPEX_INSTITUTION),
     ]);
 
-    const twseDate = rocDateToIso(twseQuotes[0]?.Date);
-    const tpexDate = rocDateToIso(tpexQuotes[0]?.Date);
+    const twseDate = twseDailyPriceBatch(twseQuotes, new Map()).datasetDate;
     const twseInstitution = await fetchTwseInstitution(twseDate);
 
     const stockRows = [
-      ...twseQuotes
-        .filter((row: any) => isCommonStockSymbol(row.Code))
-        .map((row: any) => ({
-          symbol: row.Code.trim(),
-          exchange: 'TWSE',
-          name_zh: row.Name.trim(),
-          is_active: true,
-        })),
-      ...tpexQuotes
-        .filter((row: any) => isCommonStockSymbol(row.SecuritiesCompanyCode))
-        .map((row: any) => ({
-          symbol: row.SecuritiesCompanyCode.trim(),
-          exchange: 'TPEx',
-          name_zh: row.CompanyName.trim(),
-          is_active: true,
-        })),
+      ...twseStockRows(twseQuotes),
+      ...tpexStockRows(tpexQuotes),
     ];
     await upsertChunks(supabase, 'stocks', stockRows, 'exchange,symbol');
     const stockMap = await loadStockMap(supabase, stockRows);
 
-    const priceRows = [
-      ...twseQuotes.flatMap((row: any) => {
-        const stockId = stockMap.get(`TWSE:${row.Code.trim()}`);
-        const close = numberValue(row.ClosingPrice);
-        if (!stockId || close === null) return [];
-        return [{
-          stock_id: stockId,
-          trade_date: rocDateToIso(row.Date),
-          open: numberValue(row.OpeningPrice),
-          high: numberValue(row.HighestPrice),
-          low: numberValue(row.LowestPrice),
-          close,
-          change: numberValue(row.Change),
-          volume: integerValue(row.TradeVolume),
-          turnover: numberValue(row.TradeValue),
-          trades: integerValue(row.Transaction),
-          source_code: 'TWSE_STOCK_DAY_ALL',
-        }];
-      }),
-      ...tpexQuotes.flatMap((row: any) => {
-        const symbol = row.SecuritiesCompanyCode.trim();
-        const stockId = stockMap.get(`TPEx:${symbol}`);
-        const close = numberValue(row.Close);
-        if (!stockId || close === null || !isCommonStockSymbol(symbol)) return [];
-        return [{
-          stock_id: stockId,
-          trade_date: rocDateToIso(row.Date),
-          open: numberValue(row.Open),
-          high: numberValue(row.High),
-          low: numberValue(row.Low),
-          close,
-          change: numberValue(row.Change),
-          volume: integerValue(row.TradingShares),
-          turnover: numberValue(row.TransactionAmount),
-          trades: integerValue(row.TransactionNumber),
-          source_code: 'TPEX_DAILY_QUOTES',
-        }];
-      }),
-    ];
+    const twsePriceBatch = twseDailyPriceBatch(twseQuotes, stockMap);
+    const tpexPriceBatch = tpexDailyPriceBatch(tpexQuotes, stockMap);
+    const priceRows = [...twsePriceBatch.records, ...tpexPriceBatch.records];
     await upsertChunks(supabase, 'stock_daily_prices', priceRows, 'stock_id,trade_date');
 
-    const flowRows = [
-      ...twseInstitution.data.flatMap((row: string[]) => {
-        const symbol = String(row[0]).trim();
-        const stockId = stockMap.get(`TWSE:${symbol}`);
-        if (!stockId || !isCommonStockSymbol(symbol)) return [];
-        return [{
-          stock_id: stockId,
-          trade_date: twseDate,
-          foreign_net: integerValue(row[4]),
-          investment_trust_net: integerValue(row[10]),
-          dealer_net: integerValue(row[11]),
-          total_net: integerValue(row[18]),
-          source_code: 'TWSE_T86',
-        }];
-      }),
-      ...tpexInstitution.flatMap((row: any) => {
-        const symbol = row.SecuritiesCompanyCode.trim();
-        const stockId = stockMap.get(`TPEx:${symbol}`);
-        if (!stockId || !isCommonStockSymbol(symbol)) return [];
-        return [{
-          stock_id: stockId,
-          trade_date: rocDateToIso(row.Date),
-          foreign_net: integerValue(
-            row['ForeignInvestorsInclude MainlandAreaInvestors-Difference'],
-          ),
-          investment_trust_net: integerValue(
-            row['SecuritiesInvestmentTrustCompanies-Difference'],
-          ),
-          dealer_net: integerValue(row['Dealers-Difference']),
-          total_net: integerValue(row.TotalDifference),
-          source_code: 'TPEX_3INSTI',
-        }];
-      }),
-    ];
+    const twseFlowBatch = twseInstitutionalFlowBatch(
+      twseInstitution.data,
+      twseDate,
+      stockMap,
+    );
+    const tpexFlowBatch = tpexInstitutionalFlowBatch(tpexInstitution, stockMap);
+    const flowRows = [...twseFlowBatch.records, ...tpexFlowBatch.records];
     await upsertChunks(
       supabase,
       'institutional_flows_daily',
@@ -147,27 +74,19 @@ Deno.serve(async (request) => {
       'stock_id,trade_date',
     );
 
+    const completedAt = new Date().toISOString();
     const runRows = [
-      ['TWSE_STOCK_DAY_ALL', twseDate, twseQuotes.length, priceRows.filter((r) => r.source_code === 'TWSE_STOCK_DAY_ALL').length],
-      ['TWSE_T86', twseDate, twseInstitution.data.length, flowRows.filter((r) => r.source_code === 'TWSE_T86').length],
-      ['TPEX_DAILY_QUOTES', tpexDate, tpexQuotes.length, priceRows.filter((r) => r.source_code === 'TPEX_DAILY_QUOTES').length],
-      ['TPEX_3INSTI', tpexDate, tpexInstitution.length, flowRows.filter((r) => r.source_code === 'TPEX_3INSTI').length],
-    ].map(([source, date, received, valid]) => ({
-      source_code: source,
-      dataset_date: date,
-      status: Number(valid) > 0 ? 'completed' : 'partial',
-      records_received: Number(received),
-      records_valid: Number(valid),
-      records_rejected: Number(received) - Number(valid),
-      started_at: startedAt,
-      completed_at: new Date().toISOString(),
-    }));
+      twsePriceBatch,
+      twseFlowBatch,
+      tpexPriceBatch,
+      tpexFlowBatch,
+    ].map((batch) => ingestionRunFromBatch(batch, { startedAt, completedAt }));
     await supabase.from('ingestion_runs').insert(runRows);
 
     return jsonResponse(
       envelope({
-        twseDate,
-        tpexDate,
+        twseDate: twsePriceBatch.datasetDate,
+        tpexDate: tpexPriceBatch.datasetDate,
         stocks: stockRows.length,
         prices: priceRows.length,
         institutionalFlows: flowRows.length,

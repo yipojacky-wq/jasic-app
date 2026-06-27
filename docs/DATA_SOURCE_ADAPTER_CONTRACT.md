@@ -19,6 +19,7 @@ supabase/functions/_shared/marketDataContracts.ts
 
 ```text
 tests/market-data-contracts.test.ts
+tests/taiwan-market-adapters.test.ts
 ```
 
 主要型別：
@@ -88,6 +89,34 @@ tests/market-data-contracts.test.ts
 
 ---
 
+## 4.1 已實作的台股 adapter
+
+程式位置：
+
+```text
+supabase/functions/_shared/taiwanMarketAdapters.ts
+```
+
+目前已拆出：
+
+- `twseStockRows`
+- `tpexStockRows`
+- `twseDailyPriceBatch`
+- `tpexDailyPriceBatch`
+- `twseInstitutionalFlowBatch`
+- `tpexInstitutionalFlowBatch`
+
+`market-data-ingest` 已改用這些 adapter 產生：
+
+- stock master rows
+- daily price rows
+- institutional flow rows
+- ingestion run rows
+
+這表示後續新增融資券、OI、總經資料時，可以沿用相同 batch / status / quality rate contract。
+
+---
+
 ## 5. 尚待來源確認
 
 目前列為 `pending_review`：
@@ -120,9 +149,8 @@ Adapter status：
 
 ## 7. 下一步實作順序
 
-1. 把 `market-data-ingest` 內既有 TWSE / TPEx parsing 拆成 adapter functions。
-2. 每個 adapter 回傳 `MarketDataAdapterBatch`。
-3. 用 `ingestionRunFromBatch` 產生 `ingestion_runs`。
-4. 替法人 / 融資券 / OI / macro 逐一補 adapter。
+1. 替融資券 / OI / macro 逐一確認資料源與授權。
+2. 為每個新資料源補 adapter function。
+3. 每個 adapter 回傳 `MarketDataAdapterBatch`。
+4. 用 `ingestionRunFromBatch` 產生 `ingestion_runs`。
 5. Data Health Center 改讀統一的 source contract metadata。
-

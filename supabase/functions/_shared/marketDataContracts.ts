@@ -137,8 +137,8 @@ export function summarizeAdapterBatch<TRecord>(
   };
 }
 
-export function ingestionRunFromBatch<TRecord>(
-  batch: MarketDataAdapterBatch<TRecord>,
+export function ingestionRunFromBatch(
+  batch: MarketDataAdapterBatch<unknown>,
   timestamps: { startedAt: string; completedAt: string },
 ) {
   return {
@@ -204,6 +204,14 @@ export const officialTaiwanMarketSources: MarketDataSourceContract[] = [
       'Review TPEx commercial-use and redistribution terms before production launch.',
   },
 ];
+
+export function officialTaiwanMarketSource(
+  code: 'TWSE_STOCK_DAY_ALL' | 'TWSE_T86' | 'TPEX_DAILY_QUOTES' | 'TPEX_3INSTI',
+): MarketDataSourceContract {
+  const source = officialTaiwanMarketSources.find((item) => item.code === code);
+  if (!source) throw new Error(`Unknown official Taiwan market source: ${code}`);
+  return source;
+}
 
 export const pendingProductionSources: MarketDataSourceContract[] = [
   {
