@@ -34,6 +34,7 @@
     "build:web": "expo export --platform web",
     "build:web:github-pages": "npm run build:web && node scripts/prepare-github-pages.cjs",
     "package:web-preview": "npm run build:web && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-web-preview.ps1",
+    "package1:preflight": "node scripts/package1-preflight.cjs",
     "doctor:deploy": "node scripts/doctor-deploy.cjs",
     "doctor:supabase": "node scripts/doctor-supabase.cjs",
     "doctor:data-sources": "tsx scripts/doctor-data-sources.ts",

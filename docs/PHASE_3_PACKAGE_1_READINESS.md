@@ -26,6 +26,12 @@ docs/STAGING_VALUES_WORKSHEET.md
 Run these before pushing changes that affect data ingestion, staging seed, Edge Functions, or core live-mode screens:
 
 ```bash
+npm run package1:preflight
+```
+
+Or run the checks individually:
+
+```bash
 npm run doctor:data-sources
 npm run doctor:live-readiness
 npm run doctor:supabase

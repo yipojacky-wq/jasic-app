@@ -42,6 +42,16 @@ addCheck(
 );
 
 addCheck(
+  'Package 1 preflight script is registered',
+  packageJson.scripts?.['package1:preflight'] === 'node scripts/package1-preflight.cjs' &&
+    exists('scripts/package1-preflight.cjs') &&
+    read('docs/STAGING_LAUNCH_CHECKLIST.md').includes('npm run package1:preflight') &&
+    read('docs/PHASE_3_PACKAGE_1_READINESS.md').includes('npm run package1:preflight'),
+  'npm run package1:preflight',
+  'Add a one-command Package 1 preflight script and document it.',
+);
+
+addCheck(
   'Market dashboard schema exists',
   includesAll(coreMarketMigration, [
     'create table if not exists public.market_score_snapshots',

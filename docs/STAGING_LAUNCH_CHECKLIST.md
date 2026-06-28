@@ -53,6 +53,12 @@ From the project root:
 
 ```bash
 npm install
+npm run package1:preflight
+```
+
+If you want to run each check separately:
+
+```bash
 npm run doctor:data-sources
 npm run doctor:live-readiness
 npm run doctor:supabase
