@@ -9,6 +9,12 @@ Package 1 focuses on getting JASIC from demo mode toward a Supabase staging app 
 - Settings / Data Health
 - Data Source Registry
 
+For the exact launch sequence, use:
+
+```text
+docs/STAGING_LAUNCH_CHECKLIST.md
+```
+
 ## Local required checks
 
 Run these before pushing changes that affect data ingestion, staging seed, Edge Functions, or core live-mode screens:

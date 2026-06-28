@@ -208,6 +208,16 @@ addCheck(
 );
 
 addCheck(
+  'Staging launch checklist documents package handoff',
+  read('docs/STAGING_LAUNCH_CHECKLIST.md').includes('npm run smoke:supabase') &&
+    read('docs/STAGING_LAUNCH_CHECKLIST.md').includes('npm run smoke:live-readiness') &&
+    read('docs/STAGING_LAUNCH_CHECKLIST.md').includes('SUPABASE_URL') &&
+    read('docs/PHASE_3_PACKAGE_1_READINESS.md').includes('docs/STAGING_LAUNCH_CHECKLIST.md'),
+  'docs/STAGING_LAUNCH_CHECKLIST.md',
+  'Create a one-page staging launch checklist and link it from Package 1 readiness docs.',
+);
+
+addCheck(
   'Live readiness package output remains deployable',
   exists('scripts/doctor-deploy.cjs') && exists('scripts/doctor-supabase.cjs'),
   'deploy and supabase doctors exist',
