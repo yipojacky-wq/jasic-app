@@ -135,6 +135,13 @@ addCheck(
 );
 
 addCheck(
+  'Live readiness doctor configured',
+  Boolean(packageJson.scripts?.['doctor:live-readiness']),
+  'npm run doctor:live-readiness',
+  'Add doctor:live-readiness to package.json scripts.',
+);
+
+addCheck(
   'Supabase deployment guide exists',
   exists('docs/SUPABASE_STAGING_RUNBOOK.md'),
   'docs/SUPABASE_STAGING_RUNBOOK.md',
@@ -160,6 +167,13 @@ addCheck(
   exists('scripts/smoke-supabase-staging.cjs'),
   'scripts/smoke-supabase-staging.cjs',
   'Create a staging smoke test for deployed Edge Function endpoints.',
+);
+
+addCheck(
+  'Live readiness doctor exists',
+  exists('scripts/doctor-live-readiness.cjs'),
+  'scripts/doctor-live-readiness.cjs',
+  'Create a static live readiness doctor for market-summary, discovery-latest and data-health.',
 );
 
 const envExample = exists('.env.example') ? read('.env.example') : '';

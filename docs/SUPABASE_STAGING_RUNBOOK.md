@@ -24,6 +24,7 @@
 
 ```bash
 npm run doctor:supabase
+npm run doctor:live-readiness
 npm run typecheck:edge
 npm test
 ```
