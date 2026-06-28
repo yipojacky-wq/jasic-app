@@ -240,6 +240,17 @@ addCheck(
 );
 
 addCheck(
+  'Package 1 handoff documents engineering completion and cloud blocker',
+  exists('docs/PHASE_3_PACKAGE_1_HANDOFF.md') &&
+    read('docs/PHASE_3_PACKAGE_1_HANDOFF.md').includes('Engineering complete / Cloud validation pending') &&
+    read('docs/PHASE_3_PACKAGE_1_HANDOFF.md').includes('npm run package1:preflight') &&
+    read('docs/PHASE_3_PACKAGE_1_HANDOFF.md').includes('Supabase project ref') &&
+    read('docs/PHASE_3_PACKAGE_1_READINESS.md').includes('docs/PHASE_3_PACKAGE_1_HANDOFF.md'),
+  'docs/PHASE_3_PACKAGE_1_HANDOFF.md',
+  'Add a Package 1 handoff document and link it from the readiness gate.',
+);
+
+addCheck(
   'GitHub staging smoke workflow is available',
   exists('.github/workflows/staging-smoke.yml') &&
     read('.github/workflows/staging-smoke.yml').includes('npm run package1:preflight') &&

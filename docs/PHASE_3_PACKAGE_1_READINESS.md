@@ -15,6 +15,12 @@ For the exact launch sequence, use:
 docs/STAGING_LAUNCH_CHECKLIST.md
 ```
 
+For the engineering handoff summary, use:
+
+```text
+docs/PHASE_3_PACKAGE_1_HANDOFF.md
+```
+
 For the values you need to collect before launch, use:
 
 ```text
