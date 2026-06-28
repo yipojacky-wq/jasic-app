@@ -197,6 +197,17 @@ addCheck(
 );
 
 addCheck(
+  'Staging POST smoke script is documented',
+  packageJson.scripts?.['smoke:live-readiness'] === 'node scripts/smoke-live-readiness.cjs' &&
+    read('docs/SUPABASE_STAGING_RUNBOOK.md').includes('npm run smoke:live-readiness') &&
+    read('scripts/smoke-live-readiness.cjs').includes('validateMarketSummary') &&
+    read('scripts/smoke-live-readiness.cjs').includes('validateDiscovery') &&
+    read('scripts/smoke-live-readiness.cjs').includes('validateDataHealth'),
+  'npm run smoke:live-readiness',
+  'Add and document the live POST smoke test for market-summary, discovery-latest and data-health.',
+);
+
+addCheck(
   'Live readiness package output remains deployable',
   exists('scripts/doctor-deploy.cjs') && exists('scripts/doctor-supabase.cjs'),
   'deploy and supabase doctors exist',

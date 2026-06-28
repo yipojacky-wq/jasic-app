@@ -135,6 +135,13 @@ addCheck(
 );
 
 addCheck(
+  'Live POST smoke test script configured',
+  Boolean(packageJson.scripts?.['smoke:live-readiness']),
+  'npm run smoke:live-readiness',
+  'Add smoke:live-readiness to package.json scripts.',
+);
+
+addCheck(
   'Live readiness doctor configured',
   Boolean(packageJson.scripts?.['doctor:live-readiness']),
   'npm run doctor:live-readiness',
@@ -170,6 +177,13 @@ addCheck(
 );
 
 addCheck(
+  'Live POST smoke test script exists',
+  exists('scripts/smoke-live-readiness.cjs'),
+  'scripts/smoke-live-readiness.cjs',
+  'Create a POST smoke test for market-summary, discovery-latest and data-health.',
+);
+
+addCheck(
   'Live readiness doctor exists',
   exists('scripts/doctor-live-readiness.cjs'),
   'scripts/doctor-live-readiness.cjs',
@@ -189,9 +203,10 @@ addCheck(
 addCheck(
   'Secret hygiene warning documented',
   envExample.includes('Never place OpenAI') &&
-    envExample.includes('service-role'),
+    envExample.includes('service-role') &&
+    envExample.includes('JASIC_STAGING_ACCESS_TOKEN'),
   '.env.example',
-  'Warn developers not to expose OpenAI or service-role secrets in EXPO_PUBLIC variables.',
+  'Warn developers not to expose OpenAI or service-role secrets and document the short-lived staging access token.',
 );
 
 const localEnvPath = path.join(root, '.env.local');

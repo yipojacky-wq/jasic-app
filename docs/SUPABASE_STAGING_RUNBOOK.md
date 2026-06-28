@@ -205,6 +205,29 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY
 
 ---
 
+## 10.1 Live readiness POST smoke test
+
+After migrations, seed, secrets, and Edge Functions are deployed, run:
+
+```bash
+npm run smoke:live-readiness
+```
+
+This validates real POST responses for:
+
+- `market-summary`
+- `discovery-latest`
+- `data-health`
+
+For the authenticated `data-health` check, provide a short-lived user access token:
+
+```powershell
+$env:JASIC_STAGING_ACCESS_TOKEN="YOUR_USER_ACCESS_TOKEN"
+npm run smoke:live-readiness
+```
+
+Do not use the Supabase service-role key as `JASIC_STAGING_ACCESS_TOKEN`.
+
 ## 11. API 驗證
 
 登入後測：

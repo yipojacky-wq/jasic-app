@@ -39,6 +39,7 @@
     "doctor:data-sources": "tsx scripts/doctor-data-sources.ts",
     "doctor:live-readiness": "node scripts/doctor-live-readiness.cjs",
     "smoke:supabase": "node scripts/smoke-supabase-staging.cjs",
+    "smoke:live-readiness": "node scripts/smoke-live-readiness.cjs",
     "supabase:deploy:functions": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy-supabase-functions.ps1",
     "supabase:set:secrets": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/set-supabase-secrets.ps1",
     "github:connect": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/connect-github-remote.ps1",
