@@ -1,25 +1,18 @@
+import { validateAiCheckInput } from '../_shared/aiInput.ts';
 import { createServiceClient } from '../_shared/client.ts';
+import {
+  aiCheckResultSchema,
+  buildAiCheckGovernanceAudit,
+  buildAiCheckSystemPrompt,
+  determineAllowedAiCheckActions,
+  validateAiCheckStructuredResult,
+} from '../_shared/aiGovernance.ts';
 import {
   envelope,
   errorEnvelope,
   jsonResponse,
   optionsResponse,
 } from '../_shared/http.ts';
-import { validateAiCheckInput } from '../_shared/aiInput.ts';
-
-const resultSchema = {
-  type: 'object',
-  properties: {
-    action: { type: 'string', enum: ['ADD', 'HOLD', 'WAIT', 'REDUCE', 'STOP_LOSS'] },
-    conclusion: { type: 'string' },
-    reasons: { type: 'array', items: { type: 'string' }, minItems: 2, maxItems: 5 },
-    risks: { type: 'array', items: { type: 'string' }, minItems: 1, maxItems: 5 },
-    suggestions: { type: 'array', items: { type: 'string' }, minItems: 1, maxItems: 5 },
-    confidence: { type: 'number', minimum: 0, maximum: 100 },
-  },
-  required: ['action', 'conclusion', 'reasons', 'risks', 'suggestions', 'confidence'],
-  additionalProperties: false,
-};
 
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return optionsResponse();
@@ -38,13 +31,11 @@ Deno.serve(async (request) => {
   } catch {
     return jsonResponse(errorEnvelope('INVALID_INPUT', 'Invalid JSON body'), 400);
   }
+
   const validation = validateAiCheckInput(rawInput);
   if (!validation.ok) {
     return jsonResponse(
-      errorEnvelope(
-        'INVALID_INPUT',
-        Object.values(validation.errors).join(' '),
-      ),
+      errorEnvelope('INVALID_INPUT', Object.values(validation.errors).join(' ')),
       400,
     );
   }
@@ -94,7 +85,20 @@ Deno.serve(async (request) => {
     return jsonResponse(errorEnvelope('MARKET_DATA_STALE', 'Stock data is older than 72 hours'), 503);
   }
 
-  const allowedActions = determineAllowedActions(score, market, input.riskProfile);
+  const allowedActions = determineAllowedAiCheckActions({
+    marketRegime: market.market_regime,
+    stockRiskScore: Number(score.risk_score),
+    stockTotalScore: Number(score.total_score),
+    stockConfidenceScore: Number(score.confidence_score),
+    riskProfile: input.riskProfile,
+  });
+  const model = Deno.env.get('OPENAI_MODEL') ?? 'gpt-5.4-mini';
+  const audit = buildAiCheckGovernanceAudit({
+    allowedActions,
+    dataAsOf: score.as_of,
+    modelIdentifier: model,
+    ruleVersion: score.rule_version,
+  });
   const facts = {
     stock,
     score,
@@ -106,7 +110,7 @@ Deno.serve(async (request) => {
       investment_horizon: input.horizon,
       risk_profile: input.riskProfile,
     },
-    allowed_actions: allowedActions,
+    governance: audit,
   };
 
   const openAiKey = Deno.env.get('OPENAI_API_KEY');
@@ -114,7 +118,6 @@ Deno.serve(async (request) => {
     return jsonResponse(errorEnvelope('SERVICE_UNAVAILABLE', 'OpenAI secret not configured'), 503);
   }
 
-  const model = Deno.env.get('OPENAI_MODEL') ?? 'gpt-5.4-mini';
   const openAiResponse = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
@@ -126,8 +129,7 @@ Deno.serve(async (request) => {
       input: [
         {
           role: 'system',
-          content:
-            '你是 JASIC 股票研究決策助理。只能根據提供的結構化事實回答。不得保證獲利，不得建議自動交易，不得捏造價格、勝率或資料。action 必須屬於 allowed_actions。資料不足或訊號衝突時選 WAIT。用繁體中文，先結論後證據。',
+          content: buildAiCheckSystemPrompt(allowedActions),
         },
         {
           role: 'user',
@@ -139,7 +141,7 @@ Deno.serve(async (request) => {
           type: 'json_schema',
           name: 'jasic_ai_check',
           strict: true,
-          schema: resultSchema,
+          schema: aiCheckResultSchema,
         },
       },
     }),
@@ -157,10 +159,12 @@ Deno.serve(async (request) => {
     return jsonResponse(errorEnvelope('AI_OUTPUT_INVALID', 'No structured output'), 503);
   }
 
-  const result = JSON.parse(outputText);
-  if (!allowedActions.includes(result.action)) {
-    return jsonResponse(errorEnvelope('AI_OUTPUT_INVALID', 'Action violated rule guardrail'), 503);
+  const parsedResult = JSON.parse(outputText);
+  const validatedResult = validateAiCheckStructuredResult(parsedResult, allowedActions);
+  if (!validatedResult.ok) {
+    return jsonResponse(errorEnvelope('AI_OUTPUT_INVALID', validatedResult.reason), 503);
   }
+  const result = validatedResult.value;
 
   const { data: aiRequest, error: requestError } = await supabase
     .from('ai_check_requests')
@@ -192,44 +196,26 @@ Deno.serve(async (request) => {
       request_id: aiRequest.id,
       ...result,
       facts_snapshot: facts,
-      model_identifier: model,
-      prompt_version: 'ai-check-1.0.0',
-      rule_version: score.rule_version,
+      model_identifier: audit.modelIdentifier,
+      prompt_version: audit.promptVersion,
+      rule_version: audit.ruleVersion,
     });
+
   if (resultError) {
     await supabase.from('ai_check_requests').delete().eq('id', aiRequest.id);
-    return jsonResponse(
-      errorEnvelope('DATABASE_ERROR', resultError.message),
-      500,
-    );
+    return jsonResponse(errorEnvelope('DATABASE_ERROR', resultError.message), 500);
   }
 
   return jsonResponse(
     envelope(result, {
-      data_as_of: score.as_of,
-      rule_version: score.rule_version,
-      model_identifier: model,
+      data_as_of: audit.dataAsOf,
+      rule_version: audit.ruleVersion,
+      model_identifier: audit.modelIdentifier,
+      prompt_version: audit.promptVersion,
+      response_schema_version: audit.responseSchemaVersion,
     }),
   );
 });
-
-function determineAllowedActions(
-  score: Record<string, any>,
-  market: Record<string, any>,
-  riskProfile: string,
-) {
-  if (
-    market.market_regime === 'risk_off' ||
-    Number(score.risk_score) >= 75 ||
-    Number(score.confidence_score) < 55
-  ) {
-    return ['WAIT', 'REDUCE', 'STOP_LOSS'];
-  }
-  if (riskProfile === 'conservative' || Number(score.total_score) < 75) {
-    return ['HOLD', 'WAIT', 'REDUCE'];
-  }
-  return ['ADD', 'HOLD', 'WAIT', 'REDUCE'];
-}
 
 function extractOutputText(response: any): string | null {
   if (typeof response.output_text === 'string') return response.output_text;
