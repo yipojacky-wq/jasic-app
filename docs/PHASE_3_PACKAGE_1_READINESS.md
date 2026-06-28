@@ -55,6 +55,8 @@ npm run build:web:github-pages
 
 `.github/workflows/pages.yml` runs data-source and live-readiness doctors before publishing the web preview.
 
+`.github/workflows/staging-smoke.yml` can be manually triggered after Supabase staging secrets are configured.
+
 ## Staging POST smoke
 
 After a real Supabase staging project is linked, migrated, seeded, and deployed:

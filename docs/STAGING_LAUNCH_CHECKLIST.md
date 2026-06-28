@@ -225,10 +225,15 @@ Add:
 
 ```text
 SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_KEY
 CRON_SECRET=YOUR_LONG_RANDOM_CRON_SECRET
+JASIC_STAGING_ACCESS_TOKEN=YOUR_SHORT_LIVED_USER_ACCESS_TOKEN
 ```
 
-These are used by `.github/workflows/market-data.yml`.
+These are used by:
+
+- `.github/workflows/market-data.yml`
+- `.github/workflows/staging-smoke.yml`
 
 ## 13. Manual market-data workflow test
 
@@ -250,6 +255,20 @@ Then run locally again:
 ```bash
 npm run smoke:live-readiness
 ```
+
+## 13.1 Manual staging smoke workflow test
+
+In GitHub Actions, run:
+
+```text
+JASIC Staging Smoke -> Run workflow
+```
+
+Expected sequence:
+
+1. Package 1 preflight
+2. `smoke:supabase`
+3. `smoke:live-readiness`
 
 ## 14. Public preview check
 

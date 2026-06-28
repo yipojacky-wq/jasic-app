@@ -62,9 +62,14 @@ GitHub repo -> Settings -> Secrets and variables -> Actions
 | Secret name | Value |
 | --- | --- |
 | `SUPABASE_URL` | `https://TODO.supabase.co` |
+| `SUPABASE_ANON_KEY` | `TODO` |
 | `CRON_SECRET` | `TODO` |
+| `JASIC_STAGING_ACCESS_TOKEN` | `TODO` |
 
-These support `.github/workflows/market-data.yml`.
+These support:
+
+- `.github/workflows/market-data.yml`
+- `.github/workflows/staging-smoke.yml`
 
 ## 4. Validation commands
 

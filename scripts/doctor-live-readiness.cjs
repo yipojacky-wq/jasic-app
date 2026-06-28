@@ -240,6 +240,19 @@ addCheck(
 );
 
 addCheck(
+  'GitHub staging smoke workflow is available',
+  exists('.github/workflows/staging-smoke.yml') &&
+    read('.github/workflows/staging-smoke.yml').includes('npm run package1:preflight') &&
+    read('.github/workflows/staging-smoke.yml').includes('npm run smoke:supabase') &&
+    read('.github/workflows/staging-smoke.yml').includes('npm run smoke:live-readiness') &&
+    read('.github/workflows/staging-smoke.yml').includes('SUPABASE_ANON_KEY') &&
+    read('docs/STAGING_LAUNCH_CHECKLIST.md').includes('JASIC Staging Smoke') &&
+    read('docs/STAGING_VALUES_WORKSHEET.md').includes('SUPABASE_ANON_KEY'),
+  '.github/workflows/staging-smoke.yml',
+  'Add a manual GitHub Actions workflow for staging smoke validation.',
+);
+
+addCheck(
   'Live readiness package output remains deployable',
   exists('scripts/doctor-deploy.cjs') && exists('scripts/doctor-supabase.cjs'),
   'deploy and supabase doctors exist',
