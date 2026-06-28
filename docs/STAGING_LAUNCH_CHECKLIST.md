@@ -4,6 +4,12 @@ Date: 2026-06-28
 
 Use this checklist when you are ready to connect the app to a real Supabase staging project and let other people test the live-mode prototype.
 
+Before starting, fill out:
+
+```text
+docs/STAGING_VALUES_WORKSHEET.md
+```
+
 ## 0. What this checklist launches
 
 This launches a staging version of the current JASIC MVP:

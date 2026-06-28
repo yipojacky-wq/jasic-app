@@ -15,6 +15,12 @@ For the exact launch sequence, use:
 docs/STAGING_LAUNCH_CHECKLIST.md
 ```
 
+For the values you need to collect before launch, use:
+
+```text
+docs/STAGING_VALUES_WORKSHEET.md
+```
+
 ## Local required checks
 
 Run these before pushing changes that affect data ingestion, staging seed, Edge Functions, or core live-mode screens:

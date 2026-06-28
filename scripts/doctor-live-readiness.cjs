@@ -218,6 +218,18 @@ addCheck(
 );
 
 addCheck(
+  'Staging values worksheet documents secret boundaries',
+  read('docs/STAGING_VALUES_WORKSHEET.md').includes('Supabase service-role key') &&
+    read('docs/STAGING_VALUES_WORKSHEET.md').includes('OpenAI API key') &&
+    read('docs/STAGING_VALUES_WORKSHEET.md').includes('CRON_SECRET') &&
+    read('docs/STAGING_VALUES_WORKSHEET.md').includes('Never commit .env.local') &&
+    read('docs/STAGING_LAUNCH_CHECKLIST.md').includes('docs/STAGING_VALUES_WORKSHEET.md') &&
+    read('docs/PHASE_3_PACKAGE_1_READINESS.md').includes('docs/STAGING_VALUES_WORKSHEET.md'),
+  'docs/STAGING_VALUES_WORKSHEET.md',
+  'Create a staging values worksheet that clearly separates public client values from private secrets.',
+);
+
+addCheck(
   'Live readiness package output remains deployable',
   exists('scripts/doctor-deploy.cjs') && exists('scripts/doctor-supabase.cjs'),
   'deploy and supabase doctors exist',
