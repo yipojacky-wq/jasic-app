@@ -20,7 +20,9 @@ export function normalizeAiHistoryResult(value: unknown) {
     confidence: clamp(Number(result.confidence ?? 0), 0, 100),
     modelIdentifier: String(result.model_identifier ?? 'unknown'),
     promptVersion: String(result.prompt_version ?? 'unknown'),
+    responseSchemaVersion: String(result.response_schema_version ?? 'unknown'),
     ruleVersion: String(result.rule_version ?? 'unknown'),
+    allowedActions: normalizeStringList(result.allowed_actions),
     createdAt: String(result.created_at ?? ''),
   };
 }

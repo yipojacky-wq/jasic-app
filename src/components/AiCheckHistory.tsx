@@ -11,7 +11,7 @@ import {
 import { horizonLabel, sharesToLots } from '../lib/positions';
 import { getAiCheckHistory } from '../services/api';
 import { colors } from '../theme';
-import type { AiAction, AiCheckHistoryItem } from '../types';
+import type { AiAction } from '../types';
 import { Badge, Card, ProgressBar } from './ui';
 
 export function AiCheckHistory() {
@@ -39,7 +39,7 @@ export function AiCheckHistory() {
       <Card style={styles.empty}>
         <Text style={styles.emptyTitle}>尚無 AI Check 紀錄</Text>
         <Text style={styles.emptyText}>
-          完成第一次檢核後，結論與版本資訊會保存在這裡。
+          完成一次 AI Check 後，這裡會顯示歷史建議、風險說明與治理稽核資訊。
         </Text>
       </Card>
     );
@@ -53,7 +53,7 @@ export function AiCheckHistory() {
       <View style={styles.list}>
         {history.data.map((item) => (
           <Pressable
-            accessibilityLabel={`查看 ${item.symbol} AI Check 紀錄`}
+            accessibilityLabel={`檢視 ${item.symbol} AI Check 紀錄`}
             key={item.id}
             onPress={() => setSelectedId(item.id)}
           >
@@ -77,7 +77,7 @@ export function AiCheckHistory() {
               <Text style={styles.historyConclusion} numberOfLines={2}>
                 {item.conclusion}
               </Text>
-              <Text style={styles.confidence}>信心 {item.confidence}%</Text>
+              <Text style={styles.confidence}>信心度 {item.confidence}%</Text>
             </Card>
           </Pressable>
         ))}
@@ -92,20 +92,20 @@ export function AiCheckHistory() {
             </Text>
           </View>
           <Badge tone={actionTone(selected.action)}>
-            信心 {selected.confidence}%
+            信心度 {selected.confidence}%
           </Badge>
         </View>
         <ProgressBar value={selected.confidence} />
         <Text style={styles.conclusion}>{selected.conclusion}</Text>
 
         <View style={styles.positionGrid}>
-          <Metric label="當時成本" value={formatNumber(selected.cost)} />
+          <Metric label="成本" value={formatNumber(selected.cost)} />
           <Metric
-            label="當時張數"
+            label="張數"
             value={formatNumber(sharesToLots(selected.quantityShares))}
           />
           <Metric
-            label="投資期間"
+            label="期間"
             value={displayHorizon(selected.investmentHorizon)}
           />
           <Metric label="風險偏好" value={riskProfileLabel(selected.riskProfile)} />
@@ -116,16 +116,20 @@ export function AiCheckHistory() {
         <HistoryList title="建議" items={selected.suggestions} tone="positive" />
 
         <View style={styles.audit}>
-          <Text style={styles.auditTitle}>版本與稽核資訊</Text>
-          <Text style={styles.auditText}>模型：{selected.modelIdentifier}</Text>
-          <Text style={styles.auditText}>Prompt：{selected.promptVersion}</Text>
-          <Text style={styles.auditText}>規則：{selected.ruleVersion}</Text>
-          <Text style={styles.auditText}>
-            建立時間：{formatDateTime(selected.createdAt)}
-          </Text>
+          <Text style={styles.auditTitle}>AI Governance Audit</Text>
+          <AuditLine label="Model" value={selected.modelIdentifier} />
+          <AuditLine label="Prompt" value={selected.promptVersion} />
+          <AuditLine label="Schema" value={selected.responseSchemaVersion} />
+          <AuditLine label="Rule" value={selected.ruleVersion} />
+          <AuditLine
+            label="Allowed actions"
+            value={selected.allowedActions.join(', ')}
+          />
+          <AuditLine label="Generated at" value={formatDateTime(selected.createdAt)} />
         </View>
+
         <Text style={styles.disclaimer}>
-          此為當時資料與規則下的研究紀錄，不代表目前狀態或未來績效。
+          本工具僅提供研究與風險檢核，不保證獲利，不提供自動下單或代客交易服務。
         </Text>
       </Card>
     </View>
@@ -167,6 +171,14 @@ function Metric({ label, value }: { label: string; value: string }) {
       <Text style={styles.metricLabel}>{label}</Text>
       <Text style={styles.metricValue}>{value}</Text>
     </View>
+  );
+}
+
+function AuditLine({ label, value }: { label: string; value: string }) {
+  return (
+    <Text style={styles.auditText}>
+      {label}: {value || 'unknown'}
+    </Text>
   );
 }
 

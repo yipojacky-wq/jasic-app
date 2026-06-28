@@ -199,6 +199,8 @@ Deno.serve(async (request) => {
       model_identifier: audit.modelIdentifier,
       prompt_version: audit.promptVersion,
       rule_version: audit.ruleVersion,
+      response_schema_version: audit.responseSchemaVersion,
+      allowed_actions: audit.allowedActions,
     });
 
   if (resultError) {

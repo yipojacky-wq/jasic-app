@@ -25,6 +25,10 @@ function addCheck(name, ok, detail, remediation) {
 const packageJson = JSON.parse(read('package.json'));
 const governance = read('supabase/functions/_shared/aiGovernance.ts');
 const aiCheck = read('supabase/functions/ai-check/index.ts');
+const aiCheckHistory = read('supabase/functions/ai-check-history/index.ts');
+const aiHistoryShared = read('supabase/functions/_shared/aiHistory.ts');
+const aiHistoryUi = read('src/components/AiCheckHistory.tsx');
+const auditMigration = read('supabase/migrations/20260628000100_ai_check_governance_audit.sql');
 const testFile = read('tests/ai-governance.test.ts');
 const docs = read('docs/PHASE_4_PACKAGE_2_AI_SCORE_GOVERNANCE.md');
 
@@ -60,6 +64,37 @@ addCheck(
   ]),
   'supabase/functions/ai-check/index.ts',
   'Wire ai-check to the shared governance module and return governance metadata.',
+);
+
+addCheck(
+  'AI Check governance audit schema is migrated',
+  exists('supabase/migrations/20260628000100_ai_check_governance_audit.sql') &&
+    includesAll(auditMigration, [
+      'response_schema_version text not null',
+      'allowed_actions jsonb not null',
+      'ai_check_results_allowed_actions_array',
+    ]),
+  'supabase/migrations/20260628000100_ai_check_governance_audit.sql',
+  'Add migration columns for response_schema_version and allowed_actions.',
+);
+
+addCheck(
+  'AI Check history returns governance audit fields',
+  includesAll(aiCheckHistory, [
+    'response_schema_version',
+    'allowed_actions',
+  ]) &&
+    includesAll(aiHistoryShared, [
+      'responseSchemaVersion',
+      'allowedActions',
+    ]) &&
+    includesAll(aiHistoryUi, [
+      'AI Governance Audit',
+      'selected.responseSchemaVersion',
+      'selected.allowedActions.join',
+    ]),
+  'ai-check-history API, shared normalizer and history UI',
+  'Expose governance audit fields in history responses and UI.',
 );
 
 addCheck(

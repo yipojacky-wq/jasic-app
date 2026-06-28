@@ -93,7 +93,9 @@ let demoAiCheckHistory: AiCheckHistoryItem[] = [
     confidence: 82,
     modelIdentifier: 'demo-model',
     promptVersion: 'ai-check-1.0.0',
+    responseSchemaVersion: 'ai-check-response-1.0.0',
     ruleVersion: 'demo-1.0.0',
+    allowedActions: ['HOLD', 'WAIT', 'REDUCE'],
     createdAt: '2026-06-20T16:30:01+08:00',
   },
 ];
@@ -103,7 +105,9 @@ type ApiEnvelope<T> = {
   meta?: {
     data_as_of?: string;
     model_identifier?: string;
+    prompt_version?: string;
     request_id?: string;
+    response_schema_version?: string;
     rule_version?: string;
   };
   error?: { code: string; message: string } | null;
@@ -305,6 +309,8 @@ export async function runAiCheck(input: AiCheckInput): Promise<AiCheckResult> {
       dataAsOf: response.meta?.data_as_of,
       ruleVersion: response.meta?.rule_version,
       modelIdentifier: response.meta?.model_identifier,
+      promptVersion: response.meta?.prompt_version,
+      responseSchemaVersion: response.meta?.response_schema_version,
     };
   }
   const result = await runDemoAiCheck(safeInput);
@@ -324,7 +330,9 @@ export async function runAiCheck(input: AiCheckInput): Promise<AiCheckResult> {
       ...result,
       modelIdentifier: 'demo-model',
       promptVersion: 'ai-check-1.0.0',
+      responseSchemaVersion: 'ai-check-response-1.0.0',
       ruleVersion: 'demo-1.0.0',
+      allowedActions: result.allowedActions ?? ['HOLD', 'WAIT', 'REDUCE'],
       createdAt,
     },
     ...demoAiCheckHistory,
@@ -910,6 +918,9 @@ async function runDemoAiCheck(input: AiCheckInput): Promise<AiCheckResult> {
       dataAsOf: '2026-06-20T16:30:00+08:00',
       ruleVersion: 'demo-1.0.0',
       modelIdentifier: 'demo-model',
+      promptVersion: 'ai-check-1.0.0',
+      responseSchemaVersion: 'ai-check-response-1.0.0',
+      allowedActions: ['ADD', 'HOLD', 'WAIT', 'REDUCE'],
     };
   }
 
@@ -923,5 +934,8 @@ async function runDemoAiCheck(input: AiCheckInput): Promise<AiCheckResult> {
     dataAsOf: '2026-06-20T16:30:00+08:00',
     ruleVersion: 'demo-1.0.0',
     modelIdentifier: 'demo-model',
+    promptVersion: 'ai-check-1.0.0',
+    responseSchemaVersion: 'ai-check-response-1.0.0',
+    allowedActions: ['HOLD', 'WAIT', 'REDUCE'],
   };
 }

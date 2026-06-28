@@ -42,6 +42,14 @@ supabase/functions/_shared/aiGovernance.ts
   - reject output that violates allowed actions
   - reject output containing profit guarantees or automatic-trading claims
   - return prompt and response schema versions in response metadata
+  - persist response schema version and allowed actions to `ai_check_results`
+
+- Updated AI Check history to return and display:
+  - model identifier
+  - prompt version
+  - response schema version
+  - rule version
+  - allowed action guardrail
 
 - Added tests:
 
@@ -69,8 +77,6 @@ When market regime, risk score, confidence, or user risk profile is unfavorable,
 
 ## Remaining Package 2 work
 
-1. Add database columns or JSON audit fields for response schema version and allowed action snapshot.
-2. Add score rule registry for market score and stock score versions.
-3. Add AI Check history UI fields for response schema version and allowed actions.
-4. Add report/export audit fields for AI governance metadata.
-5. Add staging smoke assertions for AI Check metadata after Supabase credentials are available.
+1. Add score rule registry for market score and stock score versions.
+2. Add report/export audit fields for AI governance metadata.
+3. Add staging smoke assertions for AI Check metadata after Supabase credentials are available.

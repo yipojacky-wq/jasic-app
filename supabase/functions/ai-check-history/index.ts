@@ -35,7 +35,7 @@ Deno.serve(async (request) => {
   const { data: requests, error } = await supabase
     .from('ai_check_requests')
     .select(
-      'id, cost, quantity_shares, investment_horizon, risk_profile, status, created_at, stocks!inner(symbol, name_zh, exchange), ai_check_results(action, conclusion, reasons, risks, suggestions, confidence, model_identifier, prompt_version, rule_version, created_at)',
+        'id, cost, quantity_shares, investment_horizon, risk_profile, status, created_at, stocks!inner(symbol, name_zh, exchange), ai_check_results(action, conclusion, reasons, risks, suggestions, confidence, model_identifier, prompt_version, response_schema_version, rule_version, allowed_actions, created_at)',
     )
     .eq('user_id', authData.user.id)
     .eq('status', 'completed')

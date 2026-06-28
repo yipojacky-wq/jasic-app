@@ -134,6 +134,9 @@ export interface AiCheckResult {
   dataAsOf?: string;
   ruleVersion?: string;
   modelIdentifier?: string;
+  promptVersion?: string;
+  responseSchemaVersion?: string;
+  allowedActions?: AiAction[];
 }
 
 export interface AiCheckHistoryItem extends AiCheckResult {
@@ -148,7 +151,9 @@ export interface AiCheckHistoryItem extends AiCheckResult {
   requestedAt: string;
   modelIdentifier: string;
   promptVersion: string;
+  responseSchemaVersion: string;
   ruleVersion: string;
+  allowedActions: AiAction[];
   createdAt: string;
 }
 

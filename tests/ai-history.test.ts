@@ -24,7 +24,9 @@ test('AI history result normalizes nested Supabase relation shapes', () => {
       confidence: 120,
       model_identifier: 'model-a',
       prompt_version: 'prompt-1',
+      response_schema_version: 'schema-1',
       rule_version: 'rule-1',
+      allowed_actions: ['HOLD', 'WAIT', 7, ''],
       created_at: '2026-06-21T00:00:00Z',
     },
   ]);
@@ -32,5 +34,7 @@ test('AI history result normalizes nested Supabase relation shapes', () => {
   assert.equal(result?.action, 'HOLD');
   assert.equal(result?.confidence, 100);
   assert.equal(result?.modelIdentifier, 'model-a');
+  assert.equal(result?.responseSchemaVersion, 'schema-1');
+  assert.deepEqual(result?.allowedActions, ['HOLD', 'WAIT']);
   assert.equal(normalizeAiHistoryResult(null), null);
 });
