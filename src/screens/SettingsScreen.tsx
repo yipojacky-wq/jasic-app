@@ -244,7 +244,10 @@ export function SettingsScreen() {
       <DataHealthOperations items={data.dataHealth} />
 
       <SectionHeader eyebrow="Source Registry" title="Data source readiness" />
-      <SourceRegistryPanel />
+      <SourceRegistryPanel
+        items={data.sourceRegistry}
+        summary={data.sourceRegistrySummary}
+      />
 
       <SectionHeader eyebrow="Methodology" title="JASIC 方法論揭露" />
       <Card style={styles.methodCard}>

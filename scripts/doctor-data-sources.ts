@@ -6,6 +6,10 @@ import {
   officialTaiwanMarketSources,
   pendingProductionSources,
 } from '../supabase/functions/_shared/marketDataContracts.ts';
+import {
+  dataSourceReadinessRegistry,
+  dataSourceReadinessSummary,
+} from '../supabase/functions/_shared/dataSourceRegistry.ts';
 import * as taiwanAdapters from '../supabase/functions/_shared/taiwanMarketAdapters.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -114,6 +118,24 @@ const checks: Check[] = [
     },
   },
   {
+    name: 'Shared data-source readiness registry is in sync',
+    run: () => {
+      const registry = dataSourceReadinessRegistry();
+      const summary = dataSourceReadinessSummary(registry);
+      assert(summary.connected === officialCodes.length, 'Connected source count is wrong');
+      assert(summary.pendingReview === pendingCodes.length, 'Pending source count is wrong');
+      assert(summary.total === officialCodes.length + pendingCodes.length, 'Total source count is wrong');
+      assert(!summary.productionReady, 'Registry should not be productionReady while pending sources exist');
+
+      const actualCodes = sorted(registry.map((source) => source.code));
+      const expectedCodes = sorted([...officialCodes, ...pendingCodes]);
+      assert(
+        JSON.stringify(actualCodes) === JSON.stringify(expectedCodes),
+        `Readiness registry codes mismatch: ${actualCodes.join(', ')}`,
+      );
+    },
+  },
+  {
     name: 'Market ingestion uses shared adapter batches',
     run: () => {
       const ingestSource = readProjectFile('supabase/functions/market-data-ingest/index.ts');
@@ -126,6 +148,20 @@ const checks: Check[] = [
       assert(
         ingestSource.includes('ingestionRunFromBatch'),
         'market-data-ingest/index.ts must persist ingestion status through ingestionRunFromBatch',
+      );
+    },
+  },
+  {
+    name: 'Data health API exposes source readiness registry',
+    run: () => {
+      const dataHealthSource = readProjectFile('supabase/functions/data-health/index.ts');
+      assert(
+        dataHealthSource.includes('dataSourceReadinessRegistry'),
+        'data-health/index.ts must expose sourceRegistry',
+      );
+      assert(
+        dataHealthSource.includes('sourceRegistrySummary'),
+        'data-health/index.ts must expose sourceRegistrySummary',
       );
     },
   },

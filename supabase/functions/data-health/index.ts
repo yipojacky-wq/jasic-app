@@ -11,6 +11,10 @@ import {
   dataHealthStatus,
   ingestionQualityRate,
 } from '../_shared/governance.ts';
+import {
+  dataSourceReadinessRegistry,
+  dataSourceReadinessSummary,
+} from '../_shared/dataSourceRegistry.ts';
 
 type DataSourceRow = {
   code: string;
@@ -118,6 +122,7 @@ Deno.serve(async (request) => {
   });
 
   const config = rule?.config as Record<string, unknown> | undefined;
+  const sourceRegistry = dataSourceReadinessRegistry();
   return jsonResponse(envelope({
     dataHealth,
     methodology: {
@@ -135,6 +140,8 @@ Deno.serve(async (request) => {
         attribution: source.attribution_text,
       })),
     },
+    sourceRegistry,
+    sourceRegistrySummary: dataSourceReadinessSummary(sourceRegistry),
   }));
 });
 

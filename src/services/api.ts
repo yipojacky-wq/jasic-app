@@ -2,6 +2,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { candidates, marketIndicators, reports } from '../data/mockData';
 import { lotsToShares } from '../lib/positions';
+import {
+  dataSourceReadinessRegistry,
+  dataSourceReadinessSummary,
+} from '../../supabase/functions/_shared/dataSourceRegistry.ts';
 import { validateAiCheckInput } from '../../supabase/functions/_shared/aiInput.ts';
 import { isLiveMode, supabase } from '../lib/supabase';
 import { calculatePortfolioSummary } from '../../supabase/functions/_shared/portfolio.ts';
@@ -854,6 +858,8 @@ export async function getSettingsOverview(): Promise<SettingsOverview> {
         },
       ],
     },
+    sourceRegistry: dataSourceReadinessRegistry(),
+    sourceRegistrySummary: dataSourceReadinessSummary(),
   };
 }
 

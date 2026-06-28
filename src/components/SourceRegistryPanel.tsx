@@ -1,16 +1,23 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { clientDataSourceRegistry } from '../data/dataSourceRegistry';
+import {
+  clientDataSourceReadinessSummary,
+  clientDataSourceRegistry,
+} from '../data/dataSourceRegistry';
 import { colors } from '../theme';
+import type {
+  DataSourceReadinessItem,
+  DataSourceReadinessSummary,
+} from '../types';
 import { Badge, Card } from './ui';
 
-export function SourceRegistryPanel() {
-  const connected = clientDataSourceRegistry.filter(
-    (source) => source.status === 'connected',
-  );
-  const pending = clientDataSourceRegistry.filter(
-    (source) => source.status === 'pending_review',
-  );
+export function SourceRegistryPanel({
+  items = clientDataSourceRegistry(),
+  summary = clientDataSourceReadinessSummary(items),
+}: {
+  items?: DataSourceReadinessItem[];
+  summary?: DataSourceReadinessSummary;
+}) {
 
   return (
     <View style={styles.container}>
@@ -24,13 +31,13 @@ export function SourceRegistryPanel() {
           </Text>
         </View>
         <View style={styles.metricRow}>
-          <RegistryMetric label="Connected" value={connected.length} tone="positive" />
-          <RegistryMetric label="Pending" value={pending.length} tone="warning" />
+          <RegistryMetric label="Connected" value={summary.connected} tone="positive" />
+          <RegistryMetric label="Pending" value={summary.pendingReview} tone="warning" />
         </View>
       </Card>
 
       <View style={styles.grid}>
-        {clientDataSourceRegistry.map((source) => (
+        {items.map((source) => (
           <Card key={source.code} style={styles.sourceCard}>
             <View style={styles.sourceTop}>
               <View style={styles.sourceHeading}>

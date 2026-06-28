@@ -4,6 +4,13 @@ Date: 2026-06-27
 
 This registry is the operational checklist for Phase 3 data ingestion. It separates sources that are already wired into the MVP ingestion adapter layer from sources that are intentionally blocked until licensing, endpoint, and redistribution rules are confirmed.
 
+Current implementation note:
+
+- The canonical runtime helper is `supabase/functions/_shared/dataSourceRegistry.ts`.
+- The live `data-health` Edge Function returns `sourceRegistry` and `sourceRegistrySummary`.
+- The app Settings screen renders this API-backed registry in `SourceRegistryPanel`.
+- Demo mode uses the same shared helper through `src/data/dataSourceRegistry.ts`.
+
 ## Production-ready adapter sources
 
 These sources are allowed to produce `MarketDataAdapterBatch` rows in `market-data-ingest`.
@@ -18,9 +25,12 @@ These sources are allowed to produce `MarketDataAdapterBatch` rows in `market-da
 Implementation files:
 
 - `supabase/functions/_shared/marketDataContracts.ts`
+- `supabase/functions/_shared/dataSourceRegistry.ts`
 - `supabase/functions/_shared/taiwanMarketAdapters.ts`
 - `supabase/functions/market-data-ingest/index.ts`
+- `supabase/functions/data-health/index.ts`
 - `tests/market-data-contracts.test.ts`
+- `tests/data-source-registry.test.ts`
 - `tests/taiwan-market-adapters.test.ts`
 
 ## Pending sources
@@ -48,6 +58,7 @@ The doctor checks:
 - Pending sources remain `pending_review`.
 - Taiwan adapter exports are present.
 - `market-data-ingest` is wired through the shared adapter batches.
+- `data-health` exposes `sourceRegistry` and `sourceRegistrySummary`.
 - Data-source documentation covers each source code.
 
 ## Next source approval checklist

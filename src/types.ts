@@ -322,10 +322,32 @@ export interface MethodologyInfo {
   }>;
 }
 
+export interface DataSourceReadinessItem {
+  code: string;
+  provider: string;
+  datasetName: string;
+  domain: string;
+  frequency: string;
+  attribution?: string | null;
+  endpoint?: string;
+  status: 'connected' | 'pending_review';
+  commercialUseNote: string;
+  note: string;
+}
+
+export interface DataSourceReadinessSummary {
+  connected: number;
+  pendingReview: number;
+  total: number;
+  productionReady: boolean;
+}
+
 export interface SettingsOverview {
   profile: UserProfile;
   dataHealth: DataHealthItem[];
   methodology: MethodologyInfo;
+  sourceRegistry: DataSourceReadinessItem[];
+  sourceRegistrySummary: DataSourceReadinessSummary;
 }
 
 export interface UserDataExport {
