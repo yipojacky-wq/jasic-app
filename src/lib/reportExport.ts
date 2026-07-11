@@ -4,22 +4,24 @@ export function reportToMarkdown(report: ReportDetail) {
   const lines = [
     `# ${report.title}`,
     '',
-    `- 類型：${report.type}`,
-    `- 資料時間：${report.asOf}`,
-    `- 規則版本：${report.ruleVersion}`,
-    ...(report.stockSymbol ? [`- 股票代號：${report.stockSymbol}`] : []),
+    '## Audit',
     '',
-    '## 摘要',
+    `- Report type: ${report.reportType}`,
+    `- Data as of: ${report.asOf}`,
+    `- Rule version: ${report.ruleVersion}`,
+    ...(report.stockSymbol ? [`- Stock symbol: ${report.stockSymbol}`] : []),
+    '',
+    '## Summary',
     '',
     report.summary,
     '',
   ];
 
   if (report.metrics.length) {
-    lines.push('## 指標', '');
+    lines.push('## Metrics', '');
     for (const metric of report.metrics) {
       lines.push(
-        `- **${metric.label}：** ${metric.value}${metric.note ? `（${metric.note}）` : ''}`,
+        `- **${metric.label}:** ${metric.value}${metric.note ? ` (${metric.note})` : ''}`,
       );
     }
     lines.push('');
@@ -33,7 +35,7 @@ export function reportToMarkdown(report: ReportDetail) {
     lines.push('');
   }
 
-  lines.push('## 重要聲明', '', report.disclaimer, '');
+  lines.push('## Disclaimer', '', report.disclaimer, '');
   return lines.join('\n');
 }
 

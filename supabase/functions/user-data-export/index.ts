@@ -50,7 +50,7 @@ Deno.serve(async (request) => {
       .eq('user_id', userId),
     supabase
       .from('ai_check_requests')
-      .select('id, cost, quantity_shares, investment_horizon, risk_profile, status, created_at, stocks(symbol, exchange, name_zh), ai_check_results(action, conclusion, reasons, risks, suggestions, confidence, model_identifier, prompt_version, rule_version, created_at)')
+      .select('id, cost, quantity_shares, investment_horizon, risk_profile, status, created_at, stocks(symbol, exchange, name_zh), ai_check_results(action, conclusion, reasons, risks, suggestions, confidence, model_identifier, prompt_version, response_schema_version, rule_version, allowed_actions, created_at)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false }),
     supabase

@@ -29,7 +29,12 @@ const aiCheckHistory = read('supabase/functions/ai-check-history/index.ts');
 const aiHistoryShared = read('supabase/functions/_shared/aiHistory.ts');
 const aiHistoryUi = read('src/components/AiCheckHistory.tsx');
 const auditMigration = read('supabase/migrations/20260628000100_ai_check_governance_audit.sql');
+const userDataExport = read('supabase/functions/user-data-export/index.ts');
+const researchShare = read('src/lib/researchShare.ts');
+const reportExport = read('src/lib/reportExport.ts');
 const testFile = read('tests/ai-governance.test.ts');
+const researchShareTest = read('tests/research-share.test.ts');
+const reportExportTest = read('tests/report-export.test.ts');
 const docs = read('docs/PHASE_4_PACKAGE_2_AI_SCORE_GOVERNANCE.md');
 
 addCheck(
@@ -107,6 +112,35 @@ addCheck(
   ]),
   'profit guarantee and automatic trading guardrails',
   'Add explicit no-profit-guarantee and no-auto-trading guardrails.',
+);
+
+addCheck(
+  'AI governance metadata is included in exports and share text',
+  includesAll(userDataExport, [
+    'response_schema_version',
+    'allowed_actions',
+  ]) &&
+    includesAll(researchShare, [
+      'Prompt 版本',
+      'Schema 版本',
+      '允許動作',
+      '不保證獲利',
+    ]) &&
+    includesAll(reportExport, [
+      '## Audit',
+      'Rule version',
+      '## Disclaimer',
+    ]) &&
+    includesAll(researchShareTest, [
+      'AI Check share includes governance audit',
+      'Schema 版本：ai-check-response-1.0.0',
+    ]) &&
+    includesAll(reportExportTest, [
+      'report markdown preserves audit and disclaimer fields',
+      'Rule version: rule-1',
+    ]),
+  'user-data-export, research share text and report markdown export',
+  'Include AI governance metadata in export/share surfaces and cover it with tests.',
 );
 
 addCheck(

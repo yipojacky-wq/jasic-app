@@ -76,7 +76,7 @@ npm run smoke:supabase
 npm run smoke:live-readiness
 ```
 
-For authenticated `data-health` smoke testing:
+For authenticated `data-health` and `ai-check` smoke testing:
 
 ```powershell
 $env:JASIC_STAGING_ACCESS_TOKEN="YOUR_USER_ACCESS_TOKEN"

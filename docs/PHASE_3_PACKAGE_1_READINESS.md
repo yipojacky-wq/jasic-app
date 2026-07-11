@@ -77,8 +77,9 @@ npm run smoke:live-readiness
 - `market-summary`
 - `discovery-latest`
 - `data-health`
+- `ai-check` governance metadata when `JASIC_STAGING_ACCESS_TOKEN` is provided
 
-For `data-health`, provide a short-lived Supabase user access token:
+For authenticated `data-health` and `ai-check`, provide a short-lived Supabase user access token:
 
 ```powershell
 $env:JASIC_STAGING_ACCESS_TOKEN="YOUR_USER_ACCESS_TOKEN"

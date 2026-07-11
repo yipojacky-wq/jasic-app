@@ -92,6 +92,34 @@ function validateDataHealth(data) {
   return '';
 }
 
+function validateAiCheck(data, meta) {
+  if (!isObject(data)) return 'ai-check data is not an object';
+  if (!['ADD', 'HOLD', 'WAIT', 'REDUCE', 'STOP_LOSS'].includes(data.action)) {
+    return 'ai-check action is missing or invalid';
+  }
+  if (!data.conclusion) return 'ai-check conclusion is missing';
+  if (!Array.isArray(data.reasons) || data.reasons.length < 2) {
+    return 'ai-check reasons should contain at least two items';
+  }
+  if (!Array.isArray(data.risks) || data.risks.length < 1) {
+    return 'ai-check risks should contain at least one item';
+  }
+  if (!Array.isArray(data.suggestions) || data.suggestions.length < 1) {
+    return 'ai-check suggestions should contain at least one item';
+  }
+  if (!Number.isFinite(Number(data.confidence))) {
+    return 'ai-check confidence is missing';
+  }
+  if (!isObject(meta)) return 'ai-check response meta is missing';
+  if (!meta.rule_version) return 'ai-check rule_version meta is missing';
+  if (!meta.model_identifier) return 'ai-check model_identifier meta is missing';
+  if (!meta.prompt_version) return 'ai-check prompt_version meta is missing';
+  if (!meta.response_schema_version) {
+    return 'ai-check response_schema_version meta is missing';
+  }
+  return '';
+}
+
 async function postFunction({ functionName, body = {}, query, bearerToken, validate }) {
   const url = `${baseUrl}/functions/v1/${functionName}`;
   const started = Date.now();
@@ -139,7 +167,7 @@ async function postFunction({ functionName, body = {}, query, bearerToken, valid
       return { functionName, ok: false, status: response.status, ms, detail: envelopeError };
     }
 
-    const shapeError = validate(payload.data);
+    const shapeError = validate(payload.data, payload.meta);
     return {
       functionName,
       ok: !shapeError,
@@ -196,6 +224,20 @@ if (accessToken) {
       validate: validateDataHealth,
     }),
   );
+  results.push(
+    await postFunction({
+      functionName: 'ai-check',
+      bearerToken: accessToken,
+      body: {
+        symbol: '2330',
+        cost: 980,
+        lots: 1,
+        horizon: 'medium',
+        riskProfile: 'balanced',
+      },
+      validate: validateAiCheck,
+    }),
+  );
 } else {
   results.push({
     functionName: 'data-health',
@@ -204,6 +246,14 @@ if (accessToken) {
     status: 'SKIP',
     ms: 0,
     detail: 'Set JASIC_STAGING_ACCESS_TOKEN to validate authenticated data-health POST.',
+  });
+  results.push({
+    functionName: 'ai-check',
+    ok: true,
+    skipped: true,
+    status: 'SKIP',
+    ms: 0,
+    detail: 'Set JASIC_STAGING_ACCESS_TOKEN to validate AI Check governance metadata.',
   });
 }
 

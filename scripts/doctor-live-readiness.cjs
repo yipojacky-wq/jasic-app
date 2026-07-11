@@ -212,9 +212,11 @@ addCheck(
     read('docs/SUPABASE_STAGING_RUNBOOK.md').includes('npm run smoke:live-readiness') &&
     read('scripts/smoke-live-readiness.cjs').includes('validateMarketSummary') &&
     read('scripts/smoke-live-readiness.cjs').includes('validateDiscovery') &&
-    read('scripts/smoke-live-readiness.cjs').includes('validateDataHealth'),
+    read('scripts/smoke-live-readiness.cjs').includes('validateDataHealth') &&
+    read('scripts/smoke-live-readiness.cjs').includes('validateAiCheck') &&
+    read('scripts/smoke-live-readiness.cjs').includes('response_schema_version'),
   'npm run smoke:live-readiness',
-  'Add and document the live POST smoke test for market-summary, discovery-latest and data-health.',
+  'Add and document the live POST smoke test for market-summary, discovery-latest, data-health and AI Check governance metadata.',
 );
 
 addCheck(

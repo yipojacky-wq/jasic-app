@@ -51,6 +51,14 @@ supabase/functions/_shared/aiGovernance.ts
   - rule version
   - allowed action guardrail
 
+- Updated export/share surfaces:
+  - `user-data-export` includes `response_schema_version` and `allowed_actions`
+  - AI Check share text includes model, prompt version, schema version and allowed actions
+  - report Markdown export has a clean `Audit` section and disclaimer
+
+- Updated staging smoke:
+  - `npm run smoke:live-readiness` validates AI Check governance metadata when `JASIC_STAGING_ACCESS_TOKEN` is provided
+
 - Added score rule registry:
 
 ```text
@@ -100,5 +108,4 @@ When market regime, risk score, confidence, or user risk profile is unfavorable,
 
 ## Remaining Package 2 work
 
-1. Add report/export audit fields for AI governance metadata.
-2. Add staging smoke assertions for AI Check metadata after Supabase credentials are available.
+1. Run staging smoke assertions against a real Supabase project after credentials are available.

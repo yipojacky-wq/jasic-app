@@ -178,13 +178,13 @@ npm run smoke:supabase
 
 ## 10. Live data shape smoke test
 
-This verifies POST response shape for the core live screens:
+This verifies POST response shape for the core live screens and AI governance metadata:
 
 ```bash
 npm run smoke:live-readiness
 ```
 
-For the authenticated `data-health` check, set a short-lived user access token:
+For the authenticated `data-health` and `ai-check` checks, set a short-lived user access token:
 
 ```powershell
 $env:JASIC_STAGING_ACCESS_TOKEN="YOUR_USER_ACCESS_TOKEN"
@@ -192,6 +192,15 @@ npm run smoke:live-readiness
 ```
 
 Do not use the Supabase service-role key here.
+
+When `JASIC_STAGING_ACCESS_TOKEN` is present, this also validates that `ai-check`
+returns:
+
+- action / conclusion / reasons / risks / suggestions / confidence
+- `rule_version`
+- `model_identifier`
+- `prompt_version`
+- `response_schema_version`
 
 ## 11. Run local live-mode web app
 
