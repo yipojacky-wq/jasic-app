@@ -41,6 +41,7 @@ const mobilePreviewDoctor = read('scripts/doctor-mobile-preview.cjs');
 const pwaDoctor = read('scripts/doctor-pwa.cjs');
 const freeStagingDeploy = read('scripts/deploy-free-staging.ps1');
 const cronSecretGenerator = read('scripts/generate-cron-secret.cjs');
+const stagingTokenHelper = read('scripts/get-staging-access-token.cjs');
 
 addCheck(
   'Final readiness doctor is registered',
@@ -84,6 +85,7 @@ addCheck(
       'JASIC_AI_MODE=rule_based',
       'OPENAI_API_KEY',
       'npm run free-staging:secret',
+      'npm run free-staging:token',
       'npm run free-staging:env',
       'npm run free-staging:deploy',
       'npm run doctor:staging-env -- --require-live --free-mode',
@@ -104,6 +106,21 @@ addCheck(
     ]),
   'scripts/generate-cron-secret.cjs',
   'Add a local CRON_SECRET generator for free staging setup.',
+);
+
+addCheck(
+  'Staging access token helper is available',
+  packageJson.scripts?.['free-staging:token'] === 'node scripts/get-staging-access-token.cjs' &&
+    includesAll(stagingTokenHelper, [
+      '/auth/v1/token?grant_type=password',
+      'JASIC_STAGING_ACCESS_TOKEN',
+      '--email',
+      '--password',
+      '--dry-run',
+      '--env',
+    ]),
+  'scripts/get-staging-access-token.cjs',
+  'Add a helper to fetch a short-lived Supabase user token for staging smoke tests.',
 );
 
 addCheck(

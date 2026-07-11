@@ -64,6 +64,32 @@ JASIC_STAGING_ACCESS_TOKEN=YOUR_SHORT_LIVED_USER_TOKEN
 
 Do not commit `.env.local`.
 
+## Test user access token
+
+Create a Supabase Auth test user first. Then fetch a short-lived token:
+
+```powershell
+npm run free-staging:token -- `
+  --url "https://YOUR_PROJECT.supabase.co" `
+  --anon-key "YOUR_PUBLIC_ANON_KEY" `
+  --email "tester@example.com" `
+  --password "YOUR_TEST_PASSWORD" `
+  --env
+```
+
+Dry run:
+
+```powershell
+npm run free-staging:token -- `
+  --url "https://YOUR_PROJECT.supabase.co" `
+  --anon-key "YOUR_PUBLIC_ANON_KEY" `
+  --email "tester@example.com" `
+  --password "YOUR_TEST_PASSWORD" `
+  --dry-run
+```
+
+Copy the generated `JASIC_STAGING_ACCESS_TOKEN` into `.env.local` or your shell session. Do not commit it.
+
 ## Supabase Edge secrets
 
 Generate a local cron secret:
