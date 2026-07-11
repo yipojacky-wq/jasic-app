@@ -29,7 +29,10 @@ jobs:
       - run: npm test
       - run: npm run build:web:github-pages
         env:
-          EXPO_PUBLIC_DEMO_MODE: "true"
+          EXPO_PUBLIC_DEMO_MODE: "false"
+          EXPO_PUBLIC_SUPABASE_URL: "https://hxftprkavdearldqdwps.supabase.co"
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: "sb_publishable_B4z1Thco3zNeDM60UV7hug_Ua9Gydp9"
+          JASIC_AI_MODE: "rule_based"
       - name: Publish to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:
