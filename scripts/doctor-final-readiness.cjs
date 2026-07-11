@@ -81,6 +81,7 @@ addCheck(
       'Supabase Free',
       'JASIC_AI_MODE=rule_based',
       'OPENAI_API_KEY',
+      'npm run free-staging:env',
       'npm run doctor:staging-env -- --require-live --free-mode',
       'npm run supabase:set:secrets',
     ]),

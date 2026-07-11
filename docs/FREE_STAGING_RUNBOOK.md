@@ -34,6 +34,26 @@ OPENAI_MODEL
 
 ## Local `.env.local`
 
+Recommended helper:
+
+```powershell
+npm run free-staging:env -- `
+  -SupabaseUrl "https://YOUR_PROJECT.supabase.co" `
+  -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" `
+  -StagingAccessToken "YOUR_SHORT_LIVED_USER_TOKEN"
+```
+
+Dry run first:
+
+```powershell
+npm run free-staging:env -- `
+  -SupabaseUrl "https://YOUR_PROJECT.supabase.co" `
+  -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" `
+  -DryRun
+```
+
+Manual option:
+
 ```env
 EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_KEY
@@ -100,4 +120,3 @@ Then run:
 ```bash
 npm run doctor:staging-env -- --require-live
 ```
-
