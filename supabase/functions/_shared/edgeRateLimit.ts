@@ -22,6 +22,13 @@ export interface EdgeRateLimitState {
   windowStartedAt: string;
 }
 
+export interface EdgeRateLimitRpcResult {
+  allowed: boolean;
+  request_count: number;
+  retry_after_seconds: number;
+  reset_at: string;
+}
+
 export const edgeRateLimitPolicies: Record<
   EdgeRateLimitFunction,
   EdgeRateLimitPolicy
@@ -76,6 +83,66 @@ export function rateLimitMessage(retryAfterSeconds: number) {
   }
   const minutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
   return `Request limit reached. Please try again in about ${minutes} minute(s).`;
+}
+
+export async function consumeEdgeRateLimit(
+  supabase: {
+    rpc: (
+      functionName: string,
+      args: Record<string, unknown>,
+    ) => Promise<{ data: unknown; error: { message: string } | null }>;
+  },
+  userId: string,
+  functionName: EdgeRateLimitFunction,
+) {
+  const policy = edgeRateLimitPolicies[functionName];
+  const { data, error } = await supabase.rpc('consume_edge_rate_limit', {
+    target_user_id: userId,
+    target_function_name: policy.functionName,
+    target_limit: policy.limit,
+    target_window_seconds: policy.windowSeconds,
+  });
+
+  if (error) {
+    return {
+      ok: false as const,
+      error: error.message,
+      policy,
+    };
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+  const result = normalizeRpcResult(row);
+  if (!result) {
+    return {
+      ok: false as const,
+      error: 'Invalid rate-limit RPC response',
+      policy,
+    };
+  }
+
+  return {
+    ok: true as const,
+    policy,
+    result,
+  };
+}
+
+function normalizeRpcResult(value: unknown): EdgeRateLimitRpcResult | null {
+  if (!value || typeof value !== 'object') return null;
+  const record = value as Record<string, unknown>;
+  if (typeof record.allowed !== 'boolean') return null;
+  const requestCount = Number(record.request_count);
+  const retryAfterSeconds = Number(record.retry_after_seconds);
+  if (!Number.isFinite(requestCount) || !Number.isFinite(retryAfterSeconds)) {
+    return null;
+  }
+  return {
+    allowed: record.allowed,
+    request_count: requestCount,
+    retry_after_seconds: retryAfterSeconds,
+    reset_at: String(record.reset_at ?? ''),
+  };
 }
 
 function policy(

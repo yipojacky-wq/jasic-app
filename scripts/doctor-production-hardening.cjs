@@ -37,6 +37,8 @@ const e2eSmokeChecklist = read('docs/E2E_SMOKE_CHECKLIST.md');
 const abuseControlNotes = read('docs/EDGE_ABUSE_CONTROL_NOTES.md');
 const rateLimit = read('supabase/functions/_shared/edgeRateLimit.ts');
 const rateLimitTests = read('tests/edge-rate-limit.test.ts');
+const rateLimitMigration = read('supabase/migrations/20260711000100_edge_rate_limits.sql');
+const aiCheck = read('supabase/functions/ai-check/index.ts');
 
 addCheck(
   'Production hardening doctor is registered',
@@ -133,6 +135,28 @@ addCheck(
 );
 
 addCheck(
+  'Persistent rate-limit gate is wired for AI Check',
+  exists('supabase/migrations/20260711000100_edge_rate_limits.sql') &&
+    includesAll(rateLimitMigration, [
+      'create table if not exists public.edge_rate_limits',
+      'consume_edge_rate_limit',
+      'security definer',
+      'return next',
+    ]) &&
+    includesAll(aiCheck, [
+      'consumeEdgeRateLimit',
+      "'ai-check'",
+      'rateLimit.policy.actionWhenLimited.code',
+      'Retry-After',
+      'https://api.openai.com/v1/responses',
+    ]) &&
+    aiCheck.indexOf('consumeEdgeRateLimit') <
+      aiCheck.indexOf('https://api.openai.com/v1/responses'),
+  'edge_rate_limits migration + ai-check Edge Function',
+  'Wire AI Check to consume persistent rate-limit quota before calling OpenAI.',
+);
+
+addCheck(
   'Package 3 production hardening document exists',
   exists('docs/PHASE_5_PACKAGE_3_PRODUCTION_HARDENING.md') &&
     includesAll(docs, [
@@ -179,6 +203,8 @@ addCheck(
   exists('docs/EDGE_ABUSE_CONTROL_NOTES.md') &&
     includesAll(abuseControlNotes, [
       'AI Check: 20 requests / user / hour',
+      '20260711000100_edge_rate_limits.sql',
+      'consume_edge_rate_limit',
       'return `429`',
       'Never expose Supabase service-role key',
       'Never expose OpenAI API key',

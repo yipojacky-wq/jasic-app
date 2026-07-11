@@ -50,7 +50,15 @@ It is tested by:
 tests/edge-rate-limit.test.ts
 ```
 
-Add a per-user and per-function rate-limit table before open beta:
+The first persistent database gate is defined in:
+
+```text
+supabase/migrations/20260711000100_edge_rate_limits.sql
+```
+
+The `ai-check` Edge Function now calls `consume_edge_rate_limit` before it calls OpenAI or writes AI Check request/result rows.
+
+The per-user and per-function rate-limit table is:
 
 ```text
 edge_rate_limits

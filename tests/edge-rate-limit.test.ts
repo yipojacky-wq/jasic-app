@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  consumeEdgeRateLimit,
   edgeRateLimitPolicies,
   rateLimitDecision,
   rateLimitMessage,
@@ -68,4 +69,48 @@ test('rate-limit window resets after policy window expires', () => {
 test('rate-limit message avoids exposing internal implementation details', () => {
   assert.match(rateLimitMessage(125), /3 minute/);
   assert.doesNotMatch(rateLimitMessage(125), /OpenAI|service-role|CRON_SECRET/);
+});
+
+test('consumeEdgeRateLimit normalizes Supabase RPC success and failure', async () => {
+  const success = await consumeEdgeRateLimit(
+    {
+      async rpc(functionName, args) {
+        assert.equal(functionName, 'consume_edge_rate_limit');
+        assert.equal(args.target_function_name, 'ai-check');
+        return {
+          error: null,
+          data: [{
+            allowed: false,
+            request_count: 21,
+            retry_after_seconds: 300,
+            reset_at: '2026-07-11T11:00:00+08:00',
+          }],
+        };
+      },
+    },
+    'user-1',
+    'ai-check',
+  );
+
+  assert.equal(success.ok, true);
+  if (success.ok) {
+    assert.equal(success.result.allowed, false);
+    assert.equal(success.result.retry_after_seconds, 300);
+  }
+
+  const failure = await consumeEdgeRateLimit(
+    {
+      async rpc() {
+        return { data: null, error: { message: 'missing rpc' } };
+      },
+    },
+    'user-1',
+    'ai-check',
+  );
+
+  assert.deepEqual(failure, {
+    ok: false,
+    error: 'missing rpc',
+    policy: edgeRateLimitPolicies['ai-check'],
+  });
 });
