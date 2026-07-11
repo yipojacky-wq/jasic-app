@@ -32,6 +32,9 @@ const reportExportTests = read('tests/report-export.test.ts');
 const liveSmoke = read('scripts/smoke-live-readiness.cjs');
 const deployDoctor = read('scripts/doctor-deploy.cjs');
 const docs = read('docs/PHASE_5_PACKAGE_3_PRODUCTION_HARDENING.md');
+const mobilePreviewChecklist = read('docs/MOBILE_PREVIEW_CHECKLIST.md');
+const e2eSmokeChecklist = read('docs/E2E_SMOKE_CHECKLIST.md');
+const abuseControlNotes = read('docs/EDGE_ABUSE_CONTROL_NOTES.md');
 
 addCheck(
   'Production hardening doctor is registered',
@@ -115,6 +118,48 @@ addCheck(
     ]),
   'docs/PHASE_5_PACKAGE_3_PRODUCTION_HARDENING.md',
   'Document Package 3 hardening scope and remaining mobile preview work.',
+);
+
+addCheck(
+  'Mobile preview checklist is available',
+  exists('docs/MOBILE_PREVIEW_CHECKLIST.md') &&
+    includesAll(mobilePreviewChecklist, [
+      'jasic://stock/2330',
+      'jasic://ai-check/2330',
+      'no guaranteed profit',
+      'no automatic trading',
+    ]),
+  'docs/MOBILE_PREVIEW_CHECKLIST.md',
+  'Add a mobile preview checklist for Expo / EAS validation.',
+);
+
+addCheck(
+  'E2E smoke checklist covers core product surfaces',
+  exists('docs/E2E_SMOKE_CHECKLIST.md') &&
+    includesAll(e2eSmokeChecklist, [
+      'Dashboard',
+      'Discovery Pool',
+      'Stock War Room',
+      'AI Check',
+      'Watchlist',
+      'Reports',
+      'Settings / Data Health',
+    ]),
+  'docs/E2E_SMOKE_CHECKLIST.md',
+  'Add an end-to-end smoke checklist for all MVP screens.',
+);
+
+addCheck(
+  'Edge abuse-control notes are documented',
+  exists('docs/EDGE_ABUSE_CONTROL_NOTES.md') &&
+    includesAll(abuseControlNotes, [
+      'AI Check: 20 requests / user / hour',
+      'return `429`',
+      'Never expose Supabase service-role key',
+      'Never expose OpenAI API key',
+    ]),
+  'docs/EDGE_ABUSE_CONTROL_NOTES.md',
+  'Document rate-limit and abuse-control expectations for Edge Functions.',
 );
 
 const failed = checks.filter((check) => !check.ok);

@@ -34,13 +34,23 @@ The doctor checks:
 - share/export test coverage
 - live smoke script availability
 - deployment doctor availability
+- mobile preview checklist
+- E2E smoke checklist
+- Edge abuse-control notes
+
+## Added checklists
+
+```text
+docs/MOBILE_PREVIEW_CHECKLIST.md
+docs/E2E_SMOKE_CHECKLIST.md
+docs/EDGE_ABUSE_CONTROL_NOTES.md
+```
 
 ## Remaining Package 3 work
 
-1. Add mobile preview build checklist for EAS / Expo preview.
-2. Add rate-limit and abuse-control notes for Edge Functions.
-3. Add e2e smoke checklist for Dashboard, Discovery, War Room, AI Check, Watchlist, Reports and Settings.
-4. Run real mobile preview validation when app store / EAS credentials are available.
+1. Run real mobile preview validation when app store / EAS credentials are available.
+2. Implement persistent Edge Function rate limiting before open beta.
+3. Run real Supabase staging smoke with `JASIC_STAGING_ACCESS_TOKEN`.
 
 ## Safety reminder
 
