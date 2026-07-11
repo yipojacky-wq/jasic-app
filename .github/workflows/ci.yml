@@ -19,6 +19,7 @@ jobs:
       - run: npm run doctor:live-readiness
       - run: npm run doctor:ai-governance
       - run: npm run doctor:score-governance
+      - run: npm run doctor:production-hardening
       - run: npm run doctor:supabase
       - run: npm run typecheck
       - run: npm run typecheck:edge

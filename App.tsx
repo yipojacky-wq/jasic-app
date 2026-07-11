@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 import { AppShell } from './src/AppShell';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { useAuthSession } from './src/hooks/useAuthSession';
 import { hasAcceptedCurrentTerms } from './src/lib/governance';
 import { isLiveMode } from './src/lib/supabase';
@@ -24,9 +25,11 @@ const queryClient = new QueryClient({
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppContent />
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AppContent />
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

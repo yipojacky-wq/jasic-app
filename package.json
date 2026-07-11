@@ -41,6 +41,7 @@
     "doctor:live-readiness": "node scripts/doctor-live-readiness.cjs",
     "doctor:ai-governance": "node scripts/doctor-ai-governance.cjs",
     "doctor:score-governance": "node scripts/doctor-score-governance.cjs",
+    "doctor:production-hardening": "node scripts/doctor-production-hardening.cjs",
     "smoke:supabase": "node scripts/smoke-supabase-staging.cjs",
     "smoke:live-readiness": "node scripts/smoke-live-readiness.cjs",
     "supabase:deploy:functions": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy-supabase-functions.ps1",
