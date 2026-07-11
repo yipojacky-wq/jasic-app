@@ -21,14 +21,17 @@ Already verified:
 - Production hardening doctor passes.
 - High-risk user functions have persistent rate-limit protection.
 
-Still requiring external environment work:
+Still requiring external account work:
 
 - Supabase staging project credentials.
-- OpenAI API key.
 - Supabase Edge Function secrets.
 - GitHub Actions secrets.
 - GitHub Pages setting confirmation.
-- Expo / EAS account login for mobile preview builds.
+
+Not required for the nearly-free path:
+
+- OpenAI API key, because `JASIC_AI_MODE=rule_based` is now supported.
+- App Store / Google Play / EAS build, because the mobile-first path is PWA.
 
 ## Mobile-first option
 
@@ -92,9 +95,12 @@ Required inputs from owner:
 - Supabase project URL.
 - Supabase public anon key.
 - Supabase service-role key, used only by Supabase CLI / function secret setup, never committed.
-- OpenAI API key.
 - CRON_SECRET.
 - Short-lived test user access token for authenticated smoke tests.
+
+Optional:
+
+- OpenAI API key, only when upgrading from `rule_based` to `openai`.
 
 Execution:
 
@@ -191,7 +197,7 @@ JASIC can be considered operational staging-ready when all commands below pass a
 
 ```bash
 npm run doctor:final-readiness
-npm run doctor:staging-env -- --require-live
+npm run doctor:staging-env -- --require-live --free-mode
 npm run package1:preflight
 npm run smoke:public-preview
 npm run smoke:supabase

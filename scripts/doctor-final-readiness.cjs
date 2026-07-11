@@ -24,6 +24,7 @@ function addCheck(name, ok, detail, remediation) {
 
 const packageJson = JSON.parse(read('package.json'));
 const finalPlan = read('docs/FINAL_3_PHASES_COMPLETION.md');
+const finalStageReport = read('docs/FINAL_STAGE_COMPLETION_REPORT.md');
 const stagingChecklist = read('docs/STAGING_LAUNCH_CHECKLIST.md');
 const freeStagingRunbook = read('docs/FREE_STAGING_RUNBOOK.md');
 const publicPreview = read('docs/PUBLIC_PREVIEW_DEPLOYMENT.md');
@@ -75,6 +76,20 @@ addCheck(
     ]),
   'docs/FINAL_3_PHASES_COMPLETION.md',
   'Add a clean final three-phase completion plan.',
+);
+
+addCheck(
+  'Final stage completion report is available',
+  exists('docs/FINAL_STAGE_COMPLETION_REPORT.md') &&
+    includesAll(finalStageReport, [
+      'final engineering stage is complete',
+      'https://yipojacky-wq.github.io/jasic-app/',
+      'JASIC_AI_MODE=rule_based',
+      'free-staging:deploy',
+      'What remains external',
+    ]),
+  'docs/FINAL_STAGE_COMPLETION_REPORT.md',
+  'Add a final-stage completion report that separates engineering completion from external account work.',
 );
 
 addCheck(
