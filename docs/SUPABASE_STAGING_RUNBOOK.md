@@ -1,145 +1,129 @@
-# Supabase Staging Runbook
+# JASIC Supabase Staging Runbook
 
-日期：2026-06-27  
-階段：Phase 2 — Supabase Staging 後端
+最後更新：2026-07-12  
+狀態：工程接線已完成；正式雲端部署需填入 Supabase Free 專案資料。
 
-本文件目標是把 JASIC 從 demo mode 推進到 staging live mode。此階段仍不是正式商用資料版，但會讓 App 真正呼叫 Supabase Edge Functions、資料表、RLS 與 OpenAI。
+本文件說明如何把 JASIC App 從 demo/PWA 預覽模式，接到真正的 Supabase staging 後端。此流程採用「幾乎全免費」方案：AI Check 預設使用 `rule_based`，不需要 OpenAI API key。
 
----
+## 1. 需要先準備的資料
 
-## 1. Staging 目標
-
-完成後應達成：
-
-- Supabase project 已建立。
-- 所有 migrations 已套用。
-- 所有 Edge Functions 已部署。
-- OpenAI 與 cron secrets 已設定。
-- Seed/demo staging data 可用。
-- App 可用 `EXPO_PUBLIC_DEMO_MODE=false` 連 staging。
-
----
-
-## 2. 本機自檢
-
-```bash
-npm run doctor:supabase
-npm run doctor:live-readiness
-npm run typecheck:edge
-npm test
-```
-
-預期：
-
-```text
-All Supabase staging readiness checks passed.
-```
-
----
-
-## 3. 建立 Supabase Project
-
-在 Supabase 建立新 project，建議命名：
+請在 Supabase 建立一個 Free 專案，例如：
 
 ```text
 jasic-staging
 ```
 
-取得：
-
-- Project ref
-- Project URL
-- anon public key
-
-不要把 service-role key 放進前端 `.env.local`。
-
----
-
-## 4. Supabase CLI 登入與連結
-
-```bash
-npx supabase login
-npx supabase link --project-ref YOUR_PROJECT_REF
-```
-
----
-
-## 5. 套用資料庫 migrations
-
-```bash
-npx supabase db push
-```
-
-目前 migrations 包含 profiles、stocks、watchlists、AI Check、market score、macro、discovery、reports、market ingestion、alerts、privacy lifecycle、user positions、report bookmarks 與 AI Check DB guardrails。
-
----
-
-## 6. 匯入 seed data
-
-如果 staging 要先有 demo market data，可在 Supabase SQL editor 執行：
+接著準備下列值：
 
 ```text
-supabase/seed.sql
+Project ref
+Project URL，例如 https://YOUR_PROJECT.supabase.co
+Public anon key
+CRON_SECRET，至少 32 字元
 ```
 
-或使用：
-
-```bash
-npx supabase db reset --linked
-```
-
-注意：`db reset --linked` 會重設遠端資料庫，只適合 staging，不可對 production 任意使用。
-
----
-
-## 7. 設定 Edge Function Secrets
-
-建議使用 helper script，避免 secrets 出現在 shell history：
+可用專案內建指令產生 `CRON_SECRET`：
 
 ```powershell
-$env:OPENAI_API_KEY="YOUR_OPENAI_KEY"
+npm run free-staging:secret
+```
+
+選填：
+
+```text
+JASIC_STAGING_ACCESS_TOKEN
+```
+
+這是 Supabase 測試使用者的短效 access token，可讓 smoke test 驗證需要登入的 API，例如 `data-health` 與 `ai-check`。
+
+請勿提供或提交：
+
+```text
+Supabase service-role key
+OpenAI API key 放在 EXPO_PUBLIC_* 變數
+任何 .env.local 到 Git
+```
+
+## 2. 一鍵正式 staging 接線
+
+建議使用新的整合指令：
+
+```powershell
+$env:CRON_SECRET="YOUR_LONG_RANDOM_CRON_SECRET"
+npm run staging:connect -- `
+  -ProjectRef "YOUR_PROJECT_REF" `
+  -SupabaseUrl "https://YOUR_PROJECT.supabase.co" `
+  -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" `
+  -ForceEnv
+```
+
+這個指令會依序完成：
+
+1. 建立或覆寫本機 `.env.local`
+2. 驗證 live-mode staging 環境變數
+3. 執行完整 preflight
+4. 連結 Supabase 專案
+5. 推送 database migrations
+6. 設定 Edge Function secrets
+7. 部署所有 Supabase Edge Functions
+8. 執行 endpoint smoke test
+9. 執行 live POST response smoke test
+
+## 3. 先只測本機接線，不部署雲端
+
+如果你想先確認資料格式與環境變數，不推 DB、不部署 functions：
+
+```powershell
+$env:CRON_SECRET="YOUR_LONG_RANDOM_CRON_SECRET"
+npm run staging:connect -- `
+  -ProjectRef "YOUR_PROJECT_REF" `
+  -SupabaseUrl "https://YOUR_PROJECT.supabase.co" `
+  -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" `
+  -ForceEnv `
+  -SkipCloudDeploy
+```
+
+## 4. OpenAI 版 staging
+
+目前免費 staging 預設：
+
+```text
+JASIC_AI_MODE=rule_based
+```
+
+若未來要啟用 OpenAI：
+
+```powershell
+$env:CRON_SECRET="YOUR_LONG_RANDOM_CRON_SECRET"
+$env:OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
 $env:OPENAI_MODEL="gpt-5.4-mini"
-$env:CRON_SECRET="GENERATE_A_LONG_RANDOM_VALUE"
+npm run staging:connect -- `
+  -ProjectRef "YOUR_PROJECT_REF" `
+  -SupabaseUrl "https://YOUR_PROJECT.supabase.co" `
+  -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" `
+  -AiMode openai `
+  -ForceEnv
+```
+
+OpenAI key 只會設定為 Supabase Edge secret，不會進入 `EXPO_PUBLIC_*`。
+
+## 5. 手動分段指令
+
+若要分段執行，可使用：
+
+```powershell
+npm run free-staging:env -- -SupabaseUrl "https://YOUR_PROJECT.supabase.co" -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" -Force
+npm run doctor:staging-env -- --require-live --free-mode
+npm run package1:preflight
+npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase db push
 npm run supabase:set:secrets
-```
-
-Dry run：
-
-```powershell
-npm run supabase:set:secrets -- -DryRun
-```
-
-手動等價指令：
-
-```bash
-npx supabase secrets set OPENAI_API_KEY=YOUR_OPENAI_KEY
-npx supabase secrets set OPENAI_MODEL=gpt-5.4-mini
-npx supabase secrets set CRON_SECRET=GENERATE_A_LONG_RANDOM_VALUE
-```
-
-安全規則：
-
-- OpenAI key 不放進 `EXPO_PUBLIC_*`。
-- Supabase service-role key 不放進前端。
-- `CRON_SECRET` 只給 GitHub Actions / cron caller 使用。
-
----
-
-## 8. 部署 Edge Functions
-
-建議使用批次部署腳本：
-
-```powershell
 npm run supabase:deploy:functions
+npm run smoke:supabase
+npm run smoke:live-readiness
 ```
 
-Dry run：
-
-```powershell
-npm run supabase:deploy:functions -- -DryRun
-```
-
-腳本會部署 17 個 Edge Functions：
+## 6. 會部署的 Edge Functions
 
 - `market-summary`
 - `discovery-latest`
@@ -159,133 +143,40 @@ npm run supabase:deploy:functions -- -DryRun
 - `portfolio-summary`
 - `ai-check-history`
 
----
+## 7. 接線完成後的驗收標準
 
-## 9. 設定前端 Live Mode
+需全部通過：
 
-建立 `.env.local`：
+```powershell
+npm run doctor:staging-env -- --require-live --free-mode
+npm run doctor:live-readiness
+npm run smoke:supabase
+npm run smoke:live-readiness
+npm run package1:preflight
+```
+
+App 前端需使用：
 
 ```env
 EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=YOUR_ANON_KEY
+EXPO_PUBLIC_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_KEY
 EXPO_PUBLIC_DEMO_MODE=false
+JASIC_AI_MODE=rule_based
 ```
 
-測試：
+## 8. 目前外部阻塞點
 
-```bash
-npm run web
-```
-
----
-
-## 10. Endpoint smoke test
-
-部署完成後先跑 endpoint smoke test：
-
-```bash
-npm run smoke:supabase
-```
-
-這個測試會讀取 `.env.local` 或 shell environment：
+程式端 staging 接線流程已具備。真正雲端部署仍需要你提供：
 
 ```text
-EXPO_PUBLIC_SUPABASE_URL
-EXPO_PUBLIC_SUPABASE_ANON_KEY
+Project ref
+Project URL
+Public anon key
+CRON_SECRET
 ```
 
-它會逐一檢查所有 Edge Function endpoint 是否存在並可回應 CORS `OPTIONS` request。
-
-限制：
-
-- 不使用 service-role key。
-- 不寫資料。
-- 不測試登入後的 authenticated POST response。
-- 若 function 未部署或 URL 錯誤，會快速失敗。
-
----
-
-## 10.1 Live readiness POST smoke test
-
-After migrations, seed, secrets, and Edge Functions are deployed, run:
-
-```bash
-npm run smoke:live-readiness
-```
-
-This validates real POST responses for:
-
-- `market-summary`
-- `discovery-latest`
-- `data-health`
-
-For the authenticated `data-health` check, provide a short-lived user access token:
-
-```powershell
-$env:JASIC_STAGING_ACCESS_TOKEN="YOUR_USER_ACCESS_TOKEN"
-npm run smoke:live-readiness
-```
-
-Do not use the Supabase service-role key as `JASIC_STAGING_ACCESS_TOKEN`.
-
-## 11. API 驗證
-
-登入後測：
-
-- `market-summary`
-- `discovery-latest`
-- `stock-war-room`
-- `ai-check`
-- `ai-check-history`
-- `watchlist-summary`
-- `reports-latest`
-- `report-detail`
-- `profile-settings`
-- `data-health`
-
-排程/管理 API 測：
-
-- `market-data-ingest`
-- `score-calculate`
-- `alert-evaluate`
-- `report-generate`
-
-管理 API 需要：
-
-```http
-x-cron-secret: <CRON_SECRET>
-```
-
----
-
-## 12. GitHub Actions Secrets
-
-到 GitHub repo：
+若要測登入後 API，另需：
 
 ```text
-Settings → Secrets and variables → Actions
+測試使用者 email/password 或短效 JASIC_STAGING_ACCESS_TOKEN
 ```
-
-新增：
-
-```text
-SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-CRON_SECRET=YOUR_CRON_SECRET
-```
-
-這會讓 `.github/workflows/market-data.yml` 可以呼叫 staging pipeline。
-
----
-
-## 13. 完成標準
-
-Phase 2 完成標準：
-
-- `npm run doctor:supabase` 通過。
-- Supabase migrations 已套用。
-- Edge Functions 已部署。
-- `npm run smoke:supabase` 通過。
-- App 可用 live mode 開啟。
-- AI Check 可呼叫 OpenAI 並寫入 `ai_check_requests` / `ai_check_results`。
-- Data Health 可顯示 ingestion/source 狀態。
-- GitHub Actions market-data workflow 可手動執行。

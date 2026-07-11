@@ -1,102 +1,98 @@
-# JASIC Stock Intelligence
+# JASIC Stock Analysis App
 
-JASIC 是一套股票研究與風險檢核工具型 App，定位為「看懂市場、篩選股票、檢查部位、產生趨勢報告」的 MVP。
+JASIC 是一套股票分析工具型 App，目標是提供：
 
-目前工程階段已完成，可用以下方式操作：
+- Macro Dashboard：五大總經指標、Market Score、市場燈號、AI/規則式市場摘要
+- Three-Layer Stock Funnel：市場環境、法人/主力/OI、技術面/風險三層漏斗，輸出 Top 20 候選股
+- AI Check：依股票代號、成本、張數、期間、風險偏好輸出加碼/續抱/觀望/減碼/停損建議
+- Personalized Analysis：Watchlist、Score Change、Risk Alert、AI 個股摘要
+- Trend Reports：Daily、Weekly、War Room、Risk Alert 報告
 
-- 手機 / 電腦瀏覽器開啟 PWA
-- iPhone / Android 加入主畫面
-- Demo mode 直接預覽
-- Supabase Free + rule-based AI 進行幾乎全免費 staging
-
-公開 PWA：
-
-```text
-https://yipojacky-wq.github.io/jasic-app/
-```
-
-## 目前完成狀態
-
-已完成：
-
-- Macro Dashboard
-- Three-Layer Stock Funnel
-- Stock War Room
-- AI Check
-- Watchlist / Personalized Analysis
-- Trend Reports
-- Settings / Data Health
-- PWA installable web app
-- Supabase schema / Edge Functions
-- Rule-based AI Check fallback
-- AI governance guardrails
-- Rate limits for high-risk user functions
-- Public preview smoke test
-- Nearly-free staging helper scripts
-
-安全限制：
+重要限制：
 
 - 不做自動下單
 - 不保證獲利
-- 不做課程銷售頁
-- 不做購物車 / 付款 / 募資功能
-- OpenAI API key 不會放在前端
-- Supabase service-role key 不會放在前端
+- 不做課程銷售、購物車、募資或付款功能
 
-## 快速預覽
+## Public PWA Preview
 
-```bash
+目前可直接用網址預覽：
+
+[https://yipojacky-wq.github.io/jasic-app/](https://yipojacky-wq.github.io/jasic-app/)
+
+手機可用瀏覽器開啟並「加入主畫面」，以 PWA 方式操作。
+
+## Tech Stack
+
+- React Native + Expo + TypeScript
+- Expo Web / PWA
+- Supabase Database / Auth / Edge Functions
+- React Query
+- Zustand
+- OpenAI API optional；免費 staging 預設使用 `rule_based`
+
+## Local Development
+
+```powershell
 npm install
-npm run prototype:web
+npm run web
 ```
 
-預設網址：
+Web build：
 
-```text
-http://localhost:8081
+```powershell
+npm run build:web:github-pages
 ```
 
-不設定 `.env.local` 時，App 會使用 demo mode。
+完整 preflight：
 
-## PWA 手機安裝
-
-iPhone：
-
-1. 用 Safari 開啟 `https://yipojacky-wq.github.io/jasic-app/`
-2. 點分享
-3. 選「加入主畫面」
-
-Android：
-
-1. 用 Chrome 開啟 `https://yipojacky-wq.github.io/jasic-app/`
-2. 點選單
-3. 選「安裝應用程式」或「加入主畫面」
-
-PWA 檢查：
-
-```bash
-npm run smoke:public-preview
-npm run doctor:pwa
+```powershell
+npm run package1:preflight
 ```
 
-## 幾乎全免費 staging
+## Staging Backend Connection
 
-免費 staging 使用：
+正式 staging 後端接線建議使用整合指令：
 
-- GitHub Pages：PWA hosting
-- Supabase Free：資料庫、Auth、Edge Functions
-- TWSE / TPEx / 政府開放資料：資料來源策略
-- `JASIC_AI_MODE=rule_based`：不需要 OpenAI API key
+```powershell
+$env:CRON_SECRET="YOUR_LONG_RANDOM_CRON_SECRET"
+npm run staging:connect -- `
+  -ProjectRef "YOUR_PROJECT_REF" `
+  -SupabaseUrl "https://YOUR_PROJECT.supabase.co" `
+  -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" `
+  -ForceEnv
+```
 
-需要你準備：
+這會依序完成：
 
-```text
-YOUR_PROJECT_REF
-https://YOUR_PROJECT.supabase.co
-YOUR_PUBLIC_ANON_KEY
-YOUR_TEST_USER_EMAIL
-YOUR_TEST_USER_PASSWORD
-YOUR_LONG_RANDOM_CRON_SECRET
+1. 建立本機 `.env.local`
+2. 驗證 live-mode staging env
+3. 執行完整 preflight
+4. 連結 Supabase project
+5. 推送 database migrations
+6. 設定 Edge Function secrets
+7. 部署 Edge Functions
+8. 執行 smoke tests
+
+先只測本機接線、不部署雲端：
+
+```powershell
+$env:CRON_SECRET="YOUR_LONG_RANDOM_CRON_SECRET"
+npm run staging:connect -- `
+  -ProjectRef "YOUR_PROJECT_REF" `
+  -SupabaseUrl "https://YOUR_PROJECT.supabase.co" `
+  -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" `
+  -ForceEnv `
+  -SkipCloudDeploy
+```
+
+## Nearly-Free Staging
+
+免費 staging 預設：
+
+```env
+JASIC_AI_MODE=rule_based
+EXPO_PUBLIC_DEMO_MODE=false
 ```
 
 產生 `CRON_SECRET`：
@@ -105,18 +101,7 @@ YOUR_LONG_RANDOM_CRON_SECRET
 npm run free-staging:secret -- --env
 ```
 
-取得測試使用者 token：
-
-```powershell
-npm run free-staging:token -- `
-  --url "https://YOUR_PROJECT.supabase.co" `
-  --anon-key "YOUR_PUBLIC_ANON_KEY" `
-  --email "tester@example.com" `
-  --password "YOUR_TEST_PASSWORD" `
-  --env
-```
-
-建立本機 `.env.local`：
+建立 `.env.local`：
 
 ```powershell
 npm run free-staging:env -- `
@@ -125,27 +110,20 @@ npm run free-staging:env -- `
   -StagingAccessToken "YOUR_SHORT_LIVED_USER_TOKEN"
 ```
 
-部署免費 staging：
+分段部署免費 staging：
 
 ```powershell
 $env:CRON_SECRET="YOUR_LONG_RANDOM_CRON_SECRET"
 npm run free-staging:deploy -- -ProjectRef "YOUR_PROJECT_REF"
 ```
 
-完整說明：
+## Quality Gates
 
-```text
-docs/FREE_STAGING_RUNBOOK.md
-docs/FINAL_STAGE_COMPLETION_REPORT.md
-```
-
-## 常用指令
-
-```bash
-npm run package1:preflight
+```powershell
 npm run doctor:final-readiness
-npm run doctor:staging-env -- --free-mode
+npm run doctor:staging-env
 npm run doctor:staging-env -- --require-live --free-mode
+npm run doctor:live-readiness
 npm run smoke:public-preview
 npm run smoke:supabase
 npm run smoke:live-readiness
@@ -155,7 +133,7 @@ npm test
 npm run build:web:github-pages
 ```
 
-## 專案結構
+## Project Structure
 
 ```text
 src/                  App UI, screens, hooks, services
@@ -167,39 +145,39 @@ docs/                 Runbooks and handoff documents
 .github/workflows/    CI, GitHub Pages, staging smoke workflows
 ```
 
-## 最重要文件
+## Important Documents
+
+- `docs/SUPABASE_STAGING_RUNBOOK.md`
+- `docs/FREE_STAGING_RUNBOOK.md`
+- `docs/FINAL_STAGE_COMPLETION_REPORT.md`
+- `docs/PWA_RUNBOOK.md`
+- `MASTER_HANDOVER.md`
+
+## Required Owner-Supplied Values
+
+To complete real cloud staging deployment, prepare:
 
 ```text
-docs/FINAL_STAGE_COMPLETION_REPORT.md
-docs/FREE_STAGING_RUNBOOK.md
-docs/PWA_RUNBOOK.md
-docs/STAGING_VALUES_WORKSHEET.md
-docs/STAGING_LAUNCH_CHECKLIST.md
-MASTER_HANDOVER.md
+Supabase project ref
+Supabase project URL
+Supabase public anon key
+CRON_SECRET
 ```
 
-## OpenAI 升級路線
+Optional for authenticated smoke tests:
 
-目前免費 staging 不需要 OpenAI。
-
-若之後要改成 OpenAI 輸出：
-
-```powershell
-$env:JASIC_AI_MODE="openai"
-$env:OPENAI_API_KEY="YOUR_OPENAI_KEY"
-$env:OPENAI_MODEL="gpt-5.4-mini"
-$env:CRON_SECRET="YOUR_LONG_RANDOM_CRON_SECRET"
-npm run supabase:set:secrets
+```text
+Test user email/password, or short-lived JASIC_STAGING_ACCESS_TOKEN
 ```
 
-## Final status
+Never commit:
 
-工程開發已完成。  
-剩餘工作是外部帳號與部署操作：
+```text
+.env.local
+Supabase service-role key
+OpenAI API key
+```
 
-- 建立 Supabase Free project
-- 建立 Supabase Auth 測試使用者
-- 填入 Supabase URL / anon key
-- 執行免費 staging deployment helper
-- 視需要設定 GitHub Actions secrets
+## Current Status
 
+Engineering readiness is complete for public PWA preview and Supabase staging connection. Real cloud deployment requires the Supabase project values listed above.

@@ -55,6 +55,7 @@
     "free-staging:secret": "node scripts/generate-cron-secret.cjs",
     "free-staging:token": "node scripts/get-staging-access-token.cjs",
     "free-staging:deploy": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy-free-staging.ps1",
+    "staging:connect": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/connect-staging-backend.ps1",
     "github:connect": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/connect-github-remote.ps1",
     "preview:web": "node scripts/serve-static.cjs",
     "test": "tsx --test tests/**/*.test.ts",
