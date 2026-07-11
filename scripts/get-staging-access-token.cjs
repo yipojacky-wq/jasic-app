@@ -52,12 +52,12 @@ if (!supabaseUrl || !/^https:\/\/[a-zA-Z0-9-]+\.supabase\.co\/?$/.test(supabaseU
   fail('Supabase URL should look like https://YOUR_PROJECT.supabase.co.');
 }
 
-if (!anonKey || anonKey.length < 80) {
-  fail('Supabase anon key is missing or looks too short.');
+if (!anonKey || (!anonKey.startsWith('sb_publishable_') && anonKey.length < 80)) {
+  fail('Supabase anon/publishable key is missing or looks too short.');
 }
 
-if (/service[_-]?role/i.test(anonKey)) {
-  fail('Use the public anon key, not a service-role key.');
+if (/service[_-]?role/i.test(anonKey) || anonKey.startsWith('sb_secret_')) {
+  fail('Use the public anon or publishable key, not a service-role/secret key.');
 }
 
 if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -71,7 +71,7 @@ if (!password || password.length < 6) {
 if (dryRun) {
   console.log('Staging access token request dry run:');
   console.log(` - Supabase URL: ${supabaseUrl.replace(/\/+$/, '')}`);
-  console.log(' - Supabase anon key: [redacted]');
+  console.log(' - Supabase anon/publishable key: [redacted]');
   console.log(` - Email: ${email}`);
   console.log(' - Password: [redacted]');
   console.log('No network request was made.');

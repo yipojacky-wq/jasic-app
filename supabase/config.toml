@@ -22,6 +22,11 @@ additional_redirect_urls = ["exp://127.0.0.1:8081", "http://localhost:8081"]
 jwt_expiry = 3600
 enable_signup = true
 
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
 [functions.market-summary]
 verify_jwt = true
 

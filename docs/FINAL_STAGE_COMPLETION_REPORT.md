@@ -18,6 +18,7 @@ JASIC is now ready for nearly-free staging deployment with:
 - PWA installability checks
 - Supabase staging readiness checks
 - Production hardening checks
+- Authenticated staging smoke test for market-summary, discovery-latest, data-health and AI Check
 
 ## Public PWA
 
@@ -25,6 +26,12 @@ Current public PWA URL:
 
 ```text
 https://yipojacky-wq.github.io/jasic-app/
+```
+
+This public PWA is now built against the Supabase staging backend:
+
+```text
+https://hxftprkavdearldqdwps.supabase.co
 ```
 
 The public preview smoke gate verifies:
@@ -42,7 +49,7 @@ Required owner-provided values:
 ```text
 YOUR_PROJECT_REF
 https://YOUR_PROJECT.supabase.co
-YOUR_PUBLIC_ANON_KEY
+YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY
 YOUR_TEST_USER_EMAIL
 YOUR_TEST_USER_PASSWORD
 YOUR_LONG_RANDOM_CRON_SECRET
@@ -67,7 +74,7 @@ Fetch a test user token:
 ```powershell
 npm run free-staging:token -- `
   --url "https://YOUR_PROJECT.supabase.co" `
-  --anon-key "YOUR_PUBLIC_ANON_KEY" `
+  --anon-key "YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY" `
   --email "tester@example.com" `
   --password "YOUR_TEST_PASSWORD" `
   --env
@@ -146,4 +153,3 @@ npm run supabase:set:secrets
 ```
 
 Until then, the staging app remains usable through `rule_based` mode.
-
