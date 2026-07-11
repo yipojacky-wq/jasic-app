@@ -40,7 +40,7 @@ Never commit these values.
 Generate a cron secret in PowerShell:
 
 ```powershell
-[guid]::NewGuid().ToString("N") + [guid]::NewGuid().ToString("N")
+npm run free-staging:secret -- --env
 ```
 
 Set Supabase Edge Function secrets:

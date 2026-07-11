@@ -66,6 +66,14 @@ Do not commit `.env.local`.
 
 ## Supabase Edge secrets
 
+Generate a local cron secret:
+
+```powershell
+npm run free-staging:secret -- --env
+```
+
+Copy the generated `CRON_SECRET` into your shell session, Supabase secrets, and GitHub Actions secrets. Do not commit it.
+
 PowerShell:
 
 ```powershell

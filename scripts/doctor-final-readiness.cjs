@@ -40,6 +40,7 @@ const stagingEnvDoctor = read('scripts/doctor-staging-env.cjs');
 const mobilePreviewDoctor = read('scripts/doctor-mobile-preview.cjs');
 const pwaDoctor = read('scripts/doctor-pwa.cjs');
 const freeStagingDeploy = read('scripts/deploy-free-staging.ps1');
+const cronSecretGenerator = read('scripts/generate-cron-secret.cjs');
 
 addCheck(
   'Final readiness doctor is registered',
@@ -82,6 +83,7 @@ addCheck(
       'Supabase Free',
       'JASIC_AI_MODE=rule_based',
       'OPENAI_API_KEY',
+      'npm run free-staging:secret',
       'npm run free-staging:env',
       'npm run free-staging:deploy',
       'npm run doctor:staging-env -- --require-live --free-mode',
@@ -89,6 +91,19 @@ addCheck(
     ]),
   'docs/FREE_STAGING_RUNBOOK.md',
   'Add a nearly-free staging runbook for Supabase Free and rule-based AI.',
+);
+
+addCheck(
+  'Cron secret generator is available',
+  packageJson.scripts?.['free-staging:secret'] === 'node scripts/generate-cron-secret.cjs' &&
+    includesAll(cronSecretGenerator, [
+      'crypto.randomBytes',
+      'CRON_SECRET',
+      '--env',
+      '--bytes',
+    ]),
+  'scripts/generate-cron-secret.cjs',
+  'Add a local CRON_SECRET generator for free staging setup.',
 );
 
 addCheck(
