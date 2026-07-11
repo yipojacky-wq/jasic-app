@@ -9,13 +9,14 @@ const commands = [
   ['run', 'doctor:score-governance'],
   ['run', 'doctor:production-hardening'],
   ['run', 'doctor:mobile-preview'],
-  ['run', 'doctor:final-readiness'],
   ['run', 'doctor:staging-env'],
   ['run', 'doctor:supabase'],
   ['run', 'typecheck'],
   ['run', 'typecheck:edge'],
   ['test'],
   ['run', 'build:web:github-pages'],
+  ['run', 'doctor:pwa'],
+  ['run', 'doctor:final-readiness'],
 ];
 
 if (includeDeployDoctor) {

@@ -34,6 +34,20 @@ Still requiring external environment work:
 
 The mobile preview can be completed before the final Supabase / OpenAI live-backend stage.
 
+For no-store mobile delivery, prefer PWA first:
+
+```bash
+npm run build:web:github-pages
+npm run doctor:pwa
+npm run smoke:public-preview
+```
+
+PWA install guide:
+
+```text
+docs/PWA_RUNBOOK.md
+```
+
 Recommended mobile-first sequence:
 
 ```bash

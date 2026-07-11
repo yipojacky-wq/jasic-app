@@ -28,6 +28,7 @@ const stagingChecklist = read('docs/STAGING_LAUNCH_CHECKLIST.md');
 const publicPreview = read('docs/PUBLIC_PREVIEW_DEPLOYMENT.md');
 const mobileChecklist = read('docs/MOBILE_PREVIEW_CHECKLIST.md');
 const mobileBuildRunbook = read('docs/MOBILE_BUILD_RUNBOOK.md');
+const pwaRunbook = read('docs/PWA_RUNBOOK.md');
 const productionHardening = read('docs/PHASE_5_PACKAGE_3_PRODUCTION_HARDENING.md');
 const pagesWorkflow = read('.github/workflows/pages.yml');
 const publicPreviewSmokeWorkflow = read('.github/workflows/public-preview-smoke.yml');
@@ -36,6 +37,7 @@ const ciWorkflow = read('.github/workflows/ci.yml');
 const publicPreviewSmoke = read('scripts/smoke-public-preview.cjs');
 const stagingEnvDoctor = read('scripts/doctor-staging-env.cjs');
 const mobilePreviewDoctor = read('scripts/doctor-mobile-preview.cjs');
+const pwaDoctor = read('scripts/doctor-pwa.cjs');
 
 addCheck(
   'Final readiness doctor is registered',
@@ -57,6 +59,8 @@ addCheck(
       'Mobile preview and real-device validation',
       'Mobile-first option',
       'doctor:mobile-preview',
+      'doctor:pwa',
+      'PWA_RUNBOOK.md',
       'doctor:final-readiness',
       'doctor:staging-env',
       '--require-live',
@@ -121,6 +125,24 @@ addCheck(
     ]),
   'scripts/doctor-mobile-preview.cjs + docs/MOBILE_BUILD_RUNBOOK.md',
   'Add mobile preview doctor and Expo/EAS build runbook.',
+);
+
+addCheck(
+  'PWA runbook and doctor are available',
+  packageJson.scripts?.['doctor:pwa'] === 'node scripts/doctor-pwa.cjs' &&
+    includesAll(pwaDoctor, [
+      'manifest.webmanifest',
+      'service-worker.js',
+      'apple-touch-icon.png',
+      'pwa-icon.png',
+    ]) &&
+    includesAll(pwaRunbook, [
+      'Progressive Web App',
+      'Add to Home Screen',
+      'https://yipojacky-wq.github.io/jasic-app/',
+    ]),
+  'scripts/doctor-pwa.cjs + docs/PWA_RUNBOOK.md',
+  'Add PWA doctor and install runbook for no-store mobile delivery.',
 );
 
 addCheck(
@@ -202,6 +224,7 @@ addCheck(
   'CI includes final readiness doctor',
   includesAll(ciWorkflow, [
     'npm run doctor:final-readiness',
+    'npm run doctor:pwa',
     'npm run doctor:production-hardening',
     'npm run doctor:supabase',
   ]),

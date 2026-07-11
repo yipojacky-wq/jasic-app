@@ -35,6 +35,20 @@ function validateHtml(html) {
       name: 'Favicon is referenced with relative path',
       ok: html.includes('href="./favicon.ico"'),
     },
+    {
+      name: 'PWA manifest is referenced with relative path',
+      ok: html.includes('href="./manifest.webmanifest"'),
+    },
+    {
+      name: 'iOS home-screen meta tag is present',
+      ok: html.includes('apple-mobile-web-app-capable'),
+    },
+    {
+      name: 'Service worker registration is present',
+      ok:
+        html.includes('service-worker.js') &&
+        html.includes('navigator.serviceWorker.register'),
+    },
   ];
   return checks;
 }
