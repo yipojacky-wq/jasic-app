@@ -8,6 +8,7 @@ const commands = [
   ['run', 'doctor:live-readiness'],
   ['run', 'doctor:score-governance'],
   ['run', 'doctor:production-hardening'],
+  ['run', 'doctor:final-readiness'],
   ['run', 'doctor:supabase'],
   ['run', 'typecheck'],
   ['run', 'typecheck:edge'],
