@@ -17,8 +17,8 @@ port = 54323
 
 [auth]
 enabled = true
-site_url = "http://localhost:8081"
-additional_redirect_urls = ["exp://127.0.0.1:8081", "http://localhost:8081"]
+site_url = "https://yipojacky-wq.github.io/jasic-app/"
+additional_redirect_urls = ["https://yipojacky-wq.github.io/jasic-app/", "https://yipojacky-wq.github.io/jasic-app", "exp://127.0.0.1:8081", "http://localhost:8081"]
 jwt_expiry = 3600
 enable_signup = true
 

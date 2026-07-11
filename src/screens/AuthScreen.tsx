@@ -24,7 +24,7 @@ export function AuthScreen() {
     setMessage('');
     const redirectTo =
       Platform.OS === 'web' && typeof window !== 'undefined'
-        ? window.location.origin
+        ? `${window.location.origin}${window.location.pathname}`
         : Linking.createURL('auth/callback');
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
