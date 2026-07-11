@@ -4,7 +4,9 @@ import {
   aiCheckResultSchema,
   buildAiCheckGovernanceAudit,
   buildAiCheckSystemPrompt,
+  buildRuleBasedAiCheckResult,
   determineAllowedAiCheckActions,
+  type AiCheckAction,
   validateAiCheckStructuredResult,
 } from '../_shared/aiGovernance.ts';
 import {
@@ -118,7 +120,11 @@ Deno.serve(async (request) => {
     stockConfidenceScore: Number(score.confidence_score),
     riskProfile: input.riskProfile,
   });
-  const model = Deno.env.get('OPENAI_MODEL') ?? 'gpt-5.4-mini';
+  const aiMode = Deno.env.get('JASIC_AI_MODE') ?? 'rule_based';
+  const model =
+    aiMode === 'rule_based'
+      ? 'jasic-rule-based-1.0.0'
+      : Deno.env.get('OPENAI_MODEL') ?? 'gpt-5.4-mini';
   const audit = buildAiCheckGovernanceAudit({
     allowedActions,
     dataAsOf: score.as_of,
@@ -139,54 +145,34 @@ Deno.serve(async (request) => {
     governance: audit,
   };
 
-  const openAiKey = Deno.env.get('OPENAI_API_KEY');
-  if (!openAiKey) {
-    return jsonResponse(errorEnvelope('SERVICE_UNAVAILABLE', 'OpenAI secret not configured'), 503);
+  const generatedResult =
+    aiMode === 'rule_based'
+      ? {
+          ok: true as const,
+          value: buildRuleBasedAiCheckResult({
+            allowedActions,
+            marketRegime: market.market_regime,
+            stockRiskScore: Number(score.risk_score),
+            stockTotalScore: Number(score.total_score),
+            stockConfidenceScore: Number(score.confidence_score),
+            riskProfile: input.riskProfile,
+            dataAsOf: score.as_of,
+          }),
+        }
+      : await generateOpenAiCheckResult({
+          model,
+          allowedActions,
+          facts,
+        });
+
+  if (!generatedResult.ok) {
+    return jsonResponse(errorEnvelope(generatedResult.code, generatedResult.message), 503);
   }
 
-  const openAiResponse = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${openAiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      input: [
-        {
-          role: 'system',
-          content: buildAiCheckSystemPrompt(allowedActions),
-        },
-        {
-          role: 'user',
-          content: JSON.stringify(facts),
-        },
-      ],
-      text: {
-        format: {
-          type: 'json_schema',
-          name: 'jasic_ai_check',
-          strict: true,
-          schema: aiCheckResultSchema,
-        },
-      },
-    }),
-  });
-
-  if (!openAiResponse.ok) {
-    const detail = await openAiResponse.text();
-    console.error('OpenAI error', openAiResponse.status, detail);
-    return jsonResponse(errorEnvelope('SERVICE_UNAVAILABLE', 'AI generation failed'), 503);
-  }
-
-  const raw = await openAiResponse.json();
-  const outputText = extractOutputText(raw);
-  if (!outputText) {
-    return jsonResponse(errorEnvelope('AI_OUTPUT_INVALID', 'No structured output'), 503);
-  }
-
-  const parsedResult = JSON.parse(outputText);
-  const validatedResult = validateAiCheckStructuredResult(parsedResult, allowedActions);
+  const validatedResult = validateAiCheckStructuredResult(
+    generatedResult.value,
+    allowedActions,
+  );
   if (!validatedResult.ok) {
     return jsonResponse(errorEnvelope('AI_OUTPUT_INVALID', validatedResult.reason), 503);
   }
@@ -255,4 +241,73 @@ function extractOutputText(response: any): string | null {
     }
   }
   return null;
+}
+
+async function generateOpenAiCheckResult(input: {
+  model: string;
+  allowedActions: AiCheckAction[];
+  facts: Record<string, unknown>;
+}): Promise<
+  | { ok: true; value: unknown }
+  | { ok: false; code: string; message: string }
+> {
+  const openAiKey = Deno.env.get('OPENAI_API_KEY');
+  if (!openAiKey) {
+    return {
+      ok: false,
+      code: 'SERVICE_UNAVAILABLE',
+      message: 'OpenAI secret not configured',
+    };
+  }
+
+  const openAiResponse = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${openAiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: input.model,
+      input: [
+        {
+          role: 'system',
+          content: buildAiCheckSystemPrompt(input.allowedActions),
+        },
+        {
+          role: 'user',
+          content: JSON.stringify(input.facts),
+        },
+      ],
+      text: {
+        format: {
+          type: 'json_schema',
+          name: 'jasic_ai_check',
+          strict: true,
+          schema: aiCheckResultSchema,
+        },
+      },
+    }),
+  });
+
+  if (!openAiResponse.ok) {
+    const detail = await openAiResponse.text();
+    console.error('OpenAI error', openAiResponse.status, detail);
+    return {
+      ok: false,
+      code: 'SERVICE_UNAVAILABLE',
+      message: 'AI generation failed',
+    };
+  }
+
+  const raw = await openAiResponse.json();
+  const outputText = extractOutputText(raw);
+  if (!outputText) {
+    return {
+      ok: false,
+      code: 'AI_OUTPUT_INVALID',
+      message: 'No structured output',
+    };
+  }
+
+  return { ok: true, value: JSON.parse(outputText) };
 }

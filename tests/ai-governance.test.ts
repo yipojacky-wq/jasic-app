@@ -6,6 +6,7 @@ import {
   aiCheckResponseSchemaVersion,
   buildAiCheckGovernanceAudit,
   buildAiCheckSystemPrompt,
+  buildRuleBasedAiCheckResult,
   containsProhibitedAiCheckClaim,
   determineAllowedAiCheckActions,
   validateAiCheckStructuredResult,
@@ -103,4 +104,26 @@ test('AI Check structured result rejects disallowed actions and prohibited claim
     ),
     { ok: false, reason: 'AI output contains a prohibited claim.' },
   );
+});
+
+test('rule-based AI Check result stays inside guardrails', () => {
+  const allowedActions = ['WAIT', 'REDUCE', 'STOP_LOSS'] as const;
+  const result = buildRuleBasedAiCheckResult({
+    allowedActions: [...allowedActions],
+    marketRegime: 'risk_off',
+    stockRiskScore: 82,
+    stockTotalScore: 54,
+    stockConfidenceScore: 48,
+    riskProfile: 'balanced',
+    dataAsOf: '2026-07-11T08:00:00+08:00',
+  });
+
+  assert.ok((allowedActions as readonly string[]).includes(result.action));
+  assert.equal(containsProhibitedAiCheckClaim(result.conclusion), false);
+  assert.ok(result.reasons.length >= 2);
+  assert.ok(result.risks.length >= 1);
+  assert.ok(result.suggestions.length >= 1);
+
+  const validated = validateAiCheckStructuredResult(result, [...allowedActions]);
+  assert.equal(validated.ok, true);
 });

@@ -25,6 +25,7 @@ function addCheck(name, ok, detail, remediation) {
 const packageJson = JSON.parse(read('package.json'));
 const finalPlan = read('docs/FINAL_3_PHASES_COMPLETION.md');
 const stagingChecklist = read('docs/STAGING_LAUNCH_CHECKLIST.md');
+const freeStagingRunbook = read('docs/FREE_STAGING_RUNBOOK.md');
 const publicPreview = read('docs/PUBLIC_PREVIEW_DEPLOYMENT.md');
 const mobileChecklist = read('docs/MOBILE_PREVIEW_CHECKLIST.md');
 const mobileBuildRunbook = read('docs/MOBILE_BUILD_RUNBOOK.md');
@@ -64,11 +65,27 @@ addCheck(
       'doctor:final-readiness',
       'doctor:staging-env',
       '--require-live',
+      '--free-mode',
+      'FREE_STAGING_RUNBOOK.md',
       'smoke:public-preview',
       'no guaranteed-profit / auto-trading language',
     ]),
   'docs/FINAL_3_PHASES_COMPLETION.md',
   'Add a clean final three-phase completion plan.',
+);
+
+addCheck(
+  'Nearly-free staging runbook is available',
+  exists('docs/FREE_STAGING_RUNBOOK.md') &&
+    includesAll(freeStagingRunbook, [
+      'Supabase Free',
+      'JASIC_AI_MODE=rule_based',
+      'OPENAI_API_KEY',
+      'npm run doctor:staging-env -- --require-live --free-mode',
+      'npm run supabase:set:secrets',
+    ]),
+  'docs/FREE_STAGING_RUNBOOK.md',
+  'Add a nearly-free staging runbook for Supabase Free and rule-based AI.',
 );
 
 addCheck(
@@ -197,6 +214,8 @@ addCheck(
   packageJson.scripts?.['doctor:staging-env'] === 'node scripts/doctor-staging-env.cjs' &&
     includesAll(stagingEnvDoctor, [
       '--require-live',
+      '--free-mode',
+      'JASIC_AI_MODE',
       'EXPO_PUBLIC_SUPABASE_URL',
       'EXPO_PUBLIC_SUPABASE_ANON_KEY',
       'OPENAI_API_KEY',

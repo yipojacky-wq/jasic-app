@@ -31,8 +31,9 @@ Never commit these values.
 | Field | Value | Where used |
 | --- | --- | --- |
 | Supabase service-role key | `NEVER_PASTE_IN_REPO` | Supabase backend only; do not use in app env |
-| OpenAI API key | `TODO` | Supabase Edge Function secret |
-| OpenAI model | `gpt-5.4-mini` | Supabase Edge Function secret |
+| `JASIC_AI_MODE` | `rule_based` | Free staging uses rule-based AI; use `openai` only when API key is available |
+| OpenAI API key | `OPTIONAL_FOR_FREE_STAGING` | Supabase Edge Function secret when `JASIC_AI_MODE=openai` |
+| OpenAI model | `gpt-5.4-mini` | Supabase Edge Function secret when `JASIC_AI_MODE=openai` |
 | `CRON_SECRET` | `TODO` | Supabase Edge Function secret + GitHub Actions secret |
 | Short-lived user access token | `TODO` | Local `smoke:live-readiness` only |
 
@@ -47,6 +48,15 @@ Set Supabase Edge Function secrets:
 ```powershell
 $env:OPENAI_API_KEY="TODO"
 $env:OPENAI_MODEL="gpt-5.4-mini"
+$env:JASIC_AI_MODE="openai"
+$env:CRON_SECRET="TODO"
+npm run supabase:set:secrets
+```
+
+Free staging mode:
+
+```powershell
+$env:JASIC_AI_MODE="rule_based"
 $env:CRON_SECRET="TODO"
 npm run supabase:set:secrets
 ```
@@ -93,6 +103,12 @@ When the real staging values are available, run the stricter gate:
 
 ```bash
 npm run doctor:staging-env -- --require-live
+```
+
+For the nearly-free path without OpenAI:
+
+```bash
+npm run doctor:staging-env -- --require-live --free-mode
 ```
 
 For authenticated `data-health` validation:

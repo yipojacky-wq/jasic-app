@@ -37,6 +37,16 @@ export interface AiCheckStructuredResult {
   confidence: number;
 }
 
+export interface RuleBasedAiCheckInput {
+  allowedActions: AiCheckAction[];
+  marketRegime?: string | null;
+  stockRiskScore: number;
+  stockTotalScore: number;
+  stockConfidenceScore: number;
+  riskProfile: string;
+  dataAsOf: string;
+}
+
 export const aiCheckResultSchema = {
   type: 'object',
   properties: {
@@ -116,6 +126,52 @@ export function buildAiCheckGovernanceAudit(input: {
   };
 }
 
+export function buildRuleBasedAiCheckResult(
+  input: RuleBasedAiCheckInput,
+): AiCheckStructuredResult {
+  const defensive =
+    input.marketRegime === 'risk_off' ||
+    input.stockRiskScore >= 75 ||
+    input.stockConfidenceScore < 55;
+  const positive =
+    input.stockTotalScore >= 80 &&
+    input.stockRiskScore < 60 &&
+    input.stockConfidenceScore >= 65 &&
+    input.allowedActions.includes('ADD') &&
+    input.riskProfile !== 'conservative';
+
+  const action: AiCheckAction = defensive
+    ? firstAllowed(input.allowedActions, ['WAIT', 'REDUCE', 'STOP_LOSS'])
+    : positive
+      ? firstAllowed(input.allowedActions, ['ADD', 'HOLD', 'WAIT'])
+      : firstAllowed(input.allowedActions, ['HOLD', 'WAIT', 'REDUCE']);
+
+  const confidence = Math.max(
+    35,
+    Math.min(88, Math.round((input.stockConfidenceScore + input.stockTotalScore) / 2)),
+  );
+
+  return {
+    action,
+    conclusion: ruleBasedConclusion(action),
+    reasons: [
+      `Stock score ${Math.round(input.stockTotalScore)} and risk score ${Math.round(input.stockRiskScore)} are evaluated by JASIC rule-based staging logic.`,
+      `Market regime is ${input.marketRegime ?? 'unknown'} and confidence score is ${Math.round(input.stockConfidenceScore)}.`,
+    ],
+    risks: [
+      'Market data, score rules, and source freshness can change after this check.',
+      input.stockRiskScore >= 70
+        ? 'Risk score is elevated, so position sizing should remain conservative.'
+        : 'Risk score is not extreme, but downside scenarios still need monitoring.',
+    ],
+    suggestions: [
+      'Use this result as a research checklist and compare it with your own plan.',
+      'Re-check after new market data, earnings, or major macro events are released.',
+    ],
+    confidence,
+  };
+}
+
 export function validateAiCheckStructuredResult(
   value: unknown,
   allowedActions: AiCheckAction[],
@@ -175,6 +231,24 @@ export function containsProhibitedAiCheckClaim(text: string) {
 
 function isAiCheckAction(value: unknown): value is AiCheckAction {
   return aiCheckActions.includes(value as AiCheckAction);
+}
+
+function firstAllowed(
+  allowedActions: AiCheckAction[],
+  preferences: AiCheckAction[],
+): AiCheckAction {
+  return preferences.find((action) => allowedActions.includes(action)) ?? allowedActions[0] ?? 'WAIT';
+}
+
+function ruleBasedConclusion(action: AiCheckAction) {
+  const labels: Record<AiCheckAction, string> = {
+    ADD: 'Rule-based staging check allows a cautious add-on review, subject to risk controls.',
+    HOLD: 'Rule-based staging check favors holding while monitoring score and risk changes.',
+    WAIT: 'Rule-based staging check favors waiting until data quality, confidence, or market conditions improve.',
+    REDUCE: 'Rule-based staging check favors reducing exposure if the position exceeds your risk plan.',
+    STOP_LOSS: 'Rule-based staging check favors respecting the predefined loss-control plan.',
+  };
+  return labels[action];
 }
 
 function isNonEmptyString(value: unknown): value is string {

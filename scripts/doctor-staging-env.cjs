@@ -3,6 +3,7 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const requireLive = process.argv.includes('--require-live');
+const freeMode = process.argv.includes('--free-mode');
 const checks = [];
 
 function readEnvFile(relativePath) {
@@ -64,6 +65,7 @@ const finalPlan = read('docs/FINAL_3_PHASES_COMPLETION.md');
 const supabaseUrl = pickValue('EXPO_PUBLIC_SUPABASE_URL', localEnv);
 const anonKey = pickValue('EXPO_PUBLIC_SUPABASE_ANON_KEY', localEnv);
 const demoMode = pickValue('EXPO_PUBLIC_DEMO_MODE', localEnv);
+const aiMode = pickValue('JASIC_AI_MODE', localEnv) || (freeMode ? 'rule_based' : '');
 const openAiKey = pickValue('OPENAI_API_KEY', localEnv);
 const openAiModel = pickValue('OPENAI_MODEL', localEnv);
 const cronSecret = pickValue('CRON_SECRET', localEnv);
@@ -71,9 +73,11 @@ const stagingAccessToken = pickValue('JASIC_STAGING_ACCESS_TOKEN', localEnv);
 
 addCheck(
   'Staging env doctor is documented in final plan',
-  finalPlan.includes('doctor:staging-env') && finalPlan.includes('--require-live'),
+  finalPlan.includes('doctor:staging-env') &&
+    finalPlan.includes('--require-live') &&
+    finalPlan.includes('--free-mode'),
   'docs/FINAL_3_PHASES_COMPLETION.md',
-  'Document npm run doctor:staging-env and the live-mode gate.',
+  'Document npm run doctor:staging-env, --require-live and --free-mode.',
 );
 
 addCheck(
@@ -81,6 +85,7 @@ addCheck(
   envExample.includes('EXPO_PUBLIC_SUPABASE_URL=') &&
     envExample.includes('EXPO_PUBLIC_SUPABASE_ANON_KEY=') &&
     envExample.includes('EXPO_PUBLIC_DEMO_MODE=true') &&
+    envExample.includes('JASIC_AI_MODE=rule_based') &&
     envExample.includes('Never place OpenAI or Supabase service-role secrets'),
   '.env.example',
   'Keep public client env values separate from private backend secrets.',
@@ -90,7 +95,7 @@ addCheck(
   'Staging worksheet lists required owner-supplied values',
   stagingWorksheet.includes('Supabase project ref') &&
     stagingWorksheet.includes('Supabase anon key') &&
-    stagingWorksheet.includes('OpenAI API key') &&
+    stagingWorksheet.includes('JASIC_AI_MODE') &&
     stagingWorksheet.includes('CRON_SECRET') &&
     stagingWorksheet.includes('JASIC_STAGING_ACCESS_TOKEN'),
   'docs/STAGING_VALUES_WORKSHEET.md',
@@ -142,10 +147,16 @@ const liveChecks = [
     remediation: 'Set EXPO_PUBLIC_DEMO_MODE=false for live-mode staging validation.',
   },
   {
+    name: 'AI mode is configured for staging',
+    ok: ['rule_based', 'openai'].includes(aiMode),
+    detail: `JASIC_AI_MODE is ${aiMode || 'missing'}`,
+    remediation: 'Set JASIC_AI_MODE=rule_based for free staging or JASIC_AI_MODE=openai for OpenAI-backed staging.',
+  },
+  {
     name: 'OpenAI API key is available for Edge secrets',
-    ok: looksFilled(openAiKey),
+    ok: freeMode || aiMode === 'rule_based' || looksFilled(openAiKey),
     detail: `OPENAI_API_KEY is ${redactedStatus(openAiKey)}`,
-    remediation: 'Set OPENAI_API_KEY only in the shell or Supabase secrets, never in EXPO_PUBLIC_*.',
+    remediation: 'Set OPENAI_API_KEY only when JASIC_AI_MODE=openai. For free staging use JASIC_AI_MODE=rule_based.',
   },
   {
     name: 'OpenAI model is configured',
@@ -175,7 +186,15 @@ const failed = checks.filter((check) => !check.ok && check.required);
 
 console.log('JASIC staging environment doctor');
 console.log('================================');
-console.log(requireLive ? 'Mode: require live staging values' : 'Mode: planning / documentation');
+console.log(
+  requireLive
+    ? freeMode
+      ? 'Mode: require live staging values / free rule-based AI'
+      : 'Mode: require live staging values'
+    : freeMode
+      ? 'Mode: planning / free rule-based AI'
+      : 'Mode: planning / documentation',
+);
 console.log('');
 
 for (const check of checks) {
@@ -193,6 +212,5 @@ if (failed.length) {
   console.log('Live staging environment values are ready.');
 } else {
   console.log('Staging environment planning checks passed.');
-  console.log('Run with --require-live when real Supabase/OpenAI values are available.');
+  console.log('Run with --require-live --free-mode when Supabase values are available for the free staging path.');
 }
-

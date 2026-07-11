@@ -74,6 +74,18 @@ npx eas build --profile preview --platform ios
 
 Goal: connect the app to a real Supabase staging project and prove live-mode APIs work.
 
+For the nearly-free staging path, use:
+
+```bash
+npm run doctor:staging-env -- --require-live --free-mode
+```
+
+And follow:
+
+```text
+docs/FREE_STAGING_RUNBOOK.md
+```
+
 Required inputs from owner:
 
 - Supabase project ref.
