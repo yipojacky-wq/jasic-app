@@ -7,14 +7,22 @@ import {
   round,
 } from '../_shared/scoring.ts';
 import {
+  currentDiscoveryFunnelRule,
+  currentMarketScoreRule,
+  currentStockScoreRule,
+  scoreFeatureVersion,
+} from '../_shared/scoreRuleRegistry.ts';
+import {
   envelope,
   errorEnvelope,
   jsonResponse,
   optionsResponse,
 } from '../_shared/http.ts';
 
-const FEATURE_VERSION = 'features-0.1.0';
-const RULE_VERSION = 'stock-score-provisional-0.1.0';
+const FEATURE_VERSION = scoreFeatureVersion;
+const MARKET_RULE_VERSION = currentMarketScoreRule.version;
+const STOCK_RULE_VERSION = currentStockScoreRule.version;
+const DISCOVERY_RULE_VERSION = currentDiscoveryFunnelRule.version;
 
 type FeatureRow = {
   stock_id: string;
@@ -119,10 +127,10 @@ Deno.serve(async (request) => {
         },
         strategy_bias: {
           summary: marketSummary(regime),
-          status: 'provisional',
+          status: currentMarketScoreRule.status,
         },
         confidence_score: 70,
-        rule_version: RULE_VERSION,
+        rule_version: MARKET_RULE_VERSION,
       },
       { onConflict: 'as_of' },
     );
@@ -162,14 +170,14 @@ Deno.serve(async (request) => {
         risk_score: calculated.risk,
         signal: calculated.signal,
         evidence: {
-          status: 'provisional',
+          status: currentStockScoreRule.status,
           close,
           ma20,
           return_5d: return5d,
           institution_net_5d: feature.institution_net_5d,
           missing_dimensions: ['verified_chip_concentration', 'individual_stock_oi'],
         },
-        rule_version: RULE_VERSION,
+        rule_version: STOCK_RULE_VERSION,
       }];
     });
     await upsertChunks(
@@ -185,7 +193,7 @@ Deno.serve(async (request) => {
         as_of: asOf,
         status: 'completed',
         market_scope: 'TWSE_TPEX_COMMON_STOCKS',
-        rule_version: RULE_VERSION,
+        rule_version: DISCOVERY_RULE_VERSION,
         completed_at: new Date().toISOString(),
       })
       .select('id')
@@ -193,9 +201,9 @@ Deno.serve(async (request) => {
     if (runError) throw runError;
 
     const topCandidates = [...scoreRows]
-      .filter((row) => row.risk_score < 80 && row.total_score >= 50)
+      .filter((row) => row.risk_score < currentDiscoveryFunnelRule.config.maximumRiskScore && row.total_score >= currentDiscoveryFunnelRule.config.minimumTotalScore)
       .sort((a, b) => b.total_score - a.total_score)
-      .slice(0, 20)
+      .slice(0, currentDiscoveryFunnelRule.config.candidateLimit)
       .map((row, index) => ({
         run_id: run.id,
         stock_id: row.stock_id,
@@ -206,9 +214,9 @@ Deno.serve(async (request) => {
           institution: row.institution_score,
         }),
         layer_results: {
-          market: { status: marketScore >= 45 ? 'pass' : 'reject', score: round(marketScore) },
-          institution: { status: row.institution_score >= 45 ? 'pass' : 'caution', score: row.institution_score },
-          technical_risk: { status: row.technical_score >= 50 && row.risk_score < 80 ? 'pass' : 'caution', technical_score: row.technical_score, risk_score: row.risk_score },
+          market: { status: marketScore >= currentDiscoveryFunnelRule.config.marketPassThreshold ? 'pass' : 'reject', score: round(marketScore) },
+          institution: { status: row.institution_score >= currentDiscoveryFunnelRule.config.institutionPassThreshold ? 'pass' : 'caution', score: row.institution_score },
+          technical_risk: { status: row.technical_score >= currentDiscoveryFunnelRule.config.technicalPassThreshold && row.risk_score < currentDiscoveryFunnelRule.config.maximumRiskScore ? 'pass' : 'caution', technical_score: row.technical_score, risk_score: row.risk_score },
         },
         rank_reasons: [
           `綜合分數 ${row.total_score}`,
@@ -231,8 +239,11 @@ Deno.serve(async (request) => {
           marketScore: round(marketScore),
           marketRisk: round(marketRisk),
           status: 'provisional_rule_version',
+          marketRuleVersion: MARKET_RULE_VERSION,
+          stockRuleVersion: STOCK_RULE_VERSION,
+          discoveryRuleVersion: DISCOVERY_RULE_VERSION,
         },
-        { data_as_of: asOf, rule_version: RULE_VERSION },
+        { data_as_of: asOf, rule_version: STOCK_RULE_VERSION },
       ),
     );
   } catch (error) {

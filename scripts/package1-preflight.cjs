@@ -6,6 +6,7 @@ const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const commands = [
   ['run', 'doctor:data-sources'],
   ['run', 'doctor:live-readiness'],
+  ['run', 'doctor:score-governance'],
   ['run', 'doctor:supabase'],
   ['run', 'typecheck'],
   ['run', 'typecheck:edge'],

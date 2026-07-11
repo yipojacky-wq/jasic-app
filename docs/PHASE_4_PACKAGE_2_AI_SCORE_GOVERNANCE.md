@@ -51,6 +51,29 @@ supabase/functions/_shared/aiGovernance.ts
   - rule version
   - allowed action guardrail
 
+- Added score rule registry:
+
+```text
+supabase/functions/_shared/scoreRuleRegistry.ts
+```
+
+- Current staging rule versions:
+  - `market-score-provisional-0.1.0`
+  - `stock-score-provisional-0.1.0`
+  - `discovery-funnel-provisional-0.1.0`
+
+- Added Supabase `rule_versions` seed migration for:
+  - `market_score`
+  - `discovery_funnel`
+
+- Updated `score-calculate` to use registry versions instead of local hard-coded constants.
+
+- Added doctor:
+
+```bash
+npm run doctor:score-governance
+```
+
 - Added tests:
 
 ```text
@@ -77,6 +100,5 @@ When market regime, risk score, confidence, or user risk profile is unfavorable,
 
 ## Remaining Package 2 work
 
-1. Add score rule registry for market score and stock score versions.
-2. Add report/export audit fields for AI governance metadata.
-3. Add staging smoke assertions for AI Check metadata after Supabase credentials are available.
+1. Add report/export audit fields for AI governance metadata.
+2. Add staging smoke assertions for AI Check metadata after Supabase credentials are available.
