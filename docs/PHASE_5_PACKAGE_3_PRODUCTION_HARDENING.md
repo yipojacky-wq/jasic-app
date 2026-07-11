@@ -54,12 +54,20 @@ supabase/functions/_shared/edgeRateLimit.ts
 tests/edge-rate-limit.test.ts
 ```
 
-This defines first-pass per-user policy targets for AI Check, report generation, user data export and account deletion. It does not yet persist counters in Supabase; that remains an open-beta hardening task.
+This defines first-pass per-user policy targets for AI Check, report generation, user data export and account deletion.
+
+Persistent Supabase rate-limit enforcement is now wired for:
+
+- `ai-check`
+- `user-data-export`
+- `account-delete`
+
+`report-generate` remains `CRON_SECRET` protected because it is a scheduled/service function.
 
 ## Remaining Package 3 work
 
 1. Run real mobile preview validation when app store / EAS credentials are available.
-2. Implement persistent Edge Function rate limiting before open beta.
+2. Consider a service-level throttle for cron-only report generation if staging traffic requires it.
 3. Run real Supabase staging smoke with `JASIC_STAGING_ACCESS_TOKEN`.
 
 ## Safety reminder

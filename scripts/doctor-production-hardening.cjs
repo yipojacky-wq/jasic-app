@@ -39,6 +39,9 @@ const rateLimit = read('supabase/functions/_shared/edgeRateLimit.ts');
 const rateLimitTests = read('tests/edge-rate-limit.test.ts');
 const rateLimitMigration = read('supabase/migrations/20260711000100_edge_rate_limits.sql');
 const aiCheck = read('supabase/functions/ai-check/index.ts');
+const userDataExport = read('supabase/functions/user-data-export/index.ts');
+const accountDelete = read('supabase/functions/account-delete/index.ts');
+const reportGenerate = read('supabase/functions/report-generate/index.ts');
 
 addCheck(
   'Production hardening doctor is registered',
@@ -135,7 +138,7 @@ addCheck(
 );
 
 addCheck(
-  'Persistent rate-limit gate is wired for AI Check',
+  'Persistent rate-limit gate is wired for high-risk user functions',
   exists('supabase/migrations/20260711000100_edge_rate_limits.sql') &&
     includesAll(rateLimitMigration, [
       'create table if not exists public.edge_rate_limits',
@@ -150,10 +153,36 @@ addCheck(
       'Retry-After',
       'https://api.openai.com/v1/responses',
     ]) &&
+    includesAll(userDataExport, [
+      'consumeEdgeRateLimit',
+      "'user-data-export'",
+      'Retry-After',
+      '.from(',
+    ]) &&
+    includesAll(accountDelete, [
+      'consumeEdgeRateLimit',
+      "'account-delete'",
+      'Retry-After',
+      'deleteUser',
+    ]) &&
     aiCheck.indexOf('consumeEdgeRateLimit') <
-      aiCheck.indexOf('https://api.openai.com/v1/responses'),
-  'edge_rate_limits migration + ai-check Edge Function',
-  'Wire AI Check to consume persistent rate-limit quota before calling OpenAI.',
+      aiCheck.indexOf('https://api.openai.com/v1/responses') &&
+    userDataExport.indexOf('consumeEdgeRateLimit') <
+      userDataExport.indexOf(".from('profiles')") &&
+    accountDelete.indexOf('consumeEdgeRateLimit') <
+      accountDelete.indexOf('deleteUser'),
+  'edge_rate_limits migration + ai-check, user-data-export, account-delete',
+  'Wire high-risk user functions to consume persistent rate-limit quota before expensive or destructive actions.',
+);
+
+addCheck(
+  'Report generation remains cron protected',
+  includesAll(reportGenerate, [
+    'requireCronSecret',
+    'REPORT_GENERATION_FAILED',
+  ]),
+  'supabase/functions/report-generate/index.ts',
+  'Keep report-generate protected by CRON_SECRET rather than ordinary user quota.',
 );
 
 addCheck(
@@ -205,6 +234,8 @@ addCheck(
       'AI Check: 20 requests / user / hour',
       '20260711000100_edge_rate_limits.sql',
       'consume_edge_rate_limit',
+      'user-data-export',
+      'account-delete',
       'return `429`',
       'Never expose Supabase service-role key',
       'Never expose OpenAI API key',

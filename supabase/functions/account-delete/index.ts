@@ -6,6 +6,10 @@ import {
   optionsResponse,
 } from '../_shared/http.ts';
 import {
+  consumeEdgeRateLimit,
+  rateLimitMessage,
+} from '../_shared/edgeRateLimit.ts';
+import {
   accountDeletionConfirmation,
   isValidDeletionConfirmation,
 } from '../_shared/privacy.ts';
@@ -37,6 +41,28 @@ Deno.serve(async (request) => {
   );
   if (authError || !authData.user) {
     return jsonResponse(errorEnvelope('AUTH_REQUIRED', 'Invalid session'), 401);
+  }
+
+  const rateLimit = await consumeEdgeRateLimit(
+    supabase,
+    authData.user.id,
+    'account-delete',
+  );
+  if (!rateLimit.ok) {
+    return jsonResponse(errorEnvelope('DATABASE_ERROR', rateLimit.error), 500);
+  }
+  if (!rateLimit.result.allowed) {
+    return jsonResponse(
+      errorEnvelope(
+        rateLimit.policy.actionWhenLimited.code,
+        rateLimitMessage(rateLimit.result.retry_after_seconds),
+      ),
+      rateLimit.policy.actionWhenLimited.status,
+      {
+        'Retry-After': String(rateLimit.result.retry_after_seconds),
+        'X-JASIC-RateLimit-Reset': rateLimit.result.reset_at,
+      },
+    );
   }
 
   const requestId = crypto.randomUUID();

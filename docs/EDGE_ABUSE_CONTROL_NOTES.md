@@ -56,7 +56,13 @@ The first persistent database gate is defined in:
 supabase/migrations/20260711000100_edge_rate_limits.sql
 ```
 
-The `ai-check` Edge Function now calls `consume_edge_rate_limit` before it calls OpenAI or writes AI Check request/result rows.
+These Edge Functions now call `consume_edge_rate_limit` before expensive or destructive actions:
+
+- `ai-check`: before calling OpenAI or writing AI Check request/result rows
+- `user-data-export`: before querying and returning the export payload
+- `account-delete`: before writing deletion audit and deleting the user
+
+`report-generate` remains protected by `CRON_SECRET` because it is a scheduled/service function rather than an ordinary user action.
 
 The per-user and per-function rate-limit table is:
 

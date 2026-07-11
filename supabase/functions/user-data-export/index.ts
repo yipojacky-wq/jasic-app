@@ -5,6 +5,10 @@ import {
   jsonResponse,
   optionsResponse,
 } from '../_shared/http.ts';
+import {
+  consumeEdgeRateLimit,
+  rateLimitMessage,
+} from '../_shared/edgeRateLimit.ts';
 
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return optionsResponse();
@@ -24,6 +28,28 @@ Deno.serve(async (request) => {
     return jsonResponse(errorEnvelope('AUTH_REQUIRED', 'Invalid session'), 401);
   }
   const userId = authData.user.id;
+
+  const rateLimit = await consumeEdgeRateLimit(
+    supabase,
+    userId,
+    'user-data-export',
+  );
+  if (!rateLimit.ok) {
+    return jsonResponse(errorEnvelope('DATABASE_ERROR', rateLimit.error), 500);
+  }
+  if (!rateLimit.result.allowed) {
+    return jsonResponse(
+      errorEnvelope(
+        rateLimit.policy.actionWhenLimited.code,
+        rateLimitMessage(rateLimit.result.retry_after_seconds),
+      ),
+      rateLimit.policy.actionWhenLimited.status,
+      {
+        'Retry-After': String(rateLimit.result.retry_after_seconds),
+        'X-JASIC-RateLimit-Reset': rateLimit.result.reset_at,
+      },
+    );
+  }
 
   const [
     { data: profile, error: profileError },
