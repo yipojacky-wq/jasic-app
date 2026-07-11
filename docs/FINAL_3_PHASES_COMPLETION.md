@@ -81,6 +81,7 @@ Execution:
 ```bash
 npm run doctor:deploy
 npm run build:web:github-pages
+npm run smoke:public-preview
 ```
 
 GitHub setting:
@@ -93,6 +94,7 @@ Done criteria:
 
 - GitHub Pages deploy completes.
 - Public URL opens without 404.
+- `smoke:public-preview` passes.
 - Dashboard, Discovery, Stock War Room, AI Check, Watchlist, Reports, and Settings render.
 - Demo mode remains safe if staging credentials are not enabled.
 - Live mode is enabled only when valid Supabase public values are provided.
@@ -136,9 +138,9 @@ JASIC can be considered operational staging-ready when all commands below pass a
 ```bash
 npm run doctor:final-readiness
 npm run package1:preflight
+npm run smoke:public-preview
 npm run smoke:supabase
 npm run smoke:live-readiness
 ```
 
 Production launch still requires licensed/approved data-source policy, legal review, privacy/terms review, and monitoring/SLA decisions.
-

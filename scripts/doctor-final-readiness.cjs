@@ -29,8 +29,10 @@ const publicPreview = read('docs/PUBLIC_PREVIEW_DEPLOYMENT.md');
 const mobileChecklist = read('docs/MOBILE_PREVIEW_CHECKLIST.md');
 const productionHardening = read('docs/PHASE_5_PACKAGE_3_PRODUCTION_HARDENING.md');
 const pagesWorkflow = read('.github/workflows/pages.yml');
+const publicPreviewSmokeWorkflow = read('.github/workflows/public-preview-smoke.yml');
 const stagingSmokeWorkflow = read('.github/workflows/staging-smoke.yml');
 const ciWorkflow = read('.github/workflows/ci.yml');
+const publicPreviewSmoke = read('scripts/smoke-public-preview.cjs');
 
 addCheck(
   'Final readiness doctor is registered',
@@ -51,6 +53,7 @@ addCheck(
       'Phase C',
       'Mobile preview and real-device validation',
       'doctor:final-readiness',
+      'smoke:public-preview',
       'no guaranteed-profit / auto-trading language',
     ]),
   'docs/FINAL_3_PHASES_COMPLETION.md',
@@ -116,6 +119,30 @@ addCheck(
   ]),
   '.github/workflows/pages.yml',
   'Keep GitHub Pages workflow deployable.',
+);
+
+addCheck(
+  'Public preview smoke script is available',
+  packageJson.scripts?.['smoke:public-preview'] === 'node scripts/smoke-public-preview.cjs' &&
+    includesAll(publicPreviewSmoke, [
+      'https://yipojacky-wq.github.io/jasic-app/',
+      '--offline',
+      'Public preview returns HTTP 200',
+      'src="./_expo/static/js/web/index-',
+    ]),
+  'scripts/smoke-public-preview.cjs',
+  'Add smoke:public-preview to validate the public GitHub Pages URL.',
+);
+
+addCheck(
+  'Public preview smoke workflow is present',
+  includesAll(publicPreviewSmokeWorkflow, [
+    'workflow_dispatch',
+    'schedule',
+    'npm run smoke:public-preview',
+  ]),
+  '.github/workflows/public-preview-smoke.yml',
+  'Add a manual/scheduled workflow to verify the public preview URL.',
 );
 
 addCheck(
