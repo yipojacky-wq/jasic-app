@@ -13,6 +13,8 @@ import { Card, PrimaryButton } from '../components/ui';
 import { supabase } from '../lib/supabase';
 import { colors } from '../theme';
 
+const publicWebRedirectUrl = 'https://yipojacky-wq.github.io/jasic-app/';
+
 export function AuthScreen() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,7 +26,9 @@ export function AuthScreen() {
     setMessage('');
     const redirectTo =
       Platform.OS === 'web' && typeof window !== 'undefined'
-        ? `${window.location.origin}${window.location.pathname}`
+        ? window.location.hostname.endsWith('github.io')
+          ? publicWebRedirectUrl
+          : `${window.location.origin}${window.location.pathname}`
         : Linking.createURL('auth/callback');
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
