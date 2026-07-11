@@ -35,6 +35,8 @@ const docs = read('docs/PHASE_5_PACKAGE_3_PRODUCTION_HARDENING.md');
 const mobilePreviewChecklist = read('docs/MOBILE_PREVIEW_CHECKLIST.md');
 const e2eSmokeChecklist = read('docs/E2E_SMOKE_CHECKLIST.md');
 const abuseControlNotes = read('docs/EDGE_ABUSE_CONTROL_NOTES.md');
+const rateLimit = read('supabase/functions/_shared/edgeRateLimit.ts');
+const rateLimitTests = read('tests/edge-rate-limit.test.ts');
 
 addCheck(
   'Production hardening doctor is registered',
@@ -105,6 +107,29 @@ addCheck(
     ]),
   'smoke-live-readiness and doctor-deploy scripts',
   'Keep staging smoke and deployment readiness scripts available.',
+);
+
+addCheck(
+  'Rate-limit policy module is available for Edge hardening',
+  exists('supabase/functions/_shared/edgeRateLimit.ts') &&
+    includesAll(rateLimit, [
+      'edgeRateLimitPolicies',
+      "'ai-check'",
+      "'report-generate'",
+      "'user-data-export'",
+      "'account-delete'",
+      'RATE_LIMITED',
+      'skipOpenAi: true',
+      'skipPartialWrites: true',
+    ]) &&
+    exists('tests/edge-rate-limit.test.ts') &&
+    includesAll(rateLimitTests, [
+      'edge rate-limit policies match Package 3 abuse-control notes',
+      'rate-limit decision allows requests inside the limit',
+      'rate-limit window resets',
+    ]),
+  'supabase/functions/_shared/edgeRateLimit.ts + tests/edge-rate-limit.test.ts',
+  'Add shared rate-limit policy helpers and tests before wiring persistent limits.',
 );
 
 addCheck(

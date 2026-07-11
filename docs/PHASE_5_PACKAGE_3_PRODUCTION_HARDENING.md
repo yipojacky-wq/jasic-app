@@ -37,6 +37,7 @@ The doctor checks:
 - mobile preview checklist
 - E2E smoke checklist
 - Edge abuse-control notes
+- shared Edge rate-limit policy skeleton
 
 ## Added checklists
 
@@ -45,6 +46,15 @@ docs/MOBILE_PREVIEW_CHECKLIST.md
 docs/E2E_SMOKE_CHECKLIST.md
 docs/EDGE_ABUSE_CONTROL_NOTES.md
 ```
+
+## Added rate-limit skeleton
+
+```text
+supabase/functions/_shared/edgeRateLimit.ts
+tests/edge-rate-limit.test.ts
+```
+
+This defines first-pass per-user policy targets for AI Check, report generation, user data export and account deletion. It does not yet persist counters in Supabase; that remains an open-beta hardening task.
 
 ## Remaining Package 3 work
 

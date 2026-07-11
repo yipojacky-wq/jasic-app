@@ -38,6 +38,18 @@ These functions must not be exposed as ordinary public user actions.
 
 ## Future rate-limit recommendation
 
+The first policy skeleton is defined in:
+
+```text
+supabase/functions/_shared/edgeRateLimit.ts
+```
+
+It is tested by:
+
+```text
+tests/edge-rate-limit.test.ts
+```
+
 Add a per-user and per-function rate-limit table before open beta:
 
 ```text
