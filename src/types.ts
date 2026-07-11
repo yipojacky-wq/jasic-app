@@ -106,6 +106,12 @@ export interface ReportDetail extends ReportSummary {
   asOf: string;
   ruleVersion: string;
   stockSymbol?: string;
+  governanceAudit?: {
+    modelIdentifier?: string;
+    promptVersion?: string;
+    responseSchemaVersion?: string;
+    allowedActions?: AiAction[];
+  };
   metrics: ReportMetric[];
   sections: ReportSection[];
   disclaimer: string;

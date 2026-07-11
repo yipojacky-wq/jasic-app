@@ -54,6 +54,8 @@ supabase/functions/_shared/aiGovernance.ts
 - Updated export/share surfaces:
   - `user-data-export` includes `response_schema_version` and `allowed_actions`
   - AI Check share text includes model, prompt version, schema version and allowed actions
+  - report detail can carry optional `governanceAudit`
+  - report Markdown export preserves AI model, prompt version, schema version and allowed actions when present
   - report Markdown export has a clean `Audit` section and disclaimer
 
 - Updated staging smoke:

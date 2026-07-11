@@ -31,6 +31,7 @@ const aiHistoryUi = read('src/components/AiCheckHistory.tsx');
 const auditMigration = read('supabase/migrations/20260628000100_ai_check_governance_audit.sql');
 const userDataExport = read('supabase/functions/user-data-export/index.ts');
 const researchShare = read('src/lib/researchShare.ts');
+const reportDetail = read('supabase/functions/report-detail/index.ts');
 const reportExport = read('src/lib/reportExport.ts');
 const testFile = read('tests/ai-governance.test.ts');
 const researchShareTest = read('tests/research-share.test.ts');
@@ -126,21 +127,31 @@ addCheck(
       '允許動作',
       '不保證獲利',
     ]) &&
+    includesAll(reportDetail, [
+      'governance_audit',
+      'response_schema_version',
+      'allowed_actions',
+    ]) &&
     includesAll(reportExport, [
       '## Audit',
       'Rule version',
+      'AI prompt version',
+      'AI response schema version',
+      'AI allowed actions',
       '## Disclaimer',
     ]) &&
     includesAll(researchShareTest, [
       'AI Check share includes governance audit',
       'Schema 版本：ai-check-response-1.0.0',
+      '允許動作：HOLD, WAIT, REDUCE',
     ]) &&
     includesAll(reportExportTest, [
-      'report markdown preserves audit and disclaimer fields',
+      'report markdown preserves audit, governance and disclaimer fields',
       'Rule version: rule-1',
+      'AI response schema version: ai-check-response-1.0.0',
     ]),
-  'user-data-export, research share text and report markdown export',
-  'Include AI governance metadata in export/share surfaces and cover it with tests.',
+  'user-data-export, research share text, report detail and report markdown export',
+  'Include AI governance metadata in export/share/report surfaces and cover it with tests.',
 );
 
 addCheck(
@@ -163,6 +174,7 @@ addCheck(
       'source data timestamp',
       'AI response schema version',
       'allowed action guardrail',
+      'report detail can carry optional `governanceAudit`',
     ]),
   'docs/PHASE_4_PACKAGE_2_AI_SCORE_GOVERNANCE.md',
   'Document the Package 2 governance scope and remaining work.',

@@ -52,6 +52,28 @@ Deno.serve(async (request) => {
     risk_alert: 'Risk',
   };
   const content = report.content as Record<string, any>;
+  const governanceAudit =
+    content?.governance_audit && typeof content.governance_audit === 'object'
+      ? {
+          modelIdentifier:
+            typeof content.governance_audit.model_identifier === 'string'
+              ? content.governance_audit.model_identifier
+              : undefined,
+          promptVersion:
+            typeof content.governance_audit.prompt_version === 'string'
+              ? content.governance_audit.prompt_version
+              : undefined,
+          responseSchemaVersion:
+            typeof content.governance_audit.response_schema_version === 'string'
+              ? content.governance_audit.response_schema_version
+              : undefined,
+          allowedActions: Array.isArray(content.governance_audit.allowed_actions)
+            ? content.governance_audit.allowed_actions.filter((item: unknown) =>
+                ['ADD', 'HOLD', 'WAIT', 'REDUCE', 'STOP_LOSS'].includes(String(item)),
+              )
+            : undefined,
+        }
+      : undefined;
   return jsonResponse(envelope({
     id: report.id,
     type: labels[report.report_type] ?? report.report_type,
@@ -62,6 +84,7 @@ Deno.serve(async (request) => {
     asOf: report.as_of,
     ruleVersion: report.rule_version,
     stockSymbol: (report as any).stocks?.symbol ?? content?.stock_symbol,
+    governanceAudit,
     metrics: Array.isArray(content?.metrics) ? content.metrics : [],
     sections: Array.isArray(content?.sections) ? content.sections : [],
     disclaimer:

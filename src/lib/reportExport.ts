@@ -10,6 +10,7 @@ export function reportToMarkdown(report: ReportDetail) {
     `- Data as of: ${report.asOf}`,
     `- Rule version: ${report.ruleVersion}`,
     ...(report.stockSymbol ? [`- Stock symbol: ${report.stockSymbol}`] : []),
+    ...governanceAuditLines(report),
     '',
     '## Summary',
     '',
@@ -37,6 +38,21 @@ export function reportToMarkdown(report: ReportDetail) {
 
   lines.push('## Disclaimer', '', report.disclaimer, '');
   return lines.join('\n');
+}
+
+function governanceAuditLines(report: ReportDetail) {
+  const audit = report.governanceAudit;
+  if (!audit) return [];
+  return [
+    ...(audit.modelIdentifier ? [`- AI model: ${audit.modelIdentifier}`] : []),
+    ...(audit.promptVersion ? [`- AI prompt version: ${audit.promptVersion}`] : []),
+    ...(audit.responseSchemaVersion
+      ? [`- AI response schema version: ${audit.responseSchemaVersion}`]
+      : []),
+    ...(audit.allowedActions?.length
+      ? [`- AI allowed actions: ${audit.allowedActions.join(', ')}`]
+      : []),
+  ];
 }
 
 export function reportFilename(report: ReportDetail) {

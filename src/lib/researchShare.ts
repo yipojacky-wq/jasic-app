@@ -20,7 +20,7 @@ export function warRoomShareText(
   url: string,
 ) {
   return [
-    `JASIC 個股作戰室：${stock.name} ${stock.symbol}`,
+    `JASIC Stock War Room：${stock.name} ${stock.symbol}`,
     `結論：${stock.conclusion.action}`,
     `JASIC Score：${stock.score.toFixed(1)}，信心度 ${stock.confidence.toFixed(0)}%`,
     `摘要：${stock.conclusion.summary}`,
@@ -48,7 +48,9 @@ export function aiCheckShareText(
     result.ruleVersion ? `規則版本：${result.ruleVersion}` : null,
     result.modelIdentifier ? `模型：${result.modelIdentifier}` : null,
     result.promptVersion ? `Prompt 版本：${result.promptVersion}` : null,
-    result.responseSchemaVersion ? `Schema 版本：${result.responseSchemaVersion}` : null,
+    result.responseSchemaVersion
+      ? `Schema 版本：${result.responseSchemaVersion}`
+      : null,
     result.allowedActions?.length
       ? `允許動作：${result.allowedActions.join(', ')}`
       : null,
