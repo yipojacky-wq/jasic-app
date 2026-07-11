@@ -1,247 +1,205 @@
 # JASIC Stock Intelligence
 
-JASIC 是一套股票分析工具型 App，不是課程銷售網站，也不包含購物車、付款、募資或自動下單功能。
+JASIC 是一套股票研究與風險檢核工具型 App，定位為「看懂市場、篩選股票、檢查部位、產生趨勢報告」的 MVP。
 
-本專案使用 React Native + Expo + TypeScript 建立，可同時支援：
+目前工程階段已完成，可用以下方式操作：
 
-- Web
-- iOS / Android mobile app
-- Supabase backend
-- OpenAI API assisted analysis
+- 手機 / 電腦瀏覽器開啟 PWA
+- iPhone / Android 加入主畫面
+- Demo mode 直接預覽
+- Supabase Free + rule-based AI 進行幾乎全免費 staging
 
-目前版本定位為 Alpha MVP / Prototype，可先用 demo mode 操作完整雛形。
+公開 PWA：
 
----
+```text
+https://yipojacky-wq.github.io/jasic-app/
+```
 
-## 快速啟動 Prototype
+## 目前完成狀態
 
-此模式不需要 Supabase、不需要 OpenAI API key、不需要正式市場資料源。
+已完成：
+
+- Macro Dashboard
+- Three-Layer Stock Funnel
+- Stock War Room
+- AI Check
+- Watchlist / Personalized Analysis
+- Trend Reports
+- Settings / Data Health
+- PWA installable web app
+- Supabase schema / Edge Functions
+- Rule-based AI Check fallback
+- AI governance guardrails
+- Rate limits for high-risk user functions
+- Public preview smoke test
+- Nearly-free staging helper scripts
+
+安全限制：
+
+- 不做自動下單
+- 不保證獲利
+- 不做課程銷售頁
+- 不做購物車 / 付款 / 募資功能
+- OpenAI API key 不會放在前端
+- Supabase service-role key 不會放在前端
+
+## 快速預覽
 
 ```bash
 npm install
 npm run prototype:web
 ```
 
-Expo 通常會開在：
+預設網址：
 
 ```text
 http://localhost:8081
 ```
 
-更多操作說明請看：
+不設定 `.env.local` 時，App 會使用 demo mode。
 
-```text
-docs/PROTOTYPE_RUNBOOK.md
+## PWA 手機安裝
+
+iPhone：
+
+1. 用 Safari 開啟 `https://yipojacky-wq.github.io/jasic-app/`
+2. 點分享
+3. 選「加入主畫面」
+
+Android：
+
+1. 用 Chrome 開啟 `https://yipojacky-wq.github.io/jasic-app/`
+2. 點選單
+3. 選「安裝應用程式」或「加入主畫面」
+
+PWA 檢查：
+
+```bash
+npm run smoke:public-preview
+npm run doctor:pwa
 ```
 
----
+## 幾乎全免費 staging
 
-## 主要功能
+免費 staging 使用：
 
-- Macro Dashboard
-  - 五大總經指標
-  - Market Score
-  - 市場燈號
-  - AI 市場摘要
-  - 資料新鮮度與分數拆解
+- GitHub Pages：PWA hosting
+- Supabase Free：資料庫、Auth、Edge Functions
+- TWSE / TPEx / 政府開放資料：資料來源策略
+- `JASIC_AI_MODE=rule_based`：不需要 OpenAI API key
 
-- Three-Layer Stock Funnel
-  - 市場環境篩選
-  - 法人 / 主力 / OI 篩選
-  - 技術面 / 風險篩選
-  - Top 20 候選股
+需要你準備：
 
-- Stock War Room
-  - 個股分數
-  - 分項 evidence
-  - 風險與支撐壓力
-  - Watchlist
-  - Research sharing
+```text
+YOUR_PROJECT_REF
+https://YOUR_PROJECT.supabase.co
+YOUR_PUBLIC_ANON_KEY
+YOUR_TEST_USER_EMAIL
+YOUR_TEST_USER_PASSWORD
+YOUR_LONG_RANDOM_CRON_SECRET
+```
 
-- AI Check
-  - 股票代號、成本、張數、投資期間、風險偏好
-  - 輸出結論、原因、風險、建議
-  - 不保證獲利
-  - 不自動交易
-  - 前端、Edge Function、資料庫三層 guardrails
+產生 `CRON_SECRET`：
 
-- Personalized Analysis
-  - Watchlist
-  - Score Change
-  - Risk Alert
-  - AI 個股摘要
-  - Position Manager
-  - Portfolio Risk Summary
+```powershell
+npm run free-staging:secret -- --env
+```
 
-- Trend Reports
-  - Daily Market Report
-  - Weekly Core Pool Report
-  - Stock War Room Report
-  - Risk Alert Report
-  - Report Library
-  - Markdown export
+取得測試使用者 token：
 
-- Settings / Governance
-  - Terms gate
-  - Data Health Operations
-  - Methodology / source disclosure
-  - User data export
-  - Account deletion flow
+```powershell
+npm run free-staging:token -- `
+  --url "https://YOUR_PROJECT.supabase.co" `
+  --anon-key "YOUR_PUBLIC_ANON_KEY" `
+  --email "tester@example.com" `
+  --password "YOUR_TEST_PASSWORD" `
+  --env
+```
 
----
+建立本機 `.env.local`：
+
+```powershell
+npm run free-staging:env -- `
+  -SupabaseUrl "https://YOUR_PROJECT.supabase.co" `
+  -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" `
+  -StagingAccessToken "YOUR_SHORT_LIVED_USER_TOKEN"
+```
+
+部署免費 staging：
+
+```powershell
+$env:CRON_SECRET="YOUR_LONG_RANDOM_CRON_SECRET"
+npm run free-staging:deploy -- -ProjectRef "YOUR_PROJECT_REF"
+```
+
+完整說明：
+
+```text
+docs/FREE_STAGING_RUNBOOK.md
+docs/FINAL_STAGE_COMPLETION_REPORT.md
+```
 
 ## 常用指令
 
 ```bash
-npm run prototype:web
-npm run web
-npm start
-npm run typecheck
-npm run typecheck:edge
-npm test
-npm run build:web
-npm run build:web:github-pages
-npm run package:web-preview
-npm run doctor:deploy
-npm run doctor:supabase
+npm run package1:preflight
+npm run doctor:final-readiness
+npm run doctor:staging-env -- --free-mode
+npm run doctor:staging-env -- --require-live --free-mode
+npm run smoke:public-preview
 npm run smoke:supabase
-npm run supabase:set:secrets
-npm run supabase:deploy:functions
-npm run preview:web
-```
-
----
-
-## 公開預覽網址
-
-最短公開預覽路徑建議使用 Vercel、Netlify 或 Cloudflare Pages。
-
-本 repo 已包含：
-
-```text
-vercel.json
-netlify.toml
-.github/workflows/pages.yml
-```
-
-部署說明：
-
-```text
-docs/PUBLIC_PREVIEW_DEPLOYMENT.md
-docs/GITHUB_LONG_TERM_DEPLOYMENT.md
-docs/NEXT_5_PHASES_PLAN.md
-docs/SUPABASE_STAGING_RUNBOOK.md
-docs/DATA_SOURCE_ADAPTER_CONTRACT.md
-```
-
----
-
-## Demo Mode
-
-不設定 `.env.local` 時，App 會自動 fallback 到 demo mode。
-
-如需明確指定：
-
-```env
-EXPO_PUBLIC_DEMO_MODE=true
-```
-
-Live mode 範例：
-
-```env
-EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your-public-anon-key
-EXPO_PUBLIC_DEMO_MODE=false
-```
-
-請勿將 OpenAI API key 或 Supabase service-role key 放入 `EXPO_PUBLIC_*`。
-
----
-
-## Supabase
-
-Supabase 相關檔案：
-
-```text
-supabase/migrations/
-supabase/functions/
-supabase/seed.sql
-```
-
-部署 live mode 前需要：
-
-1. 建立 Supabase project。
-2. 執行 migrations。
-3. 部署 Edge Functions。
-4. 設定 secrets：
-   - `OPENAI_API_KEY`
-   - `OPENAI_MODEL`
-   - `CRON_SECRET`
-5. 匯入 seed 或正式市場資料。
-
-詳細部署說明：
-
-```text
-docs/DEPLOYMENT.md
-docs/DATA_PIPELINE.md
-```
-
----
-
-## GitHub Actions
-
-已建立：
-
-```text
-.github/workflows/ci.yml
-.github/workflows/market-data.yml
-```
-
-CI 會執行：
-
-```bash
-npm ci
+npm run smoke:live-readiness
 npm run typecheck
 npm run typecheck:edge
 npm test
-npm run build:web
+npm run build:web:github-pages
 ```
 
-Market data workflow 會依序呼叫：
-
-- `market-data-ingest`
-- `score-calculate`
-- `alert-evaluate`
-- `report-generate`
-
----
-
-## 專案交接文件
-
-完整交接文件：
+## 專案結構
 
 ```text
+src/                  App UI, screens, hooks, services
+supabase/functions/   Supabase Edge Functions
+supabase/migrations/  Database migrations
+supabase/seed.sql     Staging seed data
+scripts/              Doctors, smoke tests, deployment helpers
+docs/                 Runbooks and handoff documents
+.github/workflows/    CI, GitHub Pages, staging smoke workflows
+```
+
+## 最重要文件
+
+```text
+docs/FINAL_STAGE_COMPLETION_REPORT.md
+docs/FREE_STAGING_RUNBOOK.md
+docs/PWA_RUNBOOK.md
+docs/STAGING_VALUES_WORKSHEET.md
+docs/STAGING_LAUNCH_CHECKLIST.md
 MASTER_HANDOVER.md
 ```
 
-Prototype 操作文件：
+## OpenAI 升級路線
 
-```text
-docs/PROTOTYPE_RUNBOOK.md
+目前免費 staging 不需要 OpenAI。
+
+若之後要改成 OpenAI 輸出：
+
+```powershell
+$env:JASIC_AI_MODE="openai"
+$env:OPENAI_API_KEY="YOUR_OPENAI_KEY"
+$env:OPENAI_MODEL="gpt-5.4-mini"
+$env:CRON_SECRET="YOUR_LONG_RANDOM_CRON_SECRET"
+npm run supabase:set:secrets
 ```
 
----
+## Final status
 
-## 產品限制
+工程開發已完成。  
+剩餘工作是外部帳號與部署操作：
 
-本專案不提供：
+- 建立 Supabase Free project
+- 建立 Supabase Auth 測試使用者
+- 填入 Supabase URL / anon key
+- 執行免費 staging deployment helper
+- 視需要設定 GitHub Actions secrets
 
-- 自動下單
-- 保證獲利
-- 券商交易串接
-- 購物車
-- 課程頁
-- 募資頁
-- 付款功能
-
-所有 AI 與分數輸出皆應視為研究輔助，不是投資保證或交易指令。
