@@ -52,6 +52,7 @@
     "supabase:deploy:functions": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy-supabase-functions.ps1",
     "supabase:set:secrets": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/set-supabase-secrets.ps1",
     "free-staging:env": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/configure-free-staging-env.ps1",
+    "free-staging:deploy": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy-free-staging.ps1",
     "github:connect": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/connect-github-remote.ps1",
     "preview:web": "node scripts/serve-static.cjs",
     "test": "tsx --test tests/**/*.test.ts",

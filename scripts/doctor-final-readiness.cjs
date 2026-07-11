@@ -39,6 +39,7 @@ const publicPreviewSmoke = read('scripts/smoke-public-preview.cjs');
 const stagingEnvDoctor = read('scripts/doctor-staging-env.cjs');
 const mobilePreviewDoctor = read('scripts/doctor-mobile-preview.cjs');
 const pwaDoctor = read('scripts/doctor-pwa.cjs');
+const freeStagingDeploy = read('scripts/deploy-free-staging.ps1');
 
 addCheck(
   'Final readiness doctor is registered',
@@ -82,11 +83,28 @@ addCheck(
       'JASIC_AI_MODE=rule_based',
       'OPENAI_API_KEY',
       'npm run free-staging:env',
+      'npm run free-staging:deploy',
       'npm run doctor:staging-env -- --require-live --free-mode',
       'npm run supabase:set:secrets',
     ]),
   'docs/FREE_STAGING_RUNBOOK.md',
   'Add a nearly-free staging runbook for Supabase Free and rule-based AI.',
+);
+
+addCheck(
+  'Nearly-free staging deployment helper is available',
+  packageJson.scripts?.['free-staging:deploy'] ===
+    'powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy-free-staging.ps1' &&
+    includesAll(freeStagingDeploy, [
+      'doctor:staging-env',
+      '--require-live',
+      '--free-mode',
+      'supabase:set:secrets',
+      'supabase:deploy:functions',
+      'smoke:live-readiness',
+    ]),
+  'scripts/deploy-free-staging.ps1',
+  'Add a one-command free staging deployment helper.',
 );
 
 addCheck(

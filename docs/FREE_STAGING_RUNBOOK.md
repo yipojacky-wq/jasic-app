@@ -76,6 +76,35 @@ npm run supabase:set:secrets
 
 This skips `OPENAI_API_KEY` and uses JASIC rule-based AI Check output.
 
+## One-command deployment flow
+
+After `.env.local` is created and Supabase CLI is logged in, dry-run the full free staging flow:
+
+```powershell
+$env:CRON_SECRET="YOUR_LONG_RANDOM_CRON_SECRET"
+npm run free-staging:deploy -- -ProjectRef "YOUR_PROJECT_REF" -DryRun
+```
+
+Then run the live flow:
+
+```powershell
+$env:CRON_SECRET="YOUR_LONG_RANDOM_CRON_SECRET"
+npm run free-staging:deploy -- -ProjectRef "YOUR_PROJECT_REF"
+```
+
+If the Supabase project is already linked, omit `-ProjectRef`.
+
+The deployment flow runs:
+
+1. `npm run package1:preflight`
+2. `npm run doctor:staging-env -- --require-live --free-mode`
+3. `supabase link`, when `-ProjectRef` is provided
+4. `supabase db push`
+5. `npm run supabase:set:secrets`
+6. `npm run supabase:deploy:functions`
+7. `npm run smoke:supabase`
+8. `npm run smoke:live-readiness`
+
 ## Validation
 
 ```bash
