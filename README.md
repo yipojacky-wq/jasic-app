@@ -59,7 +59,7 @@ $env:CRON_SECRET="YOUR_LONG_RANDOM_CRON_SECRET"
 npm run staging:connect -- `
   -ProjectRef "YOUR_PROJECT_REF" `
   -SupabaseUrl "https://YOUR_PROJECT.supabase.co" `
-  -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" `
+  -SupabaseAnonKey "YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY" `
   -ForceEnv
 ```
 
@@ -81,7 +81,7 @@ $env:CRON_SECRET="YOUR_LONG_RANDOM_CRON_SECRET"
 npm run staging:connect -- `
   -ProjectRef "YOUR_PROJECT_REF" `
   -SupabaseUrl "https://YOUR_PROJECT.supabase.co" `
-  -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" `
+  -SupabaseAnonKey "YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY" `
   -ForceEnv `
   -SkipCloudDeploy
 ```
@@ -106,7 +106,7 @@ npm run free-staging:secret -- --env
 ```powershell
 npm run free-staging:env -- `
   -SupabaseUrl "https://YOUR_PROJECT.supabase.co" `
-  -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" `
+  -SupabaseAnonKey "YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY" `
   -StagingAccessToken "YOUR_SHORT_LIVED_USER_TOKEN"
 ```
 
@@ -160,7 +160,7 @@ To complete real cloud staging deployment, prepare:
 ```text
 Supabase project ref
 Supabase project URL
-Supabase public anon key
+Supabase public anon key or publishable key
 CRON_SECRET
 ```
 

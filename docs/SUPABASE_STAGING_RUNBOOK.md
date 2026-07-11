@@ -18,7 +18,7 @@ jasic-staging
 ```text
 Project ref
 Project URL，例如 https://YOUR_PROJECT.supabase.co
-Public anon key
+Public anon key or publishable key
 CRON_SECRET，至少 32 字元
 ```
 
@@ -53,7 +53,7 @@ $env:CRON_SECRET="YOUR_LONG_RANDOM_CRON_SECRET"
 npm run staging:connect -- `
   -ProjectRef "YOUR_PROJECT_REF" `
   -SupabaseUrl "https://YOUR_PROJECT.supabase.co" `
-  -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" `
+  -SupabaseAnonKey "YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY" `
   -ForceEnv
 ```
 
@@ -78,7 +78,7 @@ $env:CRON_SECRET="YOUR_LONG_RANDOM_CRON_SECRET"
 npm run staging:connect -- `
   -ProjectRef "YOUR_PROJECT_REF" `
   -SupabaseUrl "https://YOUR_PROJECT.supabase.co" `
-  -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" `
+  -SupabaseAnonKey "YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY" `
   -ForceEnv `
   -SkipCloudDeploy
 ```
@@ -100,7 +100,7 @@ $env:OPENAI_MODEL="gpt-5.4-mini"
 npm run staging:connect -- `
   -ProjectRef "YOUR_PROJECT_REF" `
   -SupabaseUrl "https://YOUR_PROJECT.supabase.co" `
-  -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" `
+  -SupabaseAnonKey "YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY" `
   -AiMode openai `
   -ForceEnv
 ```
@@ -112,7 +112,7 @@ OpenAI key 只會設定為 Supabase Edge secret，不會進入 `EXPO_PUBLIC_*`�
 若要分段執行，可使用：
 
 ```powershell
-npm run free-staging:env -- -SupabaseUrl "https://YOUR_PROJECT.supabase.co" -SupabaseAnonKey "YOUR_PUBLIC_ANON_KEY" -Force
+npm run free-staging:env -- -SupabaseUrl "https://YOUR_PROJECT.supabase.co" -SupabaseAnonKey "YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY" -Force
 npm run doctor:staging-env -- --require-live --free-mode
 npm run package1:preflight
 npx supabase link --project-ref YOUR_PROJECT_REF
@@ -171,7 +171,7 @@ JASIC_AI_MODE=rule_based
 ```text
 Project ref
 Project URL
-Public anon key
+Public anon key or publishable key
 CRON_SECRET
 ```
 

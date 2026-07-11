@@ -24,12 +24,12 @@ if ($SupabaseUrl -notmatch "^https://[a-zA-Z0-9-]+\.supabase\.co/?$") {
   Fail "SupabaseUrl should look like https://YOUR_PROJECT.supabase.co"
 }
 
-if ($SupabaseAnonKey -match "service_role" -or $SupabaseAnonKey -match "service-role") {
-  Fail "SupabaseAnonKey looks like a service-role key. Use the public anon key only."
+if ($SupabaseAnonKey -match "service_role" -or $SupabaseAnonKey -match "service-role" -or $SupabaseAnonKey -match "^sb_secret_") {
+  Fail "SupabaseAnonKey looks like a service-role/secret key. Use the public anon key or publishable key only."
 }
 
-if ($SupabaseAnonKey.Length -lt 80) {
-  Fail "SupabaseAnonKey looks too short. Copy the public anon key from Supabase Project Settings -> API."
+if (($SupabaseAnonKey -notmatch "^sb_publishable_") -and $SupabaseAnonKey.Length -lt 80) {
+  Fail "SupabaseAnonKey looks too short. Copy the public anon key or publishable key from Supabase Project Settings -> API."
 }
 
 if ((Test-Path $envPath) -and -not $Force) {
@@ -65,7 +65,10 @@ if ($DryRun) {
   exit 0
 }
 
-Set-Content -LiteralPath $envPath -Value ($lines -join [Environment]::NewLine) -Encoding utf8
+[System.IO.File]::WriteAllText(
+  $envPath,
+  ($lines -join [Environment]::NewLine),
+  [System.Text.UTF8Encoding]::new($false)
+)
 Write-Output ".env.local written. This file is ignored by git."
 Write-Output "Next: npm run doctor:staging-env -- --require-live --free-mode"
-

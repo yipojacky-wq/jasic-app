@@ -175,11 +175,13 @@ const liveChecks = [
     ok: looksFilled(stagingAccessToken),
     detail: `JASIC_STAGING_ACCESS_TOKEN is ${redactedStatus(stagingAccessToken)}`,
     remediation: 'Set a short-lived Supabase user access token before running smoke:live-readiness.',
+    required: false,
   },
 ];
 
 for (const check of liveChecks) {
-  addCheck(check.name, requireLive ? check.ok : true, check.detail, check.remediation, requireLive);
+  const required = check.required === false ? false : requireLive;
+  addCheck(check.name, requireLive ? check.ok : true, check.detail, check.remediation, required);
 }
 
 const failed = checks.filter((check) => !check.ok && check.required);

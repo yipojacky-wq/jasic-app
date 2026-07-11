@@ -186,89 +186,96 @@ async function postFunction({ functionName, body = {}, query, bearerToken, valid
   }
 }
 
-console.log('JASIC live readiness POST smoke test');
-console.log('====================================');
-console.log(`Project URL: ${baseUrl}`);
-console.log('Method: POST /functions/v1/<function>');
-console.log(
-  accessToken
-    ? 'Auth: JASIC_STAGING_ACCESS_TOKEN supplied'
-    : 'Auth: no JASIC_STAGING_ACCESS_TOKEN; data-health authenticated check will be skipped',
-);
-console.log('');
-
-const results = [];
-
-results.push(
-  await postFunction({
-    functionName: 'market-summary',
-    bearerToken: accessToken || anonKey,
-    validate: validateMarketSummary,
-  }),
-);
-
-results.push(
-  await postFunction({
-    functionName: 'discovery-latest',
-    query: { limit: '3' },
-    bearerToken: accessToken || anonKey,
-    validate: validateDiscovery,
-  }),
-);
-
-if (accessToken) {
-  results.push(
-    await postFunction({
-      functionName: 'data-health',
-      bearerToken: accessToken,
-      validate: validateDataHealth,
-    }),
-  );
-  results.push(
-    await postFunction({
-      functionName: 'ai-check',
-      bearerToken: accessToken,
-      body: {
-        symbol: '2330',
-        cost: 980,
-        lots: 1,
-        horizon: 'medium',
-        riskProfile: 'balanced',
-      },
-      validate: validateAiCheck,
-    }),
-  );
-} else {
-  results.push({
-    functionName: 'data-health',
-    ok: true,
-    skipped: true,
-    status: 'SKIP',
-    ms: 0,
-    detail: 'Set JASIC_STAGING_ACCESS_TOKEN to validate authenticated data-health POST.',
-  });
-  results.push({
-    functionName: 'ai-check',
-    ok: true,
-    skipped: true,
-    status: 'SKIP',
-    ms: 0,
-    detail: 'Set JASIC_STAGING_ACCESS_TOKEN to validate AI Check governance metadata.',
-  });
-}
-
-for (const result of results) {
-  const prefix = result.skipped ? 'SKIP' : result.ok ? 'PASS' : 'FAIL';
+async function main() {
+  console.log('JASIC live readiness POST smoke test');
+  console.log('====================================');
+  console.log(`Project URL: ${baseUrl}`);
+  console.log('Method: POST /functions/v1/<function>');
   console.log(
-    `${prefix} ${result.functionName} [${result.status}] ${result.ms}ms - ${result.detail}`,
+    accessToken
+      ? 'Auth: JASIC_STAGING_ACCESS_TOKEN supplied'
+      : 'Auth: no JASIC_STAGING_ACCESS_TOKEN; data-health authenticated check will be skipped',
   );
+  console.log('');
+
+  const results = [];
+
+  results.push(
+    await postFunction({
+      functionName: 'market-summary',
+      bearerToken: accessToken || anonKey,
+      validate: validateMarketSummary,
+    }),
+  );
+
+  results.push(
+    await postFunction({
+      functionName: 'discovery-latest',
+      query: { limit: '3' },
+      bearerToken: accessToken || anonKey,
+      validate: validateDiscovery,
+    }),
+  );
+
+  if (accessToken) {
+    results.push(
+      await postFunction({
+        functionName: 'data-health',
+        bearerToken: accessToken,
+        validate: validateDataHealth,
+      }),
+    );
+    results.push(
+      await postFunction({
+        functionName: 'ai-check',
+        bearerToken: accessToken,
+        body: {
+          symbol: '2330',
+          cost: 980,
+          lots: 1,
+          horizon: 'medium',
+          riskProfile: 'balanced',
+        },
+        validate: validateAiCheck,
+      }),
+    );
+  } else {
+    results.push({
+      functionName: 'data-health',
+      ok: true,
+      skipped: true,
+      status: 'SKIP',
+      ms: 0,
+      detail: 'Set JASIC_STAGING_ACCESS_TOKEN to validate authenticated data-health POST.',
+    });
+    results.push({
+      functionName: 'ai-check',
+      ok: true,
+      skipped: true,
+      status: 'SKIP',
+      ms: 0,
+      detail: 'Set JASIC_STAGING_ACCESS_TOKEN to validate AI Check governance metadata.',
+    });
+  }
+
+  for (const result of results) {
+    const prefix = result.skipped ? 'SKIP' : result.ok ? 'PASS' : 'FAIL';
+    console.log(
+      `${prefix} ${result.functionName} [${result.status}] ${result.ms}ms - ${result.detail}`,
+    );
+  }
+
+  const failed = results.filter((result) => !result.ok);
+  console.log('');
+  if (failed.length) {
+    console.log(`${failed.length} live readiness POST check(s) failed.`);
+    process.exit(1);
+  }
+
+  console.log('Live readiness POST smoke checks passed.');
 }
 
-const failed = results.filter((result) => !result.ok);
-console.log('');
-if (failed.length) {
-  console.log(`${failed.length} live readiness POST check(s) failed.`);
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
-}
-
-console.log('Live readiness POST smoke checks passed.');
+});

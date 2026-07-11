@@ -74,8 +74,8 @@ if (LooksLikePlaceholder $SupabaseAnonKey) {
   throw "SupabaseAnonKey still looks like a placeholder."
 }
 
-if ($SupabaseAnonKey -match "service_role" -or $SupabaseAnonKey -match "service-role") {
-  throw "SupabaseAnonKey must be the public anon key, not a service-role key."
+if ($SupabaseAnonKey -match "service_role" -or $SupabaseAnonKey -match "service-role" -or $SupabaseAnonKey -match "^sb_secret_") {
+  throw "SupabaseAnonKey must be the public anon key or publishable key, not a service-role/secret key."
 }
 
 if ($AiMode -eq "openai" -and -not $OpenAiApiKey) {
@@ -103,6 +103,18 @@ Write-Output "OpenAI: $(if ($AiMode -eq 'openai') { 'enabled' } else { 'skipped 
 Write-Output "Cloud deploy: $(if ($SkipCloudDeploy) { 'skipped' } else { 'enabled' })"
 Write-Output "Smoke tests: $(if ($SkipSmoke) { 'skipped' } else { 'enabled' })"
 Write-Output "Dry run: $(if ($DryRun) { 'yes' } else { 'no' })"
+
+$env:CRON_SECRET = $CronSecret
+$env:JASIC_AI_MODE = $AiMode
+if ($StagingAccessToken) {
+  $env:JASIC_STAGING_ACCESS_TOKEN = $StagingAccessToken
+}
+if ($OpenAiApiKey) {
+  $env:OPENAI_API_KEY = $OpenAiApiKey
+}
+if ($OpenAiModel) {
+  $env:OPENAI_MODEL = $OpenAiModel
+}
 
 Step "Write local live-mode .env.local" {
   $args = @(
@@ -150,14 +162,6 @@ if (-not $SkipDbPush) {
 }
 
 Step "Set Supabase Edge secrets" {
-  $env:JASIC_AI_MODE = $AiMode
-  $env:CRON_SECRET = $CronSecret
-  if ($OpenAiApiKey) {
-    $env:OPENAI_API_KEY = $OpenAiApiKey
-  }
-  if ($OpenAiModel) {
-    $env:OPENAI_MODEL = $OpenAiModel
-  }
   Run $npm @("run", "supabase:set:secrets")
 }
 

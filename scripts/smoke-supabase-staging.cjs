@@ -95,29 +95,36 @@ async function checkFunction(functionName) {
   }
 }
 
-console.log('JASIC Supabase staging smoke test');
-console.log('=================================');
-console.log(`Project URL: ${baseUrl}`);
-console.log('Method: OPTIONS /functions/v1/<function>');
-console.log('');
+async function main() {
+  console.log('JASIC Supabase staging smoke test');
+  console.log('=================================');
+  console.log(`Project URL: ${baseUrl}`);
+  console.log('Method: OPTIONS /functions/v1/<function>');
+  console.log('');
 
-const results = [];
-for (const functionName of functions) {
-  // Sequential requests keep logs readable and avoid provider throttles.
-  // eslint-disable-next-line no-await-in-loop
-  const result = await checkFunction(functionName);
-  results.push(result);
-  console.log(
-    `${result.ok ? 'PASS' : 'FAIL'} ${functionName} ` +
-      `[${result.status}] ${result.ms}ms - ${result.detail}`,
-  );
+  const results = [];
+  for (const functionName of functions) {
+    // Sequential requests keep logs readable and avoid provider throttles.
+    // eslint-disable-next-line no-await-in-loop
+    const result = await checkFunction(functionName);
+    results.push(result);
+    console.log(
+      `${result.ok ? 'PASS' : 'FAIL'} ${functionName} ` +
+        `[${result.status}] ${result.ms}ms - ${result.detail}`,
+    );
+  }
+
+  const failed = results.filter((result) => !result.ok);
+  console.log('');
+  if (failed.length) {
+    console.log(`${failed.length} function endpoint(s) failed smoke test.`);
+    process.exit(1);
+  }
+
+  console.log('All Supabase function endpoints are reachable.');
 }
 
-const failed = results.filter((result) => !result.ok);
-console.log('');
-if (failed.length) {
-  console.log(`${failed.length} function endpoint(s) failed smoke test.`);
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
-}
-
-console.log('All Supabase function endpoints are reachable.');
+});
