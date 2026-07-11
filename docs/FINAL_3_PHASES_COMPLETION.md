@@ -30,6 +30,32 @@ Still requiring external environment work:
 - GitHub Pages setting confirmation.
 - Expo / EAS account login for mobile preview builds.
 
+## Mobile-first option
+
+The mobile preview can be completed before the final Supabase / OpenAI live-backend stage.
+
+Recommended mobile-first sequence:
+
+```bash
+npm run doctor:mobile-preview
+npm run package1:preflight
+npx eas login
+npx eas build --profile preview --platform android
+```
+
+Then run the phone checklist in:
+
+```text
+docs/MOBILE_BUILD_RUNBOOK.md
+docs/MOBILE_PREVIEW_CHECKLIST.md
+```
+
+If Apple credentials are ready, also run:
+
+```bash
+npx eas build --profile preview --platform ios
+```
+
 ## Phase A — Supabase staging live backend
 
 Goal: connect the app to a real Supabase staging project and prove live-mode APIs work.

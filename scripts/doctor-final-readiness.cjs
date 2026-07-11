@@ -27,6 +27,7 @@ const finalPlan = read('docs/FINAL_3_PHASES_COMPLETION.md');
 const stagingChecklist = read('docs/STAGING_LAUNCH_CHECKLIST.md');
 const publicPreview = read('docs/PUBLIC_PREVIEW_DEPLOYMENT.md');
 const mobileChecklist = read('docs/MOBILE_PREVIEW_CHECKLIST.md');
+const mobileBuildRunbook = read('docs/MOBILE_BUILD_RUNBOOK.md');
 const productionHardening = read('docs/PHASE_5_PACKAGE_3_PRODUCTION_HARDENING.md');
 const pagesWorkflow = read('.github/workflows/pages.yml');
 const publicPreviewSmokeWorkflow = read('.github/workflows/public-preview-smoke.yml');
@@ -34,6 +35,7 @@ const stagingSmokeWorkflow = read('.github/workflows/staging-smoke.yml');
 const ciWorkflow = read('.github/workflows/ci.yml');
 const publicPreviewSmoke = read('scripts/smoke-public-preview.cjs');
 const stagingEnvDoctor = read('scripts/doctor-staging-env.cjs');
+const mobilePreviewDoctor = read('scripts/doctor-mobile-preview.cjs');
 
 addCheck(
   'Final readiness doctor is registered',
@@ -53,6 +55,8 @@ addCheck(
       'Public web preview URL',
       'Phase C',
       'Mobile preview and real-device validation',
+      'Mobile-first option',
+      'doctor:mobile-preview',
       'doctor:final-readiness',
       'doctor:staging-env',
       '--require-live',
@@ -99,6 +103,24 @@ addCheck(
   ]),
   'docs/MOBILE_PREVIEW_CHECKLIST.md',
   'Keep real-device mobile validation checklist documented.',
+);
+
+addCheck(
+  'Mobile build runbook and doctor are available',
+  packageJson.scripts?.['doctor:mobile-preview'] === 'node scripts/doctor-mobile-preview.cjs' &&
+    includesAll(mobilePreviewDoctor, [
+      'eas.json preview profile',
+      'jasic://stock/2454',
+      'jasic://ai-check/2308',
+      'npx eas build --profile preview --platform android',
+    ]) &&
+    includesAll(mobileBuildRunbook, [
+      'npx eas login',
+      'npx eas build --profile preview --platform android',
+      'npx eas build --profile preview --platform ios',
+    ]),
+  'scripts/doctor-mobile-preview.cjs + docs/MOBILE_BUILD_RUNBOOK.md',
+  'Add mobile preview doctor and Expo/EAS build runbook.',
 );
 
 addCheck(

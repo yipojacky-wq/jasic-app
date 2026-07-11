@@ -42,6 +42,7 @@
     "doctor:ai-governance": "node scripts/doctor-ai-governance.cjs",
     "doctor:score-governance": "node scripts/doctor-score-governance.cjs",
     "doctor:production-hardening": "node scripts/doctor-production-hardening.cjs",
+    "doctor:mobile-preview": "node scripts/doctor-mobile-preview.cjs",
     "doctor:final-readiness": "node scripts/doctor-final-readiness.cjs",
     "doctor:staging-env": "node scripts/doctor-staging-env.cjs",
     "smoke:supabase": "node scripts/smoke-supabase-staging.cjs",

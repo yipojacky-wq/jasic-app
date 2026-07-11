@@ -20,6 +20,7 @@ jobs:
       - run: npm run doctor:ai-governance
       - run: npm run doctor:score-governance
       - run: npm run doctor:production-hardening
+      - run: npm run doctor:mobile-preview
       - run: npm run doctor:final-readiness
       - run: npm run doctor:staging-env
       - run: npm run doctor:supabase
