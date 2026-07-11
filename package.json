@@ -43,6 +43,7 @@
     "doctor:score-governance": "node scripts/doctor-score-governance.cjs",
     "doctor:production-hardening": "node scripts/doctor-production-hardening.cjs",
     "doctor:final-readiness": "node scripts/doctor-final-readiness.cjs",
+    "doctor:staging-env": "node scripts/doctor-staging-env.cjs",
     "smoke:supabase": "node scripts/smoke-supabase-staging.cjs",
     "smoke:live-readiness": "node scripts/smoke-live-readiness.cjs",
     "smoke:public-preview": "node scripts/smoke-public-preview.cjs",

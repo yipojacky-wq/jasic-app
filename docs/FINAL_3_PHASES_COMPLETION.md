@@ -48,6 +48,8 @@ Execution:
 
 ```bash
 npm run package1:preflight
+npm run doctor:staging-env
+npm run doctor:staging-env -- --require-live
 npx supabase login
 npx supabase link --project-ref YOUR_PROJECT_REF
 npx supabase db push
@@ -137,6 +139,7 @@ JASIC can be considered operational staging-ready when all commands below pass a
 
 ```bash
 npm run doctor:final-readiness
+npm run doctor:staging-env -- --require-live
 npm run package1:preflight
 npm run smoke:public-preview
 npm run smoke:supabase

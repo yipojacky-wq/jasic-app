@@ -79,6 +79,7 @@ Before deploying:
 npm run doctor:data-sources
 npm run doctor:live-readiness
 npm run doctor:supabase
+npm run doctor:staging-env
 ```
 
 After deploying:
@@ -86,6 +87,12 @@ After deploying:
 ```bash
 npm run smoke:supabase
 npm run smoke:live-readiness
+```
+
+When the real staging values are available, run the stricter gate:
+
+```bash
+npm run doctor:staging-env -- --require-live
 ```
 
 For authenticated `data-health` validation:

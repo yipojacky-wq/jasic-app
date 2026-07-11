@@ -33,6 +33,7 @@ const publicPreviewSmokeWorkflow = read('.github/workflows/public-preview-smoke.
 const stagingSmokeWorkflow = read('.github/workflows/staging-smoke.yml');
 const ciWorkflow = read('.github/workflows/ci.yml');
 const publicPreviewSmoke = read('scripts/smoke-public-preview.cjs');
+const stagingEnvDoctor = read('scripts/doctor-staging-env.cjs');
 
 addCheck(
   'Final readiness doctor is registered',
@@ -53,6 +54,8 @@ addCheck(
       'Phase C',
       'Mobile preview and real-device validation',
       'doctor:final-readiness',
+      'doctor:staging-env',
+      '--require-live',
       'smoke:public-preview',
       'no guaranteed-profit / auto-trading language',
     ]),
@@ -143,6 +146,21 @@ addCheck(
   ]),
   '.github/workflows/public-preview-smoke.yml',
   'Add a manual/scheduled workflow to verify the public preview URL.',
+);
+
+addCheck(
+  'Staging environment doctor is available',
+  packageJson.scripts?.['doctor:staging-env'] === 'node scripts/doctor-staging-env.cjs' &&
+    includesAll(stagingEnvDoctor, [
+      '--require-live',
+      'EXPO_PUBLIC_SUPABASE_URL',
+      'EXPO_PUBLIC_SUPABASE_ANON_KEY',
+      'OPENAI_API_KEY',
+      'CRON_SECRET',
+      'JASIC_STAGING_ACCESS_TOKEN',
+    ]),
+  'scripts/doctor-staging-env.cjs',
+  'Add a staging env doctor that can validate live staging values without leaking secrets.',
 );
 
 addCheck(
