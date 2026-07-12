@@ -30,7 +30,7 @@ export function dailyMarketSections(input: {
       tone: 'info',
       items: [
         input.summary,
-        `市場狀態 ${input.regime}，Market Score ${input.score.toFixed(1)}。`,
+        `市場狀態 ${input.regime}，市場分數 ${input.score.toFixed(1)}。`,
       ],
     },
     {

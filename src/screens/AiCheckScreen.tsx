@@ -125,7 +125,7 @@ export function AiCheckScreen() {
   return (
     <View style={styles.page}>
       <View style={styles.header}>
-        <Badge tone="info">Decision Assistant</Badge>
+        <Badge tone="info">決策輔助</Badge>
         <Text style={styles.title}>AI 投資檢核</Text>
         <Text style={styles.subtitle}>
           輸入你的持股背景，JASIC 會先檢查市場、個股與部位風險，再提供可解釋的研究建議。
@@ -134,7 +134,7 @@ export function AiCheckScreen() {
 
       <View style={styles.columns}>
         <Card style={styles.formCard}>
-          <SectionHeader eyebrow="Position Input" title="持股資訊" />
+          <SectionHeader eyebrow="持股輸入" title="持股資訊" />
           {positions.data?.some((item) => item.symbol === symbol.trim()) ? (
             <View style={styles.prefillNotice}>
               <Badge tone="positive">已帶入研究持倉</Badge>
@@ -239,7 +239,7 @@ export function AiCheckScreen() {
             <Card style={styles.resultCard}>
               <View style={styles.resultTop}>
                 <View>
-                  <Text style={styles.resultEyebrow}>JASIC CONCLUSION</Text>
+                  <Text style={styles.resultEyebrow}>JASIC 檢核結論</Text>
                   <Text style={styles.action}>{actionLabel(mutation.data.action)}</Text>
                 </View>
                 <Badge tone={mutation.data.action === 'WAIT' ? 'warning' : 'positive'}>
@@ -277,7 +277,7 @@ export function AiCheckScreen() {
         </View>
       </View>
 
-      <SectionHeader eyebrow="Decision Journal" title="AI Check 歷史紀錄" />
+      <SectionHeader eyebrow="決策紀錄" title="AI Check 歷史紀錄" />
       <AiCheckHistory />
     </View>
   );

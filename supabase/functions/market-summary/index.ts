@@ -65,9 +65,9 @@ Deno.serve(async (request) => {
       );
       return {
         code: definition.code,
-        label: definition.name_zh,
-        value: value?.display_value ?? String(value?.value ?? '—'),
-        trend: value?.trend_note ?? '等待最新資料',
+        label: translateMacroText(definition.name_zh),
+        value: translateMacroText(value?.display_value ?? String(value?.value ?? '—')),
+        trend: translateMacroText(value?.trend_note ?? '等待最新資料'),
         state: value?.state ?? 'neutral',
         unit: definition.unit,
         frequency: definition.frequency,
@@ -83,10 +83,10 @@ Deno.serve(async (request) => {
   );
 
   const regimeLabels: Record<string, string> = {
-    risk_on: 'Risk On',
-    neutral_rotation: 'Neutral / Rotation',
-    high_volatility: 'High Volatility',
-    risk_off: 'Risk Off',
+    risk_on: '風險偏多',
+    neutral_rotation: '中性輪動',
+    high_volatility: '高波動',
+    risk_off: '風險偏空',
   };
 
   const strategy = score.strategy_bias as Record<string, unknown>;
@@ -137,3 +137,16 @@ Deno.serve(async (request) => {
     ),
   );
 });
+
+function translateMacroText(value: string) {
+  return {
+    'Global Trend': '全球趨勢',
+    'Neutral / Rotation': '中性輪動',
+    'Staging baseline trend signal.': '目前為 staging 基準趨勢訊號。',
+    'Volatility Index': '波動指標',
+    'Volatility is watchful but not panic-level.': '波動需留意，但尚未達恐慌水準。',
+    'Risk On': '風險偏多',
+    'High Volatility': '高波動',
+    'Risk Off': '風險偏空',
+  }[value] ?? value;
+}

@@ -86,7 +86,7 @@ export function AiCheckHistory() {
       <Card style={styles.detailCard}>
         <View style={styles.detailTop}>
           <View>
-            <Text style={styles.detailEyebrow}>HISTORICAL DECISION RECORD</Text>
+            <Text style={styles.detailEyebrow}>歷史決策紀錄</Text>
             <Text style={styles.detailTitle}>
               {selected.name} · {actionLabel(selected.action)}
             </Text>
@@ -116,16 +116,16 @@ export function AiCheckHistory() {
         <HistoryList title="建議" items={selected.suggestions} tone="positive" />
 
         <View style={styles.audit}>
-          <Text style={styles.auditTitle}>AI Governance Audit</Text>
-          <AuditLine label="Model" value={selected.modelIdentifier} />
-          <AuditLine label="Prompt" value={selected.promptVersion} />
-          <AuditLine label="Schema" value={selected.responseSchemaVersion} />
-          <AuditLine label="Rule" value={selected.ruleVersion} />
+          <Text style={styles.auditTitle}>AI 治理稽核</Text>
+          <AuditLine label="模型" value={selected.modelIdentifier} />
+          <AuditLine label="提示版本" value={selected.promptVersion} />
+          <AuditLine label="格式版本" value={selected.responseSchemaVersion} />
+          <AuditLine label="規則版本" value={selected.ruleVersion} />
           <AuditLine
-            label="Allowed actions"
-            value={selected.allowedActions.join(', ')}
+            label="允許動作"
+            value={selected.allowedActions.map(actionLabel).join('、')}
           />
-          <AuditLine label="Generated at" value={formatDateTime(selected.createdAt)} />
+          <AuditLine label="產生時間" value={formatDateTime(selected.createdAt)} />
         </View>
 
         <Text style={styles.disclaimer}>
@@ -177,7 +177,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 function AuditLine({ label, value }: { label: string; value: string }) {
   return (
     <Text style={styles.auditText}>
-      {label}: {value || 'unknown'}
+      {label}：{value || '未提供'}
     </Text>
   );
 }

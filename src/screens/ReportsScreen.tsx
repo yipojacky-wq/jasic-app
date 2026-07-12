@@ -105,7 +105,7 @@ export function ReportsScreen() {
         </View>
         <View style={styles.detailHero}>
           <Badge tone={report.reportType === 'risk_alert' ? 'danger' : 'info'}>
-            {report.type}
+            {reportTypeLabel(report.type)}
           </Badge>
           <Text style={styles.detailTitle}>{report.title}</Text>
           <Text style={styles.detailSummary}>{report.summary}</Text>
@@ -133,7 +133,7 @@ export function ReportsScreen() {
         {report.stockSymbol ? (
           <View style={styles.detailAction}>
             <PrimaryButton
-              label={`開啟 ${report.stockSymbol} Stock War Room`}
+              label={`開啟 ${report.stockSymbol} 個股作戰室`}
               onPress={() => openStock(report.stockSymbol!)}
             />
           </View>
@@ -171,7 +171,7 @@ export function ReportsScreen() {
   return (
     <View style={styles.page}>
       <View style={styles.header}>
-        <Badge tone="info">Trend Intelligence</Badge>
+        <Badge tone="info">趨勢情報</Badge>
         <Text style={styles.title}>趨勢報告</Text>
         <Text style={styles.subtitle}>用一致格式追蹤環境、核心池、個股戰情與風險變化。</Text>
       </View>
@@ -243,7 +243,7 @@ export function ReportsScreen() {
                 style={styles.reportBody}
               >
                 <Badge tone={report.type === 'Risk' ? 'danger' : report.type === 'Weekly' ? 'positive' : 'info'}>
-                  {report.type}
+                  {reportTypeLabel(report.type)}
                 </Badge>
                 <Text style={styles.reportTitle}>{report.title}</Text>
                 <Text style={styles.date}>{report.date}</Text>
@@ -293,6 +293,19 @@ function filterLabel(filter: ReportFilter) {
     Risk: '風險警示',
     Saved: '已收藏',
   }[filter];
+}
+
+function reportTypeLabel(value: string) {
+  return {
+    Daily: '每日市場',
+    Weekly: '核心池週報',
+    'War Room': '個股戰情',
+    Risk: '風險警示',
+    每日市場: '每日市場',
+    核心池週報: '核心池週報',
+    個股戰情: '個股戰情',
+    風險警示: '風險警示',
+  }[value] ?? value;
 }
 
 function ReportSectionCard({ section }: { section: ReportSection }) {

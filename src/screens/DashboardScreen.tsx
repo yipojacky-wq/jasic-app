@@ -59,7 +59,7 @@ export function DashboardScreen() {
         </View>
       </View>
 
-      <SectionHeader eyebrow="Score Decomposition" title="Market Score 拆解" />
+      <SectionHeader eyebrow="分數拆解" title="市場分數拆解" />
       <View style={styles.componentGrid}>
         {data.components.map((component) => (
           <Card key={component.code} style={styles.componentCard}>
@@ -76,7 +76,7 @@ export function DashboardScreen() {
         ))}
       </View>
 
-      <SectionHeader eyebrow="Macro Lens" title="五大總經指標" />
+      <SectionHeader eyebrow="總經觀察" title="五大總經指標" />
       <View style={styles.indicatorGrid}>
         {data.indicators.map((indicator) => {
           const expanded = expandedIndicator === indicator.code;
@@ -162,7 +162,7 @@ export function DashboardScreen() {
         </View>
 
         <View style={styles.column}>
-          <SectionHeader eyebrow="Risk Center" title="今日風險雷達" />
+          <SectionHeader eyebrow="風險中心" title="今日風險雷達" />
           <Card style={styles.riskCard}>
             <Text style={styles.riskTitle}>風險分數 {data.riskScore} / 100</Text>
             <ProgressBar value={data.riskScore} color={colors.amber} />

@@ -36,10 +36,10 @@ Deno.serve(async (request) => {
   }
 
   const labels: Record<string, string> = {
-    daily_market: 'Daily',
-    weekly_core_pool: 'Weekly',
-    stock_war_room: 'War Room',
-    risk_alert: 'Risk',
+    daily_market: '每日市場',
+    weekly_core_pool: '核心池週報',
+    stock_war_room: '個股戰情',
+    risk_alert: '風險警示',
   };
 
   const latestByType = new Map<string, any>();

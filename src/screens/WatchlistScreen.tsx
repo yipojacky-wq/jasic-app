@@ -52,7 +52,7 @@ export function WatchlistScreen() {
   return (
     <View style={styles.page}>
       <View style={styles.header}>
-        <Badge tone="info">Personalized Analysis</Badge>
+        <Badge tone="info">個人化分析</Badge>
         <Text style={styles.title}>我的觀察清單</Text>
         <Text style={styles.subtitle}>集中查看分數變化、風險警示與最新個股摘要。</Text>
       </View>
@@ -72,11 +72,11 @@ export function WatchlistScreen() {
         </Card>
       </View>
 
-      <SectionHeader eyebrow="Portfolio Context" title="我的研究持倉" />
+      <SectionHeader eyebrow="持倉脈絡" title="我的研究持倉" />
       <PortfolioRiskSummary />
       <PositionManager />
 
-      <SectionHeader eyebrow="Score Change" title="追蹤標的" />
+      <SectionHeader eyebrow="分數變化" title="追蹤標的" />
       {summary.items.length ? (
         <View style={styles.grid}>
           {summary.items.map((stock) => (
@@ -129,15 +129,15 @@ export function WatchlistScreen() {
         <Card style={styles.empty}>
           <Text style={styles.emptyTitle}>尚未加入觀察標的</Text>
           <Text style={styles.emptyText}>
-            從 Discovery Pool 或 Stock War Room 加入股票後，會在這裡追蹤分數與風險變化。
+            從三層漏斗或個股作戰室加入股票後，會在這裡追蹤分數與風險變化。
           </Text>
         </Card>
       )}
 
-      <SectionHeader eyebrow="Alert Preferences" title="個人化警示規則" />
+      <SectionHeader eyebrow="警示偏好" title="個人化警示規則" />
       <AlertPreferences />
 
-      <SectionHeader eyebrow="Risk Center" title="最新警示" />
+      <SectionHeader eyebrow="風險中心" title="最新警示" />
       {alerts.isLoading ? (
         <ActivityIndicator color={colors.primary} />
       ) : alerts.error ? (

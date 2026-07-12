@@ -35,22 +35,23 @@ Deno.serve(async (request) => {
         .maybeSingle(),
       supabase
         .from('discovery_runs')
-        .select('id, as_of, rule_version')
+        .select('id, as_of, rule_version, completed_at')
         .eq('status', 'completed')
+        .order('completed_at', { ascending: false })
         .order('as_of', { ascending: false })
-        .limit(1)
-        .maybeSingle(),
+        .limit(12),
     ]);
     if (marketError) throw marketError;
     if (runError) throw runError;
-    if (!market || !run) {
+    const selectedRun = await selectBestDiscoveryRun(supabase, run ?? [], 20);
+    if (!market || !selectedRun) {
       return jsonResponse(errorEnvelope('INSUFFICIENT_DATA', 'Market or Discovery snapshot unavailable'), 503);
     }
 
     const { data: candidates, error: candidateError } = await supabase
       .from('discovery_candidates')
       .select('rank, discovery_score, category, risk_flags, stock_id, stocks!inner(symbol, name_zh, industry_code)')
-      .eq('run_id', run.id)
+      .eq('run_id', selectedRun.id)
       .order('rank')
       .limit(20);
     if (candidateError) throw candidateError;
@@ -66,7 +67,7 @@ Deno.serve(async (request) => {
     const highRiskCount = (candidates ?? []).filter((candidate: any) =>
       Array.isArray(candidate.risk_flags) && candidate.risk_flags.length > 0
     ).length;
-    const greenCount = await countGreenScores(supabase, run.as_of);
+    const greenCount = await countGreenScores(supabase, selectedRun.as_of);
 
     const reportRows: Record<string, unknown>[] = [
       {
@@ -97,12 +98,12 @@ Deno.serve(async (request) => {
         published_at: new Date().toISOString(),
       },
       {
-        report_key: `weekly_core_pool:${weekKey}:${run.rule_version}`,
+        report_key: `weekly_core_pool:${weekKey}:${selectedRun.rule_version}`,
         report_type: 'weekly_core_pool',
         title: `${weekKey} 核心池週報`,
         period_start: weekStart(asOfDate),
         period_end: asOfDate,
-        as_of: run.as_of,
+        as_of: selectedRun.as_of,
         summary: `核心池共 ${(candidates ?? []).length} 檔，前段產業為 ${industries.join('、') || '資料不足'}。`,
         content: {
           metrics: [
@@ -137,7 +138,7 @@ Deno.serve(async (request) => {
           disclaimer: reportDisclaimer(),
         },
         status: 'published',
-        rule_version: run.rule_version,
+        rule_version: selectedRun.rule_version,
         published_at: new Date().toISOString(),
       },
       {
@@ -211,11 +212,11 @@ Deno.serve(async (request) => {
                 title: '五大構面',
                 tone: 'info',
                 items: [
-                  `Market ${Number(score.market_score).toFixed(1)}`,
-                  `Institution ${Number(score.institution_score).toFixed(1)}`,
-                  `Chip ${Number(score.chip_score).toFixed(1)}（暫定）`,
+                  `市場 ${Number(score.market_score).toFixed(1)}`,
+                  `法人 ${Number(score.institution_score).toFixed(1)}`,
+                  `籌碼 ${Number(score.chip_score).toFixed(1)}（暫定）`,
                   `OI ${Number(score.oi_score).toFixed(1)}（資料未完整）`,
-                  `Technical ${Number(score.technical_score).toFixed(1)}`,
+                  `技術 ${Number(score.technical_score).toFixed(1)}`,
                 ],
               },
               {
@@ -233,9 +234,16 @@ Deno.serve(async (request) => {
       }
     }
 
+    const reportKeys = reportRows.map((row) => String(row.report_key));
+    const { error: deleteError } = await supabase
+      .from('reports')
+      .delete()
+      .in('report_key', reportKeys);
+    if (deleteError) throw deleteError;
+
     const { error: upsertError } = await supabase
       .from('reports')
-      .upsert(reportRows, { onConflict: 'report_key' });
+      .insert(reportRows);
     if (upsertError) throw upsertError;
 
     return jsonResponse(envelope({
@@ -250,7 +258,11 @@ Deno.serve(async (request) => {
     return jsonResponse(
       errorEnvelope(
         'REPORT_GENERATION_FAILED',
-        error instanceof Error ? error.message : 'Unknown report error',
+        error instanceof Error
+          ? error.message
+          : typeof error === 'object'
+            ? JSON.stringify(error)
+            : String(error),
       ),
       500,
     );
@@ -283,4 +295,22 @@ async function countGreenScores(supabase: any, asOf: string) {
     .eq('as_of', asOf)
     .eq('signal', 'green');
   return count ?? 0;
+}
+
+async function selectBestDiscoveryRun(
+  supabase: any,
+  runs: Array<{ id: string; as_of: string; rule_version: string; completed_at?: string }>,
+  requestedLimit: number,
+) {
+  let fallback = null;
+  for (const run of runs) {
+    const { count, error } = await supabase
+      .from('discovery_candidates')
+      .select('run_id', { count: 'exact', head: true })
+      .eq('run_id', run.id);
+    if (error) throw error;
+    if (!fallback && Number(count ?? 0) > 0) fallback = run;
+    if (Number(count ?? 0) >= requestedLimit) return run;
+  }
+  return fallback;
 }

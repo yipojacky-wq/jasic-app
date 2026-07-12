@@ -155,18 +155,18 @@ export function buildRuleBasedAiCheckResult(
     action,
     conclusion: ruleBasedConclusion(action),
     reasons: [
-      `Stock score ${Math.round(input.stockTotalScore)} and risk score ${Math.round(input.stockRiskScore)} are evaluated by JASIC rule-based staging logic.`,
-      `Market regime is ${input.marketRegime ?? 'unknown'} and confidence score is ${Math.round(input.stockConfidenceScore)}.`,
+      `JASIC Score 為 ${Math.round(input.stockTotalScore)}，風險分數為 ${Math.round(input.stockRiskScore)}，系統依目前規則進行研究檢核。`,
+      `市場狀態為「${marketRegimeLabel(input.marketRegime)}」，資料信心分數為 ${Math.round(input.stockConfidenceScore)}。`,
     ],
     risks: [
-      'Market data, score rules, and source freshness can change after this check.',
+      '市場資料、分數規則與資料新鮮度可能在本次檢核後改變。',
       input.stockRiskScore >= 70
-        ? 'Risk score is elevated, so position sizing should remain conservative.'
-        : 'Risk score is not extreme, but downside scenarios still need monitoring.',
+        ? '風險分數偏高，部位規模應維持保守。'
+        : '風險分數未達極端，但仍需監控下行情境。',
     ],
     suggestions: [
-      'Use this result as a research checklist and compare it with your own plan.',
-      'Re-check after new market data, earnings, or major macro events are released.',
+      '請把本結果作為研究檢核清單，並與你的原始交易計畫交叉確認。',
+      '若有新行情、財報或重大總經事件發布，請重新檢核。',
     ],
     confidence,
   };
@@ -242,13 +242,22 @@ function firstAllowed(
 
 function ruleBasedConclusion(action: AiCheckAction) {
   const labels: Record<AiCheckAction, string> = {
-    ADD: 'Rule-based staging check allows a cautious add-on review, subject to risk controls.',
-    HOLD: 'Rule-based staging check favors holding while monitoring score and risk changes.',
-    WAIT: 'Rule-based staging check favors waiting until data quality, confidence, or market conditions improve.',
-    REDUCE: 'Rule-based staging check favors reducing exposure if the position exceeds your risk plan.',
-    STOP_LOSS: 'Rule-based staging check favors respecting the predefined loss-control plan.',
+    ADD: '規則檢核允許保守評估加碼，但必須受風險控管約束。',
+    HOLD: '規則檢核偏向續抱，同時持續觀察分數與風險變化。',
+    WAIT: '規則檢核偏向觀望，等待資料品質、信心或市場條件改善。',
+    REDUCE: '若目前部位已超過你的風險計畫，規則檢核偏向減碼。',
+    STOP_LOSS: '規則檢核偏向尊重預先設定的停損與風險控制計畫。',
   };
   return labels[action];
+}
+
+function marketRegimeLabel(value?: string | null) {
+  return {
+    risk_on: '風險偏多',
+    neutral_rotation: '中性輪動',
+    high_volatility: '高波動',
+    risk_off: '風險偏空',
+  }[value ?? ''] ?? '未知';
 }
 
 function isNonEmptyString(value: unknown): value is string {
