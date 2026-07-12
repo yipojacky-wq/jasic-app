@@ -13,6 +13,7 @@ $functions = @(
   "reports-latest",
   "ai-check",
   "market-data-ingest",
+  "market-data-backfill",
   "score-calculate",
   "stock-war-room",
   "watchlist-summary",

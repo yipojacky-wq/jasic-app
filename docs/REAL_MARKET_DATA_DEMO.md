@@ -109,3 +109,37 @@ AI Check 會輸出：
 2. 新增歷史行情回補 pipeline，一次補足最近 20 至 60 個交易日。
 
 MVP 小規模測試建議先採第 1 條；正式 demo 或投資研究展示建議做第 2 條。
+
+## 歷史行情回補
+
+已新增 `market-data-backfill` Edge Function，可從 TWSE / TPEx 官方歷史 JSON 端點回補近期交易日資料。
+
+部署 function 後執行：
+
+```powershell
+npm run market:backfill
+```
+
+預設行為：
+
+- 目標回補 25 個有效交易日。
+- 每批掃描 5 個日曆日。
+- 假日、休市或官方端點無資料會自動跳過。
+- 每批回補後會自動嘗試執行 `score-calculate`。
+
+可調整參數：
+
+```powershell
+$env:JASIC_BACKFILL_TRADING_DAYS="60"
+$env:JASIC_BACKFILL_BATCH_DAYS="5"
+$env:JASIC_BACKFILL_MAX_BATCHES="24"
+npm run market:backfill
+```
+
+回補成功且每檔股票累積至少 20 個交易日後，`score-calculate` 會產生：
+
+- `stock_features_daily`
+- `stock_score_snapshots`
+- `market_score_snapshots`
+- `discovery_runs`
+- `discovery_candidates`
