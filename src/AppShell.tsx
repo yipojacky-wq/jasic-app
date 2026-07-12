@@ -44,8 +44,13 @@ export function AppShell() {
       <View style={styles.body}>
         {!mobile ? <Sidebar activeTab={activeTab} onChange={setActiveTab} /> : null}
         <ScrollView
+          alwaysBounceVertical={false}
+          bounces={false}
           contentContainerStyle={[styles.content, mobile && styles.contentMobile]}
+          keyboardShouldPersistTaps="handled"
+          overScrollMode="never"
           showsVerticalScrollIndicator={false}
+          style={styles.scrollArea}
         >
           <View style={styles.contentInner}>
             {selectedSymbol ? (
@@ -76,7 +81,7 @@ function Header({
         </View>
         <View>
           <Text style={styles.brandName}>JASIC</Text>
-          {!mobile ? <Text style={styles.brandTagline}>Stock Intelligence Companion</Text> : null}
+          {!mobile ? <Text style={styles.brandTagline}>股票分析與風險檢核工具</Text> : null}
         </View>
       </View>
       <View style={styles.headerRight}>
@@ -84,7 +89,7 @@ function Header({
           <View style={[styles.connection, isLiveMode && styles.connectionLive]}>
             <View style={[styles.connectionDot, isLiveMode && styles.connectionDotLive]} />
             <Text style={styles.connectionText}>
-              {isLiveMode ? 'Live data mode' : 'Demo data mode'}
+              {isLiveMode ? '正式資料模式' : '展示資料模式'}
             </Text>
           </View>
         ) : null}
@@ -109,7 +114,7 @@ function Sidebar({
 }) {
   return (
     <View style={styles.sidebar}>
-      <Text style={styles.sidebarLabel}>DECISION CENTER</Text>
+      <Text style={styles.sidebarLabel}>決策中心</Text>
       {tabs.map((tab, index) => (
         <Pressable
           key={tab.key}
@@ -224,6 +229,7 @@ const styles = StyleSheet.create({
   },
   avatarText: { color: colors.ink, fontSize: 10, fontWeight: '900' },
   body: { flex: 1, flexDirection: 'row' },
+  scrollArea: { flex: 1 },
   sidebar: {
     backgroundColor: colors.ink,
     borderRightColor: '#263249',

@@ -9,6 +9,7 @@ import {
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native';
 
 import {
@@ -33,6 +34,8 @@ import { colors } from '../theme';
 import type { Signal, StockCandidate } from '../types';
 
 export function DiscoveryScreen() {
+  const { width } = useWindowDimensions();
+  const mobile = width < 560;
   const openStock = useAppStore((state) => state.openStock);
   const [expandedSymbol, setExpandedSymbol] = useState<string | null>(null);
   const [filters, setFilters] = useState<DiscoveryFilters>({
@@ -50,6 +53,19 @@ export function DiscoveryScreen() {
     () => filterDiscoveryCandidates(data ?? [], filters),
     [data, filters],
   );
+  const hasActiveFilters =
+    Boolean(filters.search.trim()) ||
+    filters.signal !== 'all' ||
+    filters.risk !== 'all' ||
+    filters.category !== 'all';
+  const resetFilters = () =>
+    setFilters({
+      search: '',
+      signal: 'all',
+      risk: 'all',
+      category: 'all',
+      sort: 'rank',
+    });
 
   if (isLoading) {
     return <ActivityIndicator color={colors.primary} size="large" style={styles.loader} />;
@@ -64,7 +80,7 @@ export function DiscoveryScreen() {
     <View style={styles.page}>
       <View style={styles.titleBlock}>
         <Badge tone="info">三層漏斗 · 每日盤後更新</Badge>
-        <Text style={styles.title}>Discovery Pool</Text>
+        <Text style={styles.title}>三層漏斗選股</Text>
         <Text style={styles.subtitle}>
           先確認市場允許承擔風險，再追蹤法人與主力，最後用技術和風險條件篩出候選股。
         </Text>
@@ -86,14 +102,25 @@ export function DiscoveryScreen() {
       </View>
 
       <Card style={styles.controls}>
-        <TextInput
-          accessibilityLabel="搜尋候選股票"
-          onChangeText={(search) => setFilters((current) => ({ ...current, search }))}
-          placeholder="搜尋代號、名稱、產業或候選類型"
-          placeholderTextColor="#98A2B1"
-          style={styles.searchInput}
-          value={filters.search}
-        />
+        <View style={styles.searchRow}>
+          <TextInput
+            accessibilityLabel="搜尋候選股票"
+            onChangeText={(search) => setFilters((current) => ({ ...current, search }))}
+            placeholder="搜尋 Top 20 代號、名稱或產業"
+            placeholderTextColor="#98A2B1"
+            style={styles.searchInput}
+            value={filters.search}
+          />
+          {hasActiveFilters ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={resetFilters}
+              style={styles.clearButton}
+            >
+              <Text style={styles.clearButtonText}>顯示全部</Text>
+            </Pressable>
+          ) : null}
+        </View>
 
         <FilterGroup label="燈號">
           {(['all', 'green', 'yellow', 'red'] as Array<'all' | Signal>).map((value) => (
@@ -157,11 +184,11 @@ export function DiscoveryScreen() {
           />
         </View>
         <Text style={styles.resultCount}>
-          顯示 {filtered.length} / {data.length} 檔候選
+          目前顯示 {filtered.length} / {data.length} 檔候選。若搜尋不到，代表該股票不在今日 Top 20，可按「顯示全部」回到完整清單。
         </Text>
       </Card>
 
-      <SectionHeader eyebrow="Opportunity Ranking" title="今日 Top 候選" />
+      <SectionHeader eyebrow="正式選股結果" title="今日 Top 20 候選股" />
       <View style={styles.table}>
         {filtered.map((stock) => {
           const expanded = expandedSymbol === stock.symbol;
@@ -170,12 +197,12 @@ export function DiscoveryScreen() {
               <Pressable
                 accessibilityLabel={`展開 ${stock.symbol} 候選證據`}
                 onPress={() => setExpandedSymbol(expanded ? null : stock.symbol)}
-                style={styles.stockCard}
+                style={[styles.stockCard, mobile && styles.stockCardMobile]}
               >
                 <Text style={styles.rank}>
                   {String(stock.rank ?? data.indexOf(stock) + 1).padStart(2, '0')}
                 </Text>
-                <View style={styles.identity}>
+                <View style={[styles.identity, mobile && styles.identityMobile]}>
                   <View style={styles.nameRow}>
                     <SignalDot signal={stock.signal} />
                     <Text style={styles.name}>{stock.name}</Text>
@@ -185,14 +212,14 @@ export function DiscoveryScreen() {
                     {stock.industry} · {categoryLabel(stock.category)}
                   </Text>
                 </View>
-                <View style={styles.scoreBlock}>
+                <View style={[styles.scoreBlock, mobile && styles.scoreBlockMobile]}>
                   <Text style={styles.score}>{stock.score.toFixed(1)}</Text>
                   <Text style={[styles.change, stock.change < 0 && styles.negative]}>
                     {stock.change > 0 ? '+' : ''}
                     {stock.change.toFixed(1)}
                   </Text>
                 </View>
-                <View style={styles.badges}>
+                <View style={[styles.badges, mobile && styles.badgesMobile]}>
                   <Badge tone={stock.risk === '低' ? 'positive' : stock.risk === '中' ? 'warning' : 'danger'}>
                     {stock.risk}風險
                   </Badge>
@@ -239,7 +266,7 @@ export function DiscoveryScreen() {
                       資料 {formatDate(stock.dataAsOf)} · {stock.ruleVersion ?? '規則版本未提供'}
                     </Text>
                     <PrimaryButton
-                      label="開啟 Stock War Room"
+                      label="開啟個股作戰室"
                       onPress={() => openStock(stock.symbol)}
                     />
                   </View>
@@ -253,7 +280,10 @@ export function DiscoveryScreen() {
       {!filtered.length ? (
         <Card style={styles.empty}>
           <Text style={styles.emptyTitle}>沒有符合條件的候選股</Text>
-          <Text style={styles.emptyText}>調整搜尋、燈號、風險或類型篩選後再試一次。</Text>
+          <Text style={styles.emptyText}>
+            例如你搜尋「國巨」但它若不在今日 Top 20，這裡就會是空白。請清除搜尋或切到 AI 檢核輸入單一股票。
+          </Text>
+          <PrimaryButton label="清除條件並顯示全部" onPress={resetFilters} secondary />
         </Card>
       ) : null}
 
@@ -363,16 +393,35 @@ const styles = StyleSheet.create({
   funnelName: { color: colors.text, fontSize: 16, fontWeight: '800', marginTop: 10 },
   funnelCount: { color: colors.textSoft, fontSize: 11, lineHeight: 17, marginBottom: 14, marginTop: 5 },
   controls: { gap: 13 },
+  searchRow: {
+    alignItems: 'stretch',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
   searchInput: {
     backgroundColor: colors.canvas,
     borderColor: colors.border,
     borderRadius: 12,
     borderWidth: 1,
     color: colors.text,
+    flex: 1,
     fontSize: 14,
+    minHeight: 46,
+    minWidth: 190,
+    paddingHorizontal: 13,
+  },
+  clearButton: {
+    alignItems: 'center',
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    justifyContent: 'center',
     minHeight: 46,
     paddingHorizontal: 13,
   },
+  clearButtonText: { color: colors.primary, fontSize: 12, fontWeight: '900' },
   filterGroup: { gap: 6 },
   filterLabel: { color: colors.textSoft, fontSize: 10, fontWeight: '900' },
   filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
@@ -404,17 +453,25 @@ const styles = StyleSheet.create({
     gap: 14,
     padding: 16,
   },
+  stockCardMobile: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    gap: 10,
+  },
   rank: { color: '#A2ADBC', fontSize: 16, fontWeight: '900', width: 26 },
   identity: { flex: 1, minWidth: 160 },
+  identityMobile: { minWidth: '100%', width: '100%' },
   nameRow: { alignItems: 'center', flexDirection: 'row', gap: 8 },
   name: { color: colors.text, fontSize: 15, fontWeight: '900' },
   symbol: { color: colors.textSoft, fontSize: 11 },
   meta: { color: colors.textSoft, fontSize: 11, marginLeft: 18, marginTop: 5 },
   scoreBlock: { alignItems: 'flex-end' },
+  scoreBlockMobile: { alignItems: 'flex-start', width: '100%' },
   score: { color: colors.text, fontSize: 22, fontWeight: '900' },
   change: { color: colors.green, fontSize: 10, fontWeight: '700' },
   negative: { color: colors.red },
   badges: { alignItems: 'flex-end', gap: 5 },
+  badgesMobile: { alignItems: 'flex-start', flexDirection: 'row', flexWrap: 'wrap' },
   evidencePanel: {
     backgroundColor: colors.canvas,
     borderTopColor: colors.border,

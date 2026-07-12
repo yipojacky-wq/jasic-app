@@ -43,25 +43,25 @@ export function filterDiscoveryCandidates(
 
 export function discoveryCandidatesToCsv(candidates: StockCandidate[]) {
   const header = [
-    'Rank',
-    'Symbol',
-    'Name',
-    'Industry',
-    'Category',
-    'Score',
-    'Signal',
-    'Risk',
-    'Confidence',
-    'Reasons',
+    '排名',
+    '股票代號',
+    '股票名稱',
+    '產業',
+    '候選類型',
+    '分數',
+    '燈號',
+    '風險',
+    '信心度',
+    '入選原因',
   ];
   const rows = candidates.map((candidate) => [
     candidate.rank ?? '',
     candidate.symbol,
     candidate.name,
     candidate.industry,
-    candidate.category,
+    categoryLabel(candidate.category),
     candidate.score,
-    candidate.signal,
+    signalLabel(candidate.signal),
     candidate.risk,
     candidate.confidence ?? '',
     (candidate.rankReasons ?? []).join('；'),
@@ -77,7 +77,18 @@ export function categoryLabel(value: string) {
     accumulation: '法人累積',
     breakout: '突破',
     reversal: '反轉觀察',
+    'Core Leader': '核心領先股',
+    'Momentum Watch': '動能觀察股',
+    'Trend Candidate': '趨勢候選股',
   }[value] ?? value;
+}
+
+export function signalLabel(value: Signal) {
+  return {
+    green: '綠燈',
+    yellow: '黃燈',
+    red: '紅燈',
+  }[value];
 }
 
 function riskOrder(risk: StockCandidate['risk']) {

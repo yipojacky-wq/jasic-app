@@ -2,7 +2,7 @@ import 'react-native-url-polyfill/auto';
 
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 import { AppShell } from './src/AppShell';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
@@ -24,6 +24,15 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  if (Platform.OS === 'web' && typeof document !== 'undefined') {
+    document.documentElement.style.height = '100%';
+    document.documentElement.style.overscrollBehavior = 'none';
+    document.body.style.height = '100%';
+    document.body.style.margin = '0';
+    document.body.style.overscrollBehavior = 'none';
+    document.body.style.overflow = 'hidden';
+  }
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
