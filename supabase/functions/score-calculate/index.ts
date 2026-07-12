@@ -200,8 +200,21 @@ Deno.serve(async (request) => {
       .single();
     if (runError) throw runError;
 
-    const topCandidates = [...scoreRows]
-      .filter((row) => row.risk_score < currentDiscoveryFunnelRule.config.maximumRiskScore && row.total_score >= currentDiscoveryFunnelRule.config.minimumTotalScore)
+    const rankedScoreRows = [...scoreRows]
+      .filter((row) => row.risk_score < currentDiscoveryFunnelRule.config.maximumRiskScore)
+      .sort((a, b) => b.total_score - a.total_score);
+    const primaryCandidates = rankedScoreRows
+      .filter((row) => row.total_score >= currentDiscoveryFunnelRule.config.minimumTotalScore)
+      .slice(0, currentDiscoveryFunnelRule.config.candidateLimit);
+    const primaryIds = new Set(primaryCandidates.map((row) => row.stock_id));
+    const supplementalCandidates =
+      primaryCandidates.length >= currentDiscoveryFunnelRule.config.candidateLimit
+        ? []
+        : rankedScoreRows
+          .filter((row) => !primaryIds.has(row.stock_id))
+          .slice(0, currentDiscoveryFunnelRule.config.candidateLimit - primaryCandidates.length);
+
+    const topCandidates = [...primaryCandidates, ...supplementalCandidates]
       .sort((a, b) => b.total_score - a.total_score)
       .slice(0, currentDiscoveryFunnelRule.config.candidateLimit)
       .map((row, index) => ({
@@ -223,7 +236,12 @@ Deno.serve(async (request) => {
           `技術分數 ${row.technical_score}`,
           `法人分數 ${row.institution_score}`,
         ],
-        risk_flags: row.risk_score >= 60 ? ['high_volatility'] : [],
+        risk_flags: [
+          ...(row.risk_score >= 60 ? ['high_volatility'] : []),
+          ...(row.total_score < currentDiscoveryFunnelRule.config.minimumTotalScore
+            ? ['watchlist_fill_candidate']
+            : []),
+        ],
       }));
     if (topCandidates.length) {
       await supabase.from('discovery_candidates').insert(topCandidates);

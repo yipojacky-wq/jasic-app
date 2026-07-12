@@ -221,7 +221,7 @@ function fulfilledOrEmpty<T extends { rows: string[][]; received: number }>(
   result: PromiseSettledResult<T>,
 ): T {
   if (result.status === 'fulfilled') return result.value;
-  return { rows: [], received: 0 } as T;
+  return { rows: [], received: 0 } as unknown as T;
 }
 
 function rejectedReason(result: PromiseSettledResult<unknown>, label: string) {

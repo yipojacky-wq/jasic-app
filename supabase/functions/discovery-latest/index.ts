@@ -17,17 +17,18 @@ Deno.serve(async (request) => {
   const limit = Math.min(Math.max(Number(query.limit ?? 20), 1), 50);
   const supabase = createServiceClient();
 
-  const { data: run, error: runError } = await supabase
+  const { data: runs, error: runError } = await supabase
     .from('discovery_runs')
-    .select('id, as_of, rule_version')
+    .select('id, as_of, rule_version, completed_at')
     .eq('status', 'completed')
+    .order('completed_at', { ascending: false })
     .order('as_of', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(12);
 
   if (runError) {
     return jsonResponse(errorEnvelope('DATABASE_ERROR', runError.message), 500);
   }
+  const run = await selectBestDiscoveryRun(supabase, runs ?? [], limit);
   if (!run) {
     return jsonResponse(errorEnvelope('INSUFFICIENT_DATA', 'No completed discovery run'), 503);
   }
@@ -110,3 +111,21 @@ Deno.serve(async (request) => {
     }),
   );
 });
+
+async function selectBestDiscoveryRun(
+  supabase: any,
+  runs: Array<{ id: string; as_of: string; rule_version: string; completed_at?: string }>,
+  requestedLimit: number,
+) {
+  let fallback = null;
+  for (const run of runs) {
+    const { count, error } = await supabase
+      .from('discovery_candidates')
+      .select('run_id', { count: 'exact', head: true })
+      .eq('run_id', run.id);
+    if (error) throw error;
+    if (!fallback && Number(count ?? 0) > 0) fallback = run;
+    if (Number(count ?? 0) >= requestedLimit) return run;
+  }
+  return fallback;
+}

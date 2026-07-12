@@ -258,7 +258,7 @@ export function DiscoveryScreen() {
                   </View>
                   {stock.riskFlags?.length ? (
                     <Text style={styles.riskFlags}>
-                      風險標記：{stock.riskFlags.join('、')}
+                      風險標記：{stock.riskFlags.map(riskFlagLabel).join('、')}
                     </Text>
                   ) : null}
                   <View style={styles.evidenceFooter}>
@@ -379,6 +379,13 @@ async function exportCandidates(candidates: StockCandidate[]) {
 function formatDate(value?: string) {
   if (!value) return '時間未提供';
   return new Date(value).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
+}
+
+function riskFlagLabel(value: string) {
+  return {
+    high_volatility: '波動偏高',
+    watchlist_fill_candidate: '觀察補位候選',
+  }[value] ?? value;
 }
 
 const styles = StyleSheet.create({
