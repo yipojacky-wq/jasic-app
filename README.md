@@ -22,6 +22,10 @@ JASIC 是一套股票分析工具型 App，目標是提供：
 
 手機可用瀏覽器開啟並「加入主畫面」，以 PWA 方式操作。
 
+示範操作手冊：
+
+[docs/DEMO_OPERATION_MANUAL.md](docs/DEMO_OPERATION_MANUAL.md)
+
 ## Tech Stack
 
 - React Native + Expo + TypeScript
