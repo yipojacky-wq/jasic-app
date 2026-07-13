@@ -11,52 +11,27 @@ jobs:
   ingest-and-score:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
       - name: Validate required secrets
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
           test -n "$SUPABASE_URL"
+          test -n "$SUPABASE_ANON_KEY"
           test -n "$CRON_SECRET"
 
-      - name: Ingest TWSE and TPEx market data
+      - name: Run daily market data, score and report pipeline
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          curl --fail-with-body \
-            --request POST \
-            --header "x-cron-secret: $CRON_SECRET" \
-            "$SUPABASE_URL/functions/v1/market-data-ingest"
-
-      - name: Calculate provisional scores and Discovery Top 20
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          curl --fail-with-body \
-            --request POST \
-            --header "Content-Type: application/json" \
-            --header "x-cron-secret: $CRON_SECRET" \
-            --data '{}' \
-            "$SUPABASE_URL/functions/v1/score-calculate"
-
-      - name: Evaluate watchlist alerts
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          curl --fail-with-body \
-            --request POST \
-            --header "x-cron-secret: $CRON_SECRET" \
-            "$SUPABASE_URL/functions/v1/alert-evaluate"
-
-      - name: Generate trend reports
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
-        run: |
-          curl --fail-with-body \
-            --request POST \
-            --header "x-cron-secret: $CRON_SECRET" \
-            "$SUPABASE_URL/functions/v1/report-generate"
+        run: npm run pipeline:daily

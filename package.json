@@ -51,6 +51,7 @@
     "smoke:public-preview": "node scripts/smoke-public-preview.cjs",
     "market:demo": "node scripts/run-real-market-demo.cjs",
     "market:backfill": "node scripts/run-market-backfill.cjs",
+    "pipeline:daily": "node scripts/run-daily-market-pipeline.cjs",
     "supabase:deploy:functions": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy-supabase-functions.ps1",
     "supabase:set:secrets": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/set-supabase-secrets.ps1",
     "free-staging:env": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/configure-free-staging-env.ps1",
