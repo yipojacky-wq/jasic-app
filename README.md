@@ -30,6 +30,10 @@ JASIC 是一套股票分析工具型 App，目標是提供：
 
 [docs/DAILY_AUTOMATION_RUNBOOK.md](docs/DAILY_AUTOMATION_RUNBOOK.md)
 
+GitHub Actions Secrets 設定：
+
+[docs/GITHUB_ACTIONS_SECRETS_SETUP.md](docs/GITHUB_ACTIONS_SECRETS_SETUP.md)
+
 ## Tech Stack
 
 - React Native + Expo + TypeScript
