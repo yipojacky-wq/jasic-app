@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 
@@ -11,6 +13,7 @@ import {
   Badge,
   Card,
   ErrorState,
+  PrimaryButton,
   ProgressBar,
   SectionHeader,
   SignalDot,
@@ -18,17 +21,32 @@ import {
 import { PositionManager } from '../components/PositionManager';
 import { PortfolioRiskSummary } from '../components/PortfolioRiskSummary';
 import { AlertPreferences } from '../components/AlertPreferences';
-import { getAlerts, getWatchlistSummary, markAlertRead } from '../services/api';
+import {
+  getAlerts,
+  getWatchlistSummary,
+  markAlertRead,
+  searchStocks,
+  setWatchlistMembership,
+} from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { colors } from '../theme';
 
 export function WatchlistScreen() {
+  const [searchKeyword, setSearchKeyword] = useState('');
   const queryClient = useQueryClient();
   const demoWatchlist = useAppStore((state) => state.watchlist);
+  const toggleDemoWatchlist = useAppStore((state) => state.toggleWatchlist);
   const openStock = useAppStore((state) => state.openStock);
+  const normalizedKeyword = searchKeyword.trim();
   const query = useQuery({
     queryKey: ['watchlist', demoWatchlist],
     queryFn: () => getWatchlistSummary(demoWatchlist),
+  });
+  const stockSearch = useQuery({
+    queryKey: ['stock-search', normalizedKeyword],
+    queryFn: () => searchStocks(normalizedKeyword),
+    enabled: normalizedKeyword.length > 0,
+    staleTime: 60_000,
   });
   const alerts = useQuery({ queryKey: ['alerts'], queryFn: getAlerts });
   const readAlert = useMutation({
@@ -37,6 +55,21 @@ export function WatchlistScreen() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['alerts'] }),
         queryClient.invalidateQueries({ queryKey: ['watchlist'] }),
+      ]);
+    },
+  });
+  const addWatchlist = useMutation({
+    mutationFn: async (symbol: string) => {
+      if (!demoWatchlist.includes(symbol)) {
+        toggleDemoWatchlist(symbol);
+      }
+      await setWatchlistMembership(symbol, true);
+    },
+    onSuccess: async () => {
+      setSearchKeyword('');
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['watchlist'] }),
+        queryClient.invalidateQueries({ queryKey: ['alerts'] }),
       ]);
     },
   });
@@ -71,6 +104,71 @@ export function WatchlistScreen() {
           <Text style={[styles.statValue, styles.amber]}>{summary.alertCount}</Text>
         </Card>
       </View>
+
+      <Card style={styles.searchCard}>
+        <View style={styles.searchHeader}>
+          <View>
+            <Text style={styles.searchTitle}>新增股票觀察</Text>
+            <Text style={styles.searchHint}>可輸入股票代號、中文公司名稱或常用英文簡稱。</Text>
+          </View>
+        </View>
+        <TextInput
+          autoCapitalize="characters"
+          autoCorrect={false}
+          inputMode="search"
+          onChangeText={setSearchKeyword}
+          placeholder="例如：2330、台積電、TSMC"
+          placeholderTextColor="#9AA5B5"
+          style={styles.searchInput}
+          value={searchKeyword}
+        />
+        {normalizedKeyword.length ? (
+          <View style={styles.searchResults}>
+            {stockSearch.isFetching ? (
+              <ActivityIndicator color={colors.primary} />
+            ) : stockSearch.error ? (
+              <Text style={styles.searchMessage}>{stockSearch.error.message}</Text>
+            ) : stockSearch.data?.length ? (
+              stockSearch.data.map((stock) => {
+                const isWatched = summary.items.some((item) => item.symbol === stock.symbol);
+                return (
+                  <View key={`${stock.exchange}-${stock.symbol}`} style={styles.searchResultRow}>
+                    <Pressable
+                      onPress={() => openStock(stock.symbol)}
+                      style={styles.searchResultInfo}
+                    >
+                      <Text style={styles.searchResultName}>{stock.name}</Text>
+                      <Text style={styles.searchResultMeta}>
+                        {stock.symbol} · {stock.exchange}
+                        {stock.industry ? ` · ${stock.industry}` : ''}
+                      </Text>
+                    </Pressable>
+                    <PrimaryButton
+                      label={
+                        isWatched
+                          ? '已加入'
+                          : addWatchlist.isPending
+                            ? '加入中'
+                            : '加入'
+                      }
+                      onPress={() => addWatchlist.mutate(stock.symbol)}
+                      secondary={isWatched}
+                      disabled={isWatched || addWatchlist.isPending}
+                    />
+                  </View>
+                );
+              })
+            ) : (
+              <Text style={styles.searchMessage}>
+                找不到符合的股票，請改用股票代號或完整公司名稱。
+              </Text>
+            )}
+          </View>
+        ) : null}
+        {addWatchlist.error ? (
+          <Text style={styles.searchError}>{addWatchlist.error.message}</Text>
+        ) : null}
+      </Card>
 
       <SectionHeader eyebrow="持倉脈絡" title="我的研究持倉" />
       <PortfolioRiskSummary />
@@ -197,6 +295,37 @@ const styles = StyleSheet.create({
   statValue: { color: colors.text, fontSize: 30, fontWeight: '900', marginTop: 7 },
   green: { color: colors.green },
   amber: { color: colors.amber },
+  searchCard: { gap: 12 },
+  searchHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+  searchTitle: { color: colors.text, fontSize: 18, fontWeight: '900' },
+  searchHint: { color: colors.textSoft, fontSize: 12, lineHeight: 18, marginTop: 4 },
+  searchInput: {
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.border,
+    borderRadius: 14,
+    borderWidth: 1,
+    color: colors.text,
+    fontSize: 16,
+    minHeight: 48,
+    paddingHorizontal: 14,
+  },
+  searchResults: { gap: 10 },
+  searchResultRow: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: colors.border,
+    borderRadius: 14,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+    padding: 12,
+  },
+  searchResultInfo: { flex: 1 },
+  searchResultName: { color: colors.text, fontSize: 15, fontWeight: '900' },
+  searchResultMeta: { color: colors.textSoft, fontSize: 12, marginTop: 4 },
+  searchMessage: { color: colors.textSoft, fontSize: 12, lineHeight: 18 },
+  searchError: { color: colors.red, fontSize: 12, lineHeight: 18 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
   cardPressable: { flexBasis: 280, flexGrow: 1 },
   stockCard: { gap: 14 },

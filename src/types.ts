@@ -213,6 +213,14 @@ export interface WatchlistSummary {
   alertCount: number;
 }
 
+export interface StockSearchResult {
+  symbol: string;
+  name: string;
+  exchange: string;
+  industry?: string | null;
+  aliases?: string[];
+}
+
 export interface AlertSummary {
   id: string;
   symbol?: string;

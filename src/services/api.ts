@@ -21,6 +21,7 @@ import type {
   SettingsOverview,
   StockWarRoomData,
   StockCandidate,
+  StockSearchResult,
   WatchlistSummary,
   UserProfile,
   UserDataExport,
@@ -416,6 +417,94 @@ export async function getWatchlistSummary(
     risingCount: items.filter((item) => item.scoreChange > 0).length,
     alertCount: 1,
   };
+}
+
+const stockAliases: Record<string, string[]> = {
+  '2330': ['TSMC', '台灣積體電路', '台積'],
+  '2317': ['鴻海精密', 'HON HAI', 'FOXCONN'],
+  '2454': ['MEDIATEK', '聯發'],
+  '2303': ['UMC', '聯華電子'],
+  '2308': ['DELTA', '台達電'],
+  '2881': ['FUBON', '富邦金控'],
+  '2327': ['YAGEO'],
+  '2382': ['QUANTA', '廣達電腦'],
+};
+
+function matchesStockSearch(item: StockSearchResult, keyword: string) {
+  const normalized = keyword.trim().toLowerCase();
+  if (!normalized) return false;
+  return [
+    item.symbol,
+    item.name,
+    item.exchange,
+    item.industry ?? '',
+    ...(item.aliases ?? []),
+  ].some((value) => value.toLowerCase().includes(normalized));
+}
+
+export async function searchStocks(keyword: string): Promise<StockSearchResult[]> {
+  const normalized = keyword.trim();
+  if (!normalized) return [];
+
+  if (isLiveMode && supabase) {
+    const escaped = normalized.replaceAll('%', '\\%').replaceAll('_', '\\_');
+    const { data, error } = await supabase
+      .from('stocks')
+      .select('symbol, name_zh, exchange, industry_code')
+      .eq('is_active', true)
+      .or(`symbol.ilike.%${escaped}%,name_zh.ilike.%${escaped}%`)
+      .order('symbol', { ascending: true })
+      .limit(12);
+
+    if (error) throw error;
+
+    const rows = (data ?? []).map((stock) => ({
+      symbol: stock.symbol,
+      name: stock.name_zh,
+      exchange: stock.exchange,
+      industry: stock.industry_code,
+      aliases: stockAliases[stock.symbol] ?? [],
+    }));
+
+    if (rows.length > 0) return rows;
+
+    const aliasMatches = Object.entries(stockAliases)
+      .filter(([symbol, aliases]) =>
+        [symbol, ...aliases].some((alias) =>
+          alias.toLowerCase().includes(normalized.toLowerCase()),
+        ),
+      )
+      .map(([symbol]) => symbol);
+
+    if (aliasMatches.length === 0) return [];
+
+    const { data: aliasData, error: aliasError } = await supabase
+      .from('stocks')
+      .select('symbol, name_zh, exchange, industry_code')
+      .eq('is_active', true)
+      .in('symbol', aliasMatches)
+      .limit(12);
+
+    if (aliasError) throw aliasError;
+
+    return (aliasData ?? []).map((stock) => ({
+      symbol: stock.symbol,
+      name: stock.name_zh,
+      exchange: stock.exchange,
+      industry: stock.industry_code,
+      aliases: stockAliases[stock.symbol] ?? [],
+    }));
+  }
+
+  await delay(250);
+  const demoStocks: StockSearchResult[] = candidates.map((stock) => ({
+    symbol: stock.symbol,
+    name: stock.name,
+    exchange: 'TWSE',
+    industry: stock.industry,
+    aliases: stockAliases[stock.symbol] ?? [],
+  }));
+  return demoStocks.filter((stock) => matchesStockSearch(stock, normalized)).slice(0, 8);
 }
 
 export async function setWatchlistMembership(
