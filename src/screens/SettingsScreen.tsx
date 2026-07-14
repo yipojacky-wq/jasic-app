@@ -189,12 +189,12 @@ export function SettingsScreen() {
             value={authStatus.isRemembered ? '已啟用' : isLiveMode ? '未偵測到' : '示範模式'}
           />
           <SessionMetric
-            label="有效期限"
+            label="Access Token 到期"
             value={authStatus.expiresAt ? formatSessionExpiry(authStatus.expiresAt) : '由 Supabase 自動刷新'}
           />
         </View>
         <Text style={styles.sessionHint}>
-          若每次都要求 Email 驗證，請確認不是使用私密瀏覽、沒有清除 Safari/Chrome 網站資料，也沒有從設定頁登出。
+          Access token 到期前後會由 Supabase 自動續期；若每次都要求 Email 驗證，請確認不是使用私密瀏覽、沒有清除 Safari/Chrome 網站資料，也沒有從設定頁登出。
         </Text>
       </Card>
 
