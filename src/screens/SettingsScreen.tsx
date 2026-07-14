@@ -57,6 +57,11 @@ export function SettingsScreen() {
     queryKey: ['settings-overview'],
     queryFn: getSettingsOverview,
   });
+  const [authStatus, setAuthStatus] = useState({
+    email: '',
+    expiresAt: 0,
+    isRemembered: false,
+  });
   const [displayName, setDisplayName] = useState('');
   const [riskProfile, setRiskProfile] =
     useState<UserProfile['riskProfile']>('balanced');
@@ -72,6 +77,33 @@ export function SettingsScreen() {
     setDefaultHorizon(overview.data.profile.defaultHorizon);
     setAcceptTerms(Boolean(overview.data.profile.termsAcceptedAt));
   }, [overview.data]);
+
+  useEffect(() => {
+    const client = supabase;
+    if (!client || !isLiveMode) return;
+
+    const syncSession = async () => {
+      const { data } = await client.auth.getSession();
+      setAuthStatus({
+        email: data.session?.user.email ?? '',
+        expiresAt: data.session?.expires_at ?? 0,
+        isRemembered: Boolean(data.session?.refresh_token),
+      });
+    };
+
+    void syncSession();
+    const { data: listener } = client.auth.onAuthStateChange((_event, session) => {
+      setAuthStatus({
+        email: session?.user.email ?? '',
+        expiresAt: session?.expires_at ?? 0,
+        isRemembered: Boolean(session?.refresh_token),
+      });
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
 
   const save = useMutation({
     mutationFn: updateUserProfile,
@@ -132,6 +164,39 @@ export function SettingsScreen() {
           管理個人預設、確認資料新鮮度，並查看 JASIC 分數與資料來源的限制。
         </Text>
       </View>
+
+      <SectionHeader eyebrow="Login Session" title="登入狀態" />
+      <Card style={styles.sessionCard}>
+        <View style={styles.sessionTop}>
+          <View style={styles.sessionCopy}>
+            <Text style={styles.sessionTitle}>
+              {isLiveMode && authStatus.email ? '已登入並保持 Session' : '尚未偵測到登入 Session'}
+            </Text>
+            <Text style={styles.sessionText}>
+              {isLiveMode
+                ? '第一次 Email 驗證後，手機會保存登入狀態；只要沒有登出或清除瀏覽資料，下次開啟通常不需要重新驗證。'
+                : '目前是示範模式，不會連線正式登入 Session。'}
+            </Text>
+          </View>
+          <Badge tone={isLiveMode && authStatus.email ? 'positive' : 'warning'}>
+            {isLiveMode && authStatus.email ? '保持登入' : '未登入'}
+          </Badge>
+        </View>
+        <View style={styles.sessionGrid}>
+          <SessionMetric label="登入 Email" value={authStatus.email || data.profile.email || '未取得'} />
+          <SessionMetric
+            label="Session 保存"
+            value={authStatus.isRemembered ? '已啟用' : isLiveMode ? '未偵測到' : '示範模式'}
+          />
+          <SessionMetric
+            label="有效期限"
+            value={authStatus.expiresAt ? formatSessionExpiry(authStatus.expiresAt) : '由 Supabase 自動刷新'}
+          />
+        </View>
+        <Text style={styles.sessionHint}>
+          若每次都要求 Email 驗證，請確認不是使用私密瀏覽、沒有清除 Safari/Chrome 網站資料，也沒有從設定頁登出。
+        </Text>
+      </Card>
 
       <SectionHeader eyebrow="Profile" title="個人化設定" />
       <Card style={styles.formCard}>
@@ -374,12 +439,55 @@ export function SettingsScreen() {
   );
 }
 
+function SessionMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.sessionMetric}>
+      <Text style={styles.sessionMetricLabel}>{label}</Text>
+      <Text style={styles.sessionMetricValue}>{value}</Text>
+    </View>
+  );
+}
+
+function formatSessionExpiry(expiresAt: number) {
+  return new Date(expiresAt * 1000).toLocaleString('zh-TW', {
+    timeZone: 'Asia/Taipei',
+  });
+}
+
 const styles = StyleSheet.create({
   page: { gap: 22 },
   loader: { marginTop: 120 },
   header: { maxWidth: 760 },
   title: { color: colors.text, fontSize: 34, fontWeight: '900', marginTop: 12 },
   subtitle: { color: colors.textSoft, fontSize: 14, lineHeight: 22, marginTop: 8 },
+  sessionCard: { gap: 14 },
+  sessionTop: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  sessionCopy: { flex: 1 },
+  sessionTitle: { color: colors.text, fontSize: 18, fontWeight: '900' },
+  sessionText: { color: colors.textSoft, fontSize: 12, lineHeight: 19, marginTop: 5 },
+  sessionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  sessionMetric: {
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: 12,
+    flexBasis: 170,
+    flexGrow: 1,
+    padding: 12,
+  },
+  sessionMetricLabel: { color: colors.textSoft, fontSize: 10, fontWeight: '800' },
+  sessionMetricValue: { color: colors.text, fontSize: 13, fontWeight: '900', marginTop: 5 },
+  sessionHint: {
+    borderTopColor: colors.border,
+    borderTopWidth: 1,
+    color: colors.textSoft,
+    fontSize: 11,
+    lineHeight: 17,
+    paddingTop: 12,
+  },
   formCard: { gap: 16 },
   field: { gap: 7 },
   label: { color: colors.textSoft, fontSize: 12, fontWeight: '800' },
