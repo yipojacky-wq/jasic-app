@@ -21,6 +21,7 @@ jobs:
       - run: npm run doctor:score-governance
       - run: npm run doctor:production-hardening
       - run: npm run doctor:mobile-preview
+      - run: npm run build:web
       - run: npm run doctor:pwa
       - run: npm run doctor:final-readiness
       - run: npm run doctor:staging-env
@@ -28,4 +29,3 @@ jobs:
       - run: npm run typecheck
       - run: npm run typecheck:edge
       - run: npm test
-      - run: npm run build:web
