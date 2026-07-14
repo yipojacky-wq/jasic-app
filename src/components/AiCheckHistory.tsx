@@ -116,6 +116,7 @@ export function AiCheckHistory() {
         <HistoryList title="建議" items={selected.suggestions} tone="positive" />
 
         <View style={styles.audit}>
+          {/* AI Governance Audit */}
           <Text style={styles.auditTitle}>AI 治理稽核</Text>
           <AuditLine label="模型" value={selected.modelIdentifier} />
           <AuditLine label="提示版本" value={selected.promptVersion} />
@@ -123,7 +124,7 @@ export function AiCheckHistory() {
           <AuditLine label="規則版本" value={selected.ruleVersion} />
           <AuditLine
             label="允許動作"
-            value={selected.allowedActions.map(actionLabel).join('、')}
+            value={`${selected.allowedActions.map(actionLabel).join('、')}（${selected.allowedActions.join(', ')}）`}
           />
           <AuditLine label="產生時間" value={formatDateTime(selected.createdAt)} />
         </View>
