@@ -18,7 +18,7 @@ import {
   aiCheckShareText,
 } from '../lib/researchShare';
 import { currentWebOrigin, shareResearch } from '../lib/shareResearch';
-import { getUserPositions, getUserProfile, runAiCheck } from '../services/api';
+import { getUserPositions, getUserProfile, runAiCheck, searchStocks } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { colors } from '../theme';
 import type { InvestmentHorizon, UserProfile } from '../types';
@@ -54,6 +54,7 @@ export function AiCheckScreen() {
     useState<UserProfile['riskProfile']>('balanced');
   const [submitted, setSubmitted] = useState(false);
   const [shareStatus, setShareStatus] = useState<string | null>(null);
+  const normalizedSymbolKeyword = symbol.trim();
   const profile = useQuery({
     queryKey: ['user-profile'],
     queryFn: getUserProfile,
@@ -61,6 +62,12 @@ export function AiCheckScreen() {
   const positions = useQuery({
     queryKey: ['user-positions'],
     queryFn: getUserPositions,
+  });
+  const stockSearch = useQuery({
+    queryKey: ['ai-check-stock-search', normalizedSymbolKeyword],
+    queryFn: () => searchStocks(normalizedSymbolKeyword),
+    enabled: normalizedSymbolKeyword.length > 0,
+    staleTime: 60_000,
   });
   const mutation = useMutation({
     mutationFn: runAiCheck,
@@ -147,13 +154,47 @@ export function AiCheckScreen() {
             <TextInput
               accessibilityLabel="股票代號"
               autoCapitalize="characters"
-              maxLength={4}
-              onChangeText={(value) => setSymbol(value.replace(/\D/g, ''))}
-              placeholder="例如 2330"
+              autoCorrect={false}
+              inputMode="search"
+              onChangeText={(value) => setSymbol(value.toUpperCase())}
+              placeholder="例如：2330、台積電、TSMC"
               placeholderTextColor="#9AA5B5"
               style={styles.input}
               value={symbol}
             />
+            {normalizedSymbolKeyword.length ? (
+              <View style={styles.stockSearchResults}>
+                {stockSearch.isFetching ? (
+                  <ActivityIndicator color={colors.primary} />
+                ) : stockSearch.error ? (
+                  <Text style={styles.stockSearchMessage}>{stockSearch.error.message}</Text>
+                ) : stockSearch.data?.length ? (
+                  stockSearch.data.slice(0, 5).map((stock) => (
+                    <Pressable
+                      key={`${stock.exchange}-${stock.symbol}`}
+                      onPress={() => {
+                        setSymbol(stock.symbol);
+                        setSubmitted(false);
+                      }}
+                      style={styles.stockSearchRow}
+                    >
+                      <View>
+                        <Text style={styles.stockSearchName}>{stock.name}</Text>
+                        <Text style={styles.stockSearchMeta}>
+                          {stock.symbol} · {stock.exchange}
+                          {stock.industry ? ` · ${stock.industry}` : ''}
+                        </Text>
+                      </View>
+                      <Badge tone="info">選取</Badge>
+                    </Pressable>
+                  ))
+                ) : (
+                  <Text style={styles.stockSearchMessage}>
+                    找不到符合的股票，請改用股票代號或完整公司名稱。
+                  </Text>
+                )}
+              </View>
+            ) : null}
             {submitted && validation.errors.symbol ? (
               <Text style={styles.fieldError}>{validation.errors.symbol}</Text>
             ) : null}
@@ -411,6 +452,21 @@ const styles = StyleSheet.create({
     minHeight: 46,
     paddingHorizontal: 13,
   },
+  stockSearchResults: { gap: 8 },
+  stockSearchRow: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'space-between',
+    padding: 10,
+  },
+  stockSearchName: { color: colors.text, fontSize: 13, fontWeight: '900' },
+  stockSearchMeta: { color: colors.textSoft, fontSize: 10, marginTop: 3 },
+  stockSearchMessage: { color: colors.textSoft, fontSize: 11, lineHeight: 17 },
   optionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   option: {
     backgroundColor: colors.canvas,
