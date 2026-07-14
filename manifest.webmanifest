@@ -1,0 +1,19 @@
+{
+  "name": "JASIC Stock Intelligence",
+  "short_name": "JASIC",
+  "description": "JASIC stock intelligence dashboard, discovery funnel, AI check and risk reports.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3F6FA",
+  "theme_color": "#0B1220",
+  "icons": [
+    {
+      "src": "./pwa-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
